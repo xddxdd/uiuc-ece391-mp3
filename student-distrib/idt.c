@@ -33,4 +33,7 @@ void idt_init() {
     SET_IDT_ENTRY(idt[0x11], exception_alignment_check);
     SET_IDT_ENTRY(idt[0x12], exception_machine_check);
     SET_IDT_ENTRY(idt[0x13], exception_simd_fpe);
+    // idt[0x14 to 0x1F] is reserved by Intel
+    SET_IDT_ENTRY(idt[VECTOR_DEVICE_RTC], interrupt_rtc_wrap);
+    SET_IDT_ENTRY(idt[VECTOR_DEVICE_KEYBOARD], interrupt_keyboard_wrap);
 }
