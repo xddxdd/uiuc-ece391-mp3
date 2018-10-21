@@ -1,7 +1,6 @@
 #ifndef _IDT_H_
 #define _IDT_H_
 
-#include "constants.h"
 #include "x86_desc.h"
 #include "exceptions.h"
 
