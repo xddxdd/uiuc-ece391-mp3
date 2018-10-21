@@ -1,0 +1,5 @@
+*.o
+student-distrib/Makefile.dep
+student-distrib/bootimg
+student-distrib/debug.sh
+student-distrib/mp3.img
