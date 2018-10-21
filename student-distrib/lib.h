@@ -153,4 +153,6 @@ do {                                    \
     );                                  \
 } while (0)
 
+void test_interrupts();
+
 #endif /* _LIB_H */

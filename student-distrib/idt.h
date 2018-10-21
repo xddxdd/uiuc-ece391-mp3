@@ -2,7 +2,6 @@
 #define _IDT_H_
 
 #include "exceptions.h"
-#include "interrupts.h"
 #include "interrupt_wrap.h"
 #include "x86_desc.h"
 

@@ -2,6 +2,8 @@
 #define _EXCEPTIONS_H_
 
 #ifndef ASM
+    #include "lib.h"
+
     #define EXCEPTION_HEADER(name, message) \
         void name();
 

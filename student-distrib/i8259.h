@@ -9,8 +9,10 @@
 #include "types.h"
 
 /* Ports that each PIC sits on */
-#define MASTER_8259_PORT    0x20
-#define SLAVE_8259_PORT     0xA0
+#define MASTER_8259_CMD     0x20
+#define MASTER_8259_DATA    (MASTER_8259_CMD + 1)
+#define SLAVE_8259_CMD      0xA0
+#define SLAVE_8259_DATA     (SLAVE_8259_CMD + 1)
 
 /* Initialization control words to init each PIC.
  * See the Intel manuals for details on the meaning
@@ -26,6 +28,9 @@
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI                 0x60
+
+#define I8259_PORT_COUNT    8
+#define SLAVE_8259_PORT     2
 
 /* Externally-visible functions */
 

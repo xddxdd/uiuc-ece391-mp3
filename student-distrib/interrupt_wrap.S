@@ -12,5 +12,5 @@
         popal                     ;\
         iret
 
-INTERRUPT_WRAP(interrupt_rtc_wrap, interrupt_rtc);
-INTERRUPT_WRAP(interrupt_keyboard_wrap, interrupt_keyboard);
+INTERRUPT_WRAP(interrupt_rtc_wrap, rtc_interrupt);
+INTERRUPT_WRAP(interrupt_keyboard_wrap, keyboard_interrupt);
