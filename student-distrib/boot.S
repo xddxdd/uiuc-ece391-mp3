@@ -5,6 +5,7 @@
 
 #include "multiboot.h"
 #include "x86_desc.h"
+#include "idt.h"
 
 .text
 
@@ -25,13 +26,19 @@ _start:
 
 continue:
     # Load the GDT, by Yuhui Xu
-    # TODO: add comment for all these mess
-    movl gdt_ptr, %eax
-    movl %eax, lgdt_start
-    movl ldt, %eax
-    subl gdt_ptr, %eax
-    movl %eax, lgdt_limit
-    lgdt lgdt_limit
+    lgdt gdt_desc_ptr
+
+    # Initialize IDT, by Yuhui Xu
+    pushl %eax
+    pushl %ecx
+    pushl %edx
+    call idt_init
+    popl %edx
+    popl %ecx
+    popl %eax
+
+    # Load IDT, by Yuhui Xu
+    lidt idt_desc_ptr
 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
@@ -61,7 +68,3 @@ keep_going:
 halt:
     hlt
     jmp     halt
-
-# Variable for LGDT
-lgdt_limit: .byte   0x00    # Stores the GDT limit
-lgdt_start: .int    0x0000  # Stores the GDT start pos
