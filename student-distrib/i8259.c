@@ -11,9 +11,6 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
-    outb(0xFF, MASTER_8259_DATA);
-    outb(0xFF, SLAVE_8259_DATA);
-
     outb(ICW1, MASTER_8259_CMD);
     outb(ICW1, SLAVE_8259_CMD);
     outb(ICW2_MASTER, MASTER_8259_DATA);
@@ -27,6 +24,8 @@ void i8259_init(void) {
     slave_mask = 0xFF;
     outb(master_mask, MASTER_8259_DATA);
     outb(slave_mask, SLAVE_8259_DATA);
+
+    enable_irq(SLAVE_8259_PORT);
 }
 
 /* Enable (unmask) the specified IRQ */
@@ -63,6 +62,7 @@ void send_eoi(uint32_t irq_num) {
     if(irq_num > I8259_PORT_COUNT) {
         data |= irq_num - 8;
         outb(data, SLAVE_8259_CMD);
+        send_eoi(SLAVE_8259_PORT);
     } else {
         data |= irq_num;
         outb(data, MASTER_8259_CMD);

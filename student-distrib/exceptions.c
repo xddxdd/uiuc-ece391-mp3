@@ -1,6 +1,7 @@
 #include "exceptions.h"
 
 EXCEPTION_HANDLER(exception_divide_by_zero, "Divide by 0");
+EXCEPTION_HANDLER(exception_debug, "Debug");
 EXCEPTION_HANDLER(exception_nmi_interrupt, "NMI Interrupt");
 EXCEPTION_HANDLER(exception_breakpoint, "Breakpoint reached");
 EXCEPTION_HANDLER(exception_overflow, "Overflow");

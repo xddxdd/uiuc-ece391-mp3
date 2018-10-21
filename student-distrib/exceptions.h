@@ -14,6 +14,7 @@
         }
 
     EXCEPTION_HEADER(exception_divide_by_zero, "Divide by 0");
+    EXCEPTION_HEADER(exception_debug, "Debug");
     EXCEPTION_HEADER(exception_nmi_interrupt, "NMI Interrupt");
     EXCEPTION_HEADER(exception_breakpoint, "Breakpoint reached");
     EXCEPTION_HEADER(exception_overflow, "Overflow");

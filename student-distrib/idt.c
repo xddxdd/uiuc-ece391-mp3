@@ -4,7 +4,7 @@ void idt_init() {
     int i;
     for(i = 0; i < NUM_VEC; i++) {
         idt[i].present = 1;
-        idt[i].dpl = 0;
+        idt[i].dpl = (i == VECTOR_SYSTEM_CALL) ? 3 : 0;
         idt[i].reserved0 = 0;
         idt[i].reserved1 = 1;
         idt[i].reserved2 = 1;
@@ -14,7 +14,7 @@ void idt_init() {
     }
 
     SET_IDT_ENTRY(idt[0x00], exception_divide_by_zero);
-    // idt[0x01] is reserved by Intel
+    SET_IDT_ENTRY(idt[0x01], exception_debug);
     SET_IDT_ENTRY(idt[0x02], exception_nmi_interrupt);
     SET_IDT_ENTRY(idt[0x03], exception_breakpoint);
     SET_IDT_ENTRY(idt[0x04], exception_overflow);
