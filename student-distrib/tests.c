@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "rtc.h"	// Added by jinghua3.
 
 #define PASS 1
 #define FAIL 0
@@ -58,6 +59,7 @@ int idt_test(){
  */
 void division_by_zero_test(){
 	TEST_HEADER;
+
 	int testVar;
 	int one = 1;
 	int zero = 0;
@@ -156,9 +158,12 @@ int kerMem_paging_test(){
 int paging_struct_test(){
 	TEST_HEADER;
 	
-	
 
-	return PASS;
+
+
+	return FAIL;
+
+	//return PASS;
 }
 
 
@@ -177,6 +182,7 @@ void rtc_test(){
 	rtc_init();
 	rtc_set_freq(4);
 }
+
 
 
 /* Checkpoint 2 tests */
@@ -199,4 +205,8 @@ void launch_tests(){
 	//deref_nonexist_page_test();
 	//rtc_test();
 
+	// Checkpoint 2
+	// Checkpoint 3
+	// Checkpoint 4
+	// Checkpoint 5
 }
