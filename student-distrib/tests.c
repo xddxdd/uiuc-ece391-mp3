@@ -47,6 +47,54 @@ int idt_test(){
 
 // add more tests here
 
+/* Division by zero Test - Added by jinghua3.
+ * 
+ * Test exception handler division by zero.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: freezes kernel.
+ * Coverage: Exception handler.
+ * Files: exceptions.c
+ */
+void division_by_zero_test(){
+	TEST_HEADER;
+	int testVar;
+	int one = 1;
+	int zero = 0;
+	printf("Now testing division by zero!");
+	testVar = one/zero;
+}
+
+/* Dereferencing NULL test - Added by jinghua3.
+ *
+ * Attempt to dereference NULL
+ * Inputs: none
+ * Outputs: none
+ * Side Effects: freezes kernel.
+ * Coverage: Exception hander.
+ * Files: exceptions.c
+ */
+void dereferencing_null_test(){
+	TEST_HEADER;
+
+	int* ptr = NULL;
+	int testVar;
+	printf("Now testing dereferencing null pointer!");
+	testVar = *(ptr);
+}
+
+
+/* Paging Test - Added by jinghua3.
+ * 
+ * 
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: 
+ * Files: 
+ */
+
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -57,4 +105,9 @@ int idt_test(){
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
+
+	// Checkpoint 1 - Added by jinghua3.
+	dereferencing_null_test();
+	division_by_zero_test();
+
 }
