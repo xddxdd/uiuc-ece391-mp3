@@ -16,6 +16,14 @@
 #define KERNEL_TSS  0x0030
 #define KERNEL_LDT  0x0038
 
+// added by Zhenbang Wu
+// Some constants
+// Number of Page Directory pd_entries
+#define NUM_PDE       1024
+#define NUM_PTE       1024
+#define PAGE_SIZE_4KB 0x1000
+// added by Zhenbang Wu
+
 /* Size of the task state segment (TSS) */
 #define TSS_SIZE    104
 
@@ -125,6 +133,76 @@ extern uint32_t ldt;
 extern uint32_t tss_size;
 extern seg_desc_t tss_desc_ptr;
 extern tss_t tss;
+
+// added by Zhenbang Wu
+
+// Page Directory Entry for 4 KB Page Table (goes into the PD)
+typedef union pde_4KB_t {
+  uint32_t val;
+  struct {
+    uint32_t PTB_addr        :20;
+    uint32_t avail           :3;
+    uint32_t global          :1;
+    uint32_t page_size       :1;
+    uint32_t reserved        :1;
+    uint32_t accessed        :1;
+    uint32_t cache_disabled  :1;
+    uint32_t write_through   :1;
+    uint32_t user_supervisor :1;
+    uint32_t read_write      :1;
+    uint32_t present         :1;
+  } __attribute__ ((packed));
+} pde_4KB_t;
+
+// Page Directory Entry for 4 MB Page (goes into the PD)
+typedef union pde_4MB_t {
+  uint32_t val;
+  struct {
+    uint32_t PB_addr         :10;
+    uint32_t reserved        :9;
+    uint32_t pat             :1;
+    uint32_t avail           :3;
+    uint32_t global          :1;
+    uint32_t page_size       :1;
+    uint32_t dirty           :1;
+    uint32_t accessed        :1;
+    uint32_t cache_disabled  :1;
+    uint32_t write_through   :1;
+    uint32_t user_supervisor :1;
+    uint32_t read_write      :1;
+    uint32_t present         :1;
+  } __attribute__ ((packed));
+} pde_4MB_t;
+
+// General Page Directory Entry
+typedef union pde_t {
+	pde_4KB_t pde_KB;
+	pde_4MB_t pde_MB;
+} pde_t;
+
+// Page Table Entry for 4 KB Page(goes into the PD)
+typedef union pte_4KB_t {
+      uint32_t val;
+      struct {
+          uint32_t PB_addr         :20;
+          uint32_t avail           :3;
+          uint32_t global          :1;
+          uint32_t pat             :1;
+          uint32_t dirty           :1;
+          uint32_t accessed        :1;
+          uint32_t cache_disabled  :1;
+          uint32_t write_through   :1;
+          uint32_t user_supervisor :1;
+          uint32_t read_write      :1;
+          uint32_t present         :1;
+      } __attribute__ ((packed));
+} pte_4KB_t;
+
+// Variables for Page Directory and Page Table, aligned on 4kB boundaries
+extern pde_t page_directory[NUM_PDE] __attribute__((aligned (PAGE_SIZE_4KB)));
+extern pte_4KB_t page_table[NUM_PTE] __attribute__((aligned (PAGE_SIZE_4KB)));
+
+// added by Zhenbang Wu
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim)                          \

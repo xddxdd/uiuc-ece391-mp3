@@ -11,6 +11,7 @@
 
 #include "keyboard.h"
 #include "rtc.h"
+#include "paging.h"
 
 #define RUN_TESTS
 
@@ -146,6 +147,9 @@ void entry(unsigned long magic, unsigned long addr) {
      * PIC, any other initialization stuff... */
     keyboard_init();
     //rtc_init();
+
+    // initial memory
+    init_paging();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

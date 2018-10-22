@@ -14,6 +14,8 @@
 
 .globl gdt_desc_ptr # Make GDT pointer available to boot.S
 
+.globl page_directory, page_table
+
 .align 4
 
 
@@ -113,3 +115,26 @@ _idt:
     .endr
 
 idt_bottom:
+
+#Page Directory
+.align 0x1000
+page_directory:
+_page_directory:
+
+	.rept 1024
+	.long 0x0
+	.endr
+
+page_directory_bottom:
+
+
+#Page Table
+.align 0x1000
+page_table:
+_page_table:
+
+	.rept 1024
+	.long 0x0
+	.endr
+
+page_table_bottom:
