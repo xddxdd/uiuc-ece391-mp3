@@ -47,13 +47,13 @@ int idt_test(){
 
 // add more tests here
 
-/* Division by zero Test - Added by jinghua3.
+/* Division by Zero Test - Added by jinghua3.
  * 
  * Test exception handler division by zero.
  * Inputs: None
  * Outputs: None
- * Side Effects: freezes kernel.
- * Coverage: Exception handler.
+ * Side Effects: freeze kernel.
+ * Coverage: IDT Exception handler.
  * Files: idt.c
  */
 void division_by_zero_test(){
@@ -61,16 +61,17 @@ void division_by_zero_test(){
 	int testVar;
 	int one = 1;
 	int zero = 0;
-	printf("Now testing division by zero!");
 	testVar = one/zero;
 }
 
-/* Dereferencing NULL test - Added by jinghua3.
+
+
+/* Dereferencing NULL Test - Added by jinghua3.
  *
- * Attempt to dereference NULL
+ * Attempt to dereference NULL.
  * Inputs: none
  * Outputs: none
- * Side Effects: freezes kernel.
+ * Side Effects: freeze kernel.
  * Coverage: Exception hander.
  * Files: idt.c
  */
@@ -79,20 +80,103 @@ void dereferencing_null_test(){
 
 	int* ptr = NULL;
 	int testVar;
-	printf("Now testing dereferencing null pointer!");
+	testVar = *(ptr);
+}
+
+/* Dereferencing in Non-exist Page Test - Added by jinghua3.
+ *
+ * Attempt to dereference an address in a nonexistent page, should trigger page fault.
+ * For checkpoint 1, linear addr larger than 8MB should not be present.
+ * So trying to dereference a linear addr larger than 0x800000 should trigger page fault.
+ * Inputs: none
+ * Outputs: none
+ * Side Effects: freeze kernel.
+ * Coverage: Exception hander.
+ * Files: idt.c
+ */
+void deref_nonexist_page_test(){
+	TEST_HEADER;
+
+	int* ptr = (int*)(0x800000 + 8);
+	int testVar;
 	testVar = *(ptr);
 }
 
 
-/* Paging Test - Added by jinghua3.
+/* Video Memory Paging Test - Added by jinghua3.
  * 
- * 
+ * Dereferencing linear address in range for video memory, 
+ * particularly just choose one address randomly, 0xB8000 + 8.
+ * (video mem starts at 0xB8000)
  * Inputs: None
  * Outputs: PASS/FAIL
  * Side Effects: None
+ * Coverage: Paging in range of Video Memory.
+ * Files: 
+ */
+int videoMem_paging_test(){
+	TEST_HEADER;
+
+	int * ptr = (int*)(0xB8000 + 8);
+	int testVar;
+	testVar = *ptr;	
+	return PASS;
+}
+
+/* Kernel Memory Paging Test - Added by jinghua3.
+ * 
+ * Dereferencing linear address in range for kernel, 
+ * particularly just choose one address randomly, 0x400000 + 8.
+ * (kernel addresses start at 0x400000)
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: Paging in range of Kernel Memory.
+ * Files: 
+ */
+int kerMem_paging_test(){
+	TEST_HEADER;
+	
+	int * ptr = (int*)(0x400000 + 8);
+	int testVar;
+	testVar = *ptr;	
+	return PASS;
+}
+
+
+/* Paging Structure Test - Added by jinghua3.
+ *
+ * Test whether the page table has been initialized
+ * Input: none
+ * Output: PASS/FAIL
+ * Side Effects: none
  * Coverage: 
  * Files: 
  */
+int paging_struct_test(){
+	TEST_HEADER;
+	
+	
+
+	return PASS;
+}
+
+
+/* RTC Test - Added by jinghua3.
+ * 
+ * Enable RTC.
+ * Input: None.
+ * Output: Should print "tick" on screen in a particular rate.
+ * Side Effects: none
+ * Coverage: RTC
+ * Files: rtc.c
+ */
+void rtc_test(){
+	TEST_HEADER;
+
+	rtc_init();
+	rtc_set_freq(4);
+}
 
 
 /* Checkpoint 2 tests */
@@ -107,7 +191,12 @@ void launch_tests(){
 	// launch your tests here
 
 	// Checkpoint 1 - Added by jinghua3.
-	dereferencing_null_test();
-	division_by_zero_test();
+	TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
+	TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
+	TEST_OUTPUT("Paging Structure Test", paging_struct_test());
+	//dereferencing_null_test();
+	//division_by_zero_test();
+	//deref_nonexist_page_test();
+	//rtc_test();
 
 }
