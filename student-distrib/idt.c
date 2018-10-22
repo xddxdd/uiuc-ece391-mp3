@@ -3,13 +3,14 @@
 void idt_init() {
     int i;
     for(i = 0; i < NUM_VEC; i++) {
-        idt[i].present = 1;
+        idt[i].present = 0;
         idt[i].dpl = (i == VECTOR_SYSTEM_CALL) ? 3 : 0;
         idt[i].reserved0 = 0;
         idt[i].reserved1 = 1;
         idt[i].reserved2 = 1;
         idt[i].reserved3 = 1;
         idt[i].reserved4 = 0;
+        idt[i].size = 1;
         idt[i].seg_selector = KERNEL_CS;
     }
 
