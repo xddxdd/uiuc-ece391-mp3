@@ -2,28 +2,22 @@
 
 #include "interrupt_wrap.h"
 
+/* INTERRUPT_WRAP(name, func)
+ * @input: name - name of interrupt wrapper function
+ *         func - the function to be wrapped
+ * @output: a function in name of *name*, ready to be inserted into IDT
+ * @description: Wrap a function in PUSH/POPAL, PUSH/POPFL, IRET calls,
+ *               so the interrupt can be handled normally
+ */
 #define INTERRUPT_WRAP(name, func) \
     .globl name                   ;\
     name:                         ;\
-        cli                       ;\
-        pushal                    ;\
-        pushfl                    ;\
+        pushal                    ;\    // Save all registers
+        pushfl                    ;\    // and flags
         call func                 ;\
-        popfl                     ;\
-        popal                     ;\
-        sti                       ;\
-        iret
+        popfl                     ;\    // Restore all flags
+        popal                     ;\    // and registers
+        iret                            // RET exclusively for interrupt handlers
 
-//INTERRUPT_WRAP(interrupt_rtc_wrap, rtc_interrupt);
+INTERRUPT_WRAP(interrupt_rtc_wrap, rtc_interrupt);
 INTERRUPT_WRAP(interrupt_keyboard_wrap, keyboard_interrupt);
-
-.globl interrupt_rtc_wrap
-interrupt_rtc_wrap:
-    cli
-    pushal
-    pushfl
-    call rtc_interrupt
-    popfl
-    popal
-    sti
-    iret

@@ -154,16 +154,15 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    rtc_set_freq(2);
+    rtc_set_freq(2);    // Set frequency after initialization,
+                        // because it includes CLI and STI
 
 #ifdef RUN_TESTS
     /* Run tests */
-    //launch_tests();
+    launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 
-    while(1) {}
-
     /* Spin (nicely, so we don't chew up cycles) */
-    //asm volatile (".1: hlt; jmp .1;");
+    asm volatile (".1: hlt; jmp .1;");
 }

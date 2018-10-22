@@ -169,7 +169,9 @@ extern idt_desc_t idt[NUM_VEC];
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;
 
-/* Sets runtime parameters for an IDT entry */
+/* Sets runtime parameters for an IDT entry
+ * I changed this to only set IDT entry as present when offset is set
+ */
 #define SET_IDT_ENTRY(str, handler)                              \
 do {                                                             \
     str.present = 1;                                             \
