@@ -42,17 +42,21 @@ void exception_handler_real(char* message) {
     for(y = 0; y < AQUA_HEIGHT; y++) {
         for(x = 0; x < AQUA_WIDTH; x++) {
             // Loop through every pixel of Aqua
-            vga_text_set_color(
-                x + SCREEN_WIDTH - AQUA_WIDTH,  // Bottom right of the screen
-                y + SCREEN_HEIGHT - AQUA_HEIGHT,
-                aqua[x * AQUA_HEIGHT + y],  // Set foreground and background color
-                aqua[x * AQUA_HEIGHT + y]   // to be the same
-            );
-            vga_text_set_character(
-                x + SCREEN_WIDTH - AQUA_WIDTH,  // Bottom right of the screen
-                y + SCREEN_HEIGHT - AQUA_HEIGHT,
-                ' '                         // Clear the character
-            );
+            if(aqua[x * AQUA_HEIGHT + y] == 0) {    // 0 references BLACK color in VGA text
+                vga_text_set_color(
+                    x + SCREEN_WIDTH - AQUA_WIDTH,  // Bottom right of the screen
+                    y + SCREEN_HEIGHT - AQUA_HEIGHT,
+                7, 0   // 0 references BLACK, 15 references WHITE
+                            // make white text on black background
+                );
+            } else {
+                vga_text_set_color(
+                    x + SCREEN_WIDTH - AQUA_WIDTH,  // Bottom right of the screen
+                    y + SCREEN_HEIGHT - AQUA_HEIGHT,
+                    aqua[x * AQUA_HEIGHT + y],  // Set foreground and background color
+                    aqua[x * AQUA_HEIGHT + y]   // to be the same
+                );
+            }
         }
     }
 

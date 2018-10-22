@@ -75,5 +75,5 @@ int exception_test() {
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	//TEST_OUTPUT("exception_test", exception_test());
+	TEST_OUTPUT("exception_test", exception_test());
 }
