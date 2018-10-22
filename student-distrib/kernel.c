@@ -154,7 +154,7 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    rtc_set_freq(4);
+    rtc_set_freq(2);
 
 #ifdef RUN_TESTS
     /* Run tests */

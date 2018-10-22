@@ -60,7 +60,7 @@ void disable_irq(uint32_t irq_num) {
 void send_eoi(uint32_t irq_num) {
     if(irq_num >= 2 * I8259_PORT_COUNT) return;
     uint8_t data = EOI;
-    if(irq_num > I8259_PORT_COUNT) {
+    if(irq_num >= I8259_PORT_COUNT) {
         data |= irq_num - 8;
         outb(data, SLAVE_8259_CMD);
         send_eoi(SLAVE_8259_PORT);
