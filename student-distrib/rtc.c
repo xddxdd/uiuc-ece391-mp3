@@ -61,7 +61,7 @@ void rtc_set_freq(uint16_t freq) {
  */
 void rtc_interrupt() {
     //test_interrupts();
-
+    printf("tick! ");
     // Read from RTC register C, so it can keep sending interrupts
     outb(RTC_REG_C, RTC_PORT_CMD); // select register C
     inb(RTC_PORT_DATA);		       // just throw away contents

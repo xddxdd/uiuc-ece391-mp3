@@ -182,8 +182,8 @@ int paging_struct_test(){
 		printf("\n page directory first two entries not all present. \n");
 		return FAIL;
 	}
-	// test some page table entries in the first page table, just randomly choose indices 0,1,1000.
-	if(page_table[0].present!=1 || page_table[1].present!=1 || page_table[1000].present!=1){
+	// test some page table entries in the first page table, just randomly choose indices 1,20,1000.
+	if(page_table[1].present!=1 || page_table[20].present!=1 || page_table[1000].present!=1){
 		printf("\n page table entries are not all present. \n");
 		return FAIL;
 	}
