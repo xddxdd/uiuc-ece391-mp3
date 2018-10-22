@@ -17,7 +17,7 @@ void init_paging()
   for (index = 0; index < NUM_PTE; index++)
   {
     // initially, clear all flags
-    page_table[index].present = 1;
+    page_table[index].present = (index == 0) ? 0 : 1;
     page_table[index].read_write = 0;
     page_table[index].user_supervisor = 0;
     page_table[index].write_through = 0;
