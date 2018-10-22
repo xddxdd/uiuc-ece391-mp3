@@ -2,12 +2,10 @@
 
 void rtc_init() {
     // From https://wiki.osdev.org/RTC
-    outb(0x70, 0x8B);		// select register B, and disable NMI
-    char prev = inb(0x71);	// read the current value of register B
-    outb(0x70, 0x8B);		// set the index again (a read will reset the index to register D)
-    outb(0x71, prev | 0x40);// write the previous value ORed with 0x40. This turns on bit 6 of register B
-
-    rtc_set_freq(2);
+    outb(RTC_REG_B, RTC_PORT_CMD);		// select register B, and disable NMI
+    char prev = inb(RTC_PORT_DATA);	// read the current value of register B
+    outb(RTC_REG_B, RTC_PORT_CMD);		// set the index again (a read will reset the index to register D)
+    outb(prev | 0x40, RTC_PORT_DATA);// write the previous value ORed with 0x40. This turns on bit 6 of register B
 
     enable_irq(RTC_IRQ);
 }
@@ -32,22 +30,19 @@ void rtc_set_freq(uint16_t freq) {
     uint8_t new_freq = rtc_freq_to_config(freq);
     uint8_t old_freq;
     cli();
-    outb(0x70, 0x8A);
-    old_freq = inb(0x71);
-    outb(0x70, 0x8A);
-    outb(0x71, (old_freq & 0xF0) | new_freq);
+    outb(RTC_REG_A, RTC_PORT_CMD);
+    old_freq = inb(RTC_PORT_DATA);
+    outb(RTC_REG_A, RTC_PORT_CMD);
+    outb((old_freq & 0xF0) | new_freq, RTC_PORT_DATA);
     sti();
 }
 
 void rtc_interrupt() {
-    disable_irq(RTC_IRQ);
-
     //test_interrupts();
     printf("tick ");
 
-    outb(0x70, 0x0C);	// select register C
-    inb(0x71);		// just throw away contents
+    outb(RTC_REG_C, RTC_PORT_CMD);	// select register C
+    inb(RTC_PORT_DATA);		// just throw away contents
 
     send_eoi(RTC_IRQ);
-    enable_irq(RTC_IRQ);
 }
