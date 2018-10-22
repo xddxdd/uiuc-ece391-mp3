@@ -140,17 +140,17 @@ extern tss_t tss;
 typedef union pde_4KB_t {
   uint32_t val;
   struct {
-    uint32_t PTB_addr        :20;
-    uint32_t avail           :3;
-    uint32_t global          :1;
-    uint32_t page_size       :1;
-    uint32_t reserved        :1;
-    uint32_t accessed        :1;
-    uint32_t cache_disabled  :1;
-    uint32_t write_through   :1;
-    uint32_t user_supervisor :1;
-    uint32_t read_write      :1;
-    uint32_t present         :1;
+      uint32_t present         :1;
+      uint32_t read_write      :1;
+      uint32_t user_supervisor :1;
+      uint32_t write_through   :1;
+      uint32_t cache_disabled  :1;
+      uint32_t accessed        :1;
+      uint32_t reserved        :1;
+      uint32_t page_size       :1;
+      uint32_t global          :1;
+      uint32_t avail           :3;
+      uint32_t PTB_addr        :20;
   } __attribute__ ((packed));
 } pde_4KB_t;
 
@@ -158,19 +158,19 @@ typedef union pde_4KB_t {
 typedef union pde_4MB_t {
   uint32_t val;
   struct {
-    uint32_t PB_addr         :10;
-    uint32_t reserved        :9;
-    uint32_t pat             :1;
-    uint32_t avail           :3;
-    uint32_t global          :1;
-    uint32_t page_size       :1;
-    uint32_t dirty           :1;
-    uint32_t accessed        :1;
-    uint32_t cache_disabled  :1;
-    uint32_t write_through   :1;
-    uint32_t user_supervisor :1;
-    uint32_t read_write      :1;
-    uint32_t present         :1;
+      uint32_t present         :1;
+      uint32_t read_write      :1;
+      uint32_t user_supervisor :1;
+      uint32_t write_through   :1;
+      uint32_t cache_disabled  :1;
+      uint32_t accessed        :1;
+      uint32_t dirty           :1;
+      uint32_t page_size       :1;
+      uint32_t global          :1;
+      uint32_t avail           :3;
+      uint32_t pat             :1;
+      uint32_t reserved        :9;
+      uint32_t PB_addr         :10;
   } __attribute__ ((packed));
 } pde_4MB_t;
 
@@ -184,17 +184,17 @@ typedef union pde_t {
 typedef union pte_4KB_t {
       uint32_t val;
       struct {
-          uint32_t PB_addr         :20;
-          uint32_t avail           :3;
-          uint32_t global          :1;
-          uint32_t pat             :1;
-          uint32_t dirty           :1;
-          uint32_t accessed        :1;
-          uint32_t cache_disabled  :1;
-          uint32_t write_through   :1;
-          uint32_t user_supervisor :1;
-          uint32_t read_write      :1;
           uint32_t present         :1;
+          uint32_t read_write      :1;
+          uint32_t user_supervisor :1;
+          uint32_t write_through   :1;
+          uint32_t cache_disabled  :1;
+          uint32_t accessed        :1;
+          uint32_t dirty           :1;
+          uint32_t pat             :1;
+          uint32_t global          :1;
+          uint32_t avail           :3;
+          uint32_t PB_addr         :20;
       } __attribute__ ((packed));
 } pte_4KB_t;
 
