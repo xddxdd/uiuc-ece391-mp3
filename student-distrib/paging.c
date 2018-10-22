@@ -4,6 +4,11 @@
 
 #include "paging.h"
 
+/* void init_paging()
+ * @output: page table and page directory initialized.
+ * @description: initialize page table and page directory table to utilize
+ *               virtual memory.
+ */
 void init_paging()
 {
   // loop variable
