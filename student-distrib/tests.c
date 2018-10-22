@@ -70,7 +70,7 @@ void division_by_zero_test(){
 
 /* Dereferencing NULL Test - Added by jinghua3.
  *
- * Attempt to dereference NULL.
+ * Attempt to dereference NULL, should trigger page fault.
  * Inputs: none
  * Outputs: none
  * Side Effects: freeze kernel.
@@ -114,7 +114,7 @@ void deref_nonexist_page_test(){
  * Outputs: PASS/FAIL
  * Side Effects: None
  * Coverage: Paging in range of Video Memory.
- * Files: 
+ * Files: paging.c
  */
 int videoMem_paging_test(){
 	TEST_HEADER;
@@ -134,7 +134,7 @@ int videoMem_paging_test(){
  * Outputs: PASS/FAIL
  * Side Effects: None
  * Coverage: Paging in range of Kernel Memory.
- * Files: 
+ * Files: paging.c
  */
 int kerMem_paging_test(){
 	TEST_HEADER;
@@ -158,7 +158,7 @@ int kerMem_paging_test(){
 int paging_struct_test(){
 	TEST_HEADER;
 	
-
+	
 
 
 	return FAIL;
