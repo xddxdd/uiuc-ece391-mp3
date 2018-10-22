@@ -35,7 +35,7 @@ int idt_test(){
 	int i;
 	int result = PASS;
 	for (i = 0; i < 10; ++i){
-		if ((idt[i].offset_15_00 == NULL) && 
+		if ((idt[i].offset_15_00 == NULL) &&
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
 			result = FAIL;
@@ -45,7 +45,26 @@ int idt_test(){
 	return result;
 }
 
-// add more tests here
+/* Division by zero test
+ *
+ * Tests if the system:
+ * - enters exception handler when it happens
+ * - do not exit from it (for now)
+ */
+int exception_test() {
+	TEST_HEADER;
+
+	printf("Please verify that:\n");
+	printf("- an exception message is printed out\n");
+	printf("- system no longer reacts to interrupts (for now)\n");
+	printf("Now begin:\n");
+
+	int a = 1;
+	int b = 0;
+	a = a / b;
+
+	return FAIL;	// should never reach this
+}
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -56,5 +75,5 @@ int idt_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
+	TEST_OUTPUT("exception_test", exception_test());
 }

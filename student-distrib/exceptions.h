@@ -4,14 +4,13 @@
 #ifndef ASM
     #include "lib.h"
 
+    void exception_handler_real(char* message);
+
     #define EXCEPTION_HEADER(name, message) \
         void name();
 
     #define EXCEPTION_HANDLER(name, message) \
-        void name() {                        \
-            printf(message);                 \
-            while(1) {}                      \
-        }
+        void name() { exception_handler_real(message); }
 
     EXCEPTION_HEADER(exception_divide_by_zero, "Divide by 0");
     EXCEPTION_HEADER(exception_debug, "Debug");
