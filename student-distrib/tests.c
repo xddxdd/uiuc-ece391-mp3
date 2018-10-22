@@ -178,11 +178,13 @@ int paging_struct_test(){
 	TEST_HEADER;
 	
 	// test if any of the first 2 entries in page directory is null.
-	if(page_directory[0].pde_MB.present || page_directory[1].pde_MB.present){
+	if(page_directory[0].pde_KB.present!=1 || page_directory[1].pde_MB.present!=1){
+		printf("\n page directory first two entries not all present. \n");
 		return FAIL;
 	}
 	// test some page table entries in the first page table, just randomly choose indices 0,1,1000.
-	if(page_table[0].present || page_table[1].present || page_table[1000].present){
+	if(page_table[0].present!=1 || page_table[1].present!=1 || page_table[1000].present!=1){
+		printf("\n page table entries are not all present. \n");
 		return FAIL;
 	}
 
