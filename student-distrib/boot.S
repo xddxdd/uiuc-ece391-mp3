@@ -24,20 +24,19 @@ _start:
     jmp     continue
 
 continue:
-    # Load the GDT, by Yuhui Xu
-    lgdt gdt_desc_ptr
+    lgdt gdt_desc_ptr   # Load the GDT, as defined in x86_desc.S
 
-    # Initialize IDT, by Yuhui Xu
-    pushl %eax
+    # Initialize & load IDT
+    pushl %eax  # Preserve EAX, ECX, EDX, as by C calling convention
     pushl %ecx
     pushl %edx
-    call idt_init
-    popl %edx
+    call idt_init   # in idt.c, handles initialization of IDT
+                    # Without this you will be thrown right back to GRUB screen
+    popl %edx   # Restore EAX, ECX, EDX
     popl %ecx
     popl %eax
 
-    # Load IDT, by Yuhui Xu
-    lidt idt_desc_ptr
+    lidt idt_desc_ptr   # Load the IDT
 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going

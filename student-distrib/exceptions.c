@@ -1,5 +1,7 @@
 #include "exceptions.h"
 
+// Handlers for exceptions, simple prints out a string.
+// Read ISA Reference Manual, Vol 3, 5.14 for what these exceptions are.
 EXCEPTION_HANDLER(exception_divide_by_zero, "Divide by 0");
 EXCEPTION_HANDLER(exception_debug, "Debug");
 EXCEPTION_HANDLER(exception_nmi_interrupt, "NMI Interrupt");

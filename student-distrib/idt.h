@@ -9,8 +9,11 @@
     void idt_init();
 #endif
 
+// As designed in x86 PC
 #define VECTOR_DEVICE_KEYBOARD 0x21
 #define VECTOR_DEVICE_RTC 0x28
+
+// As used in this MP
 #define VECTOR_SYSTEM_CALL 0x80
 
 #endif

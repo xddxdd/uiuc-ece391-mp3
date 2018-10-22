@@ -153,6 +153,6 @@ do {                                    \
     );                                  \
 } while (0)
 
-void test_interrupts();
+void test_interrupts(); // Make it available from rtc.c
 
 #endif /* _LIB_H */
