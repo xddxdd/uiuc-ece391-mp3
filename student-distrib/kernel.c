@@ -146,7 +146,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     keyboard_init();
-    //rtc_init();
+    rtc_init();
 
     // initial memory
     init_paging();
@@ -160,7 +160,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     clear();
 
-    //rtc_set_freq(2);    // Set frequency after initialization,
+    rtc_set_freq(2);    // Set frequency after initialization,
                         // because it includes CLI and STI
 
 #ifdef RUN_TESTS
