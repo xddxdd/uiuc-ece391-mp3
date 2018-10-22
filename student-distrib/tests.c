@@ -54,7 +54,7 @@ int idt_test(){
  * Outputs: None
  * Side Effects: freezes kernel.
  * Coverage: Exception handler.
- * Files: exceptions.c
+ * Files: idt.c
  */
 void division_by_zero_test(){
 	TEST_HEADER;
@@ -72,7 +72,7 @@ void division_by_zero_test(){
  * Outputs: none
  * Side Effects: freezes kernel.
  * Coverage: Exception hander.
- * Files: exceptions.c
+ * Files: idt.c
  */
 void dereferencing_null_test(){
 	TEST_HEADER;
