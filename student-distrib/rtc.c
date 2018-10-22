@@ -60,8 +60,7 @@ void rtc_set_freq(uint16_t freq) {
  * @description: function to be called when RTC generates an interrupt.
  */
 void rtc_interrupt() {
-    //test_interrupts();
-    printf("tick ");
+    test_interrupts();
 
     // Read from RTC register C, so it can keep sending interrupts
     outb(RTC_REG_C, RTC_PORT_CMD); // select register C
