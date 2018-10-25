@@ -265,7 +265,7 @@ int ece391fs_read_nonexistent_idx() {
 int ece391fs_large_file() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	read_dentry_by_name("verylargetextwithverylongname.txt", &finfo);
+	if(-1 == read_dentry_by_name("verylargetextwithverylongname.txt", &finfo)) return FAIL;
 	if(ece391fs_size(finfo.inode) != 5277) return FAIL;
 	char buf[33];
 	buf[32] = '\0';
@@ -274,18 +274,35 @@ int ece391fs_large_file() {
 	char std3[] = "jklmnopqrstuvwxyzabcdefghijklmno";
 	char std4[] = "_+`1234567890-=[]\\{}|;\':\",./<>?\n";
 	char std5[] = ",./<>?\n";
-	read_data(finfo.inode, 0, buf, 32);			// Test reading at beginning
+	if(32 != read_data(finfo.inode, 0, buf, 32)) return FAIL;		// Test reading at beginning
 	if(0 != strncmp(buf, std1, 32)) return FAIL;
-	read_data(finfo.inode, 32, buf, 32);		// Test reading with offset
+	if(32 != read_data(finfo.inode, 32, buf, 32)) return FAIL;		// Test reading with offset
 	if(0 != strncmp(buf, std2, 32)) return FAIL;
-	read_data(finfo.inode, 4090, buf, 32);		// Test reading across block
+	if(32 != read_data(finfo.inode, 4090, buf, 32)) return FAIL;	// Test reading across block
 	if(0 != strncmp(buf, std3, 32)) return FAIL;
-	read_data(finfo.inode, 5245, buf, 32);		// Test reading at end
+	if(32 != read_data(finfo.inode, 5245, buf, 32)) return FAIL;	// Test reading at end
 	if(0 != strncmp(buf, std4, 32)) return FAIL;
-	read_data(finfo.inode, 5270, buf, 32);		// Test reading over end
-	if(0 != strncmp(buf, std5, 7)) return FAIL;	// should only read 7 bytes
-	read_data(finfo.inode, 5270, buf, 8000);	// Test reading well over end
-	if(0 != strncmp(buf, std5, 7)) return FAIL;	// should only read 7 bytes
+	if(7 != read_data(finfo.inode, 5270, buf, 32)) return FAIL;		// Test reading over end
+	if(0 != strncmp(buf, std5, 7)) return FAIL;						// should only read 7 bytes
+	if(7 != read_data(finfo.inode, 5270, buf, 8000)) return FAIL;	// Test reading well over end
+	if(0 != strncmp(buf, std5, 7)) return FAIL;						// should only read 7 bytes
+	if(0 != read_data(finfo.inode, 5280, buf, 32)) return FAIL;		// Test reading after end
+	return PASS;
+}
+
+int ece391fs_list_dir() {
+	TEST_HEADER;
+	char buf[ECE391FS_MAX_FILENAME_LEN + 2];
+	int32_t ret;
+	int i;
+	for(i = 0; i < ECE391FS_MAX_FILE_COUNT; i++) {
+		ret = read_dir(i, buf, ECE391FS_MAX_FILENAME_LEN);
+		if(ret == 0) break;
+		if(ret < 0) return FAIL;
+		buf[ret] = '\n';
+		buf[ret + 1] = '\0';
+		printf(buf);
+	}
 	return PASS;
 }
 
@@ -310,12 +327,13 @@ void launch_tests(){
 	//rtc_test();
 
 	// Checkpoint 2
-	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+	/*TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
-	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());*/
+	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

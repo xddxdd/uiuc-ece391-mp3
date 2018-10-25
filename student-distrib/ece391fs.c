@@ -100,7 +100,7 @@ int32_t read_dentry_by_index(uint32_t index, ece391fs_file_info_t* file_info) {
  *         buf - where the data will be written into
  *         length - the number of bytes to be read
  * @output: buf - *length* bytes are written here
- *          return value - SUCCESS / FAIL
+ *          return value - bytes of data copied, or FAIL
  * @description: read data from given inode.
  */
 int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t length) {
@@ -108,7 +108,7 @@ int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t lengt
     if(inode_idx >= fs_bootblk->num_inodes) return ECE391FS_CALL_FAIL;  // Index over inode count
     if(!buf) return ECE391FS_CALL_FAIL; // Buffer ptr invalid
     ece391fs_inode_t* inode = (ece391fs_inode_t*) fs_bootblk + (1 + inode_idx);
-    if(offset >= inode->size) return ECE391FS_CALL_SUCCESS; // Offset over file length, nothing can be copied
+    if(offset >= inode->size) return 0; // Offset over file length, nothing can be copied
     if(offset + length > inode->size) length = inode->size - offset;    // Length over end of file, reduce it
 
     // Calculate the block range where data will be read
@@ -135,9 +135,27 @@ int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t lengt
         memcpy((char*) buf + bytes_done, (char*) data_ptr + block_byte_begin, block_byte_end - block_byte_begin);
         bytes_done += block_byte_end - block_byte_begin;
     }
-    return ECE391FS_CALL_SUCCESS;
+    return bytes_done;
 }
 
+int32_t read_dir(uint32_t offset, char* buf, uint32_t length) {
+    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    if(offset >= ECE391FS_MAX_FILE_COUNT) return ECE391FS_CALL_FAIL;  // Index over inode count
+    if(!buf) return ECE391FS_CALL_FAIL; // Buffer ptr invalid
+    if(length > ECE391FS_MAX_FILENAME_LEN) length = ECE391FS_MAX_FILENAME_LEN;
+
+    ece391fs_file_info_t* finfo = &(fs_bootblk->file[offset]);
+    if(length > strlen(finfo->name)) length = strlen(finfo->name);
+    memcpy((char*) buf, (char*) finfo->name, length);
+
+    return length;
+}
+
+/* void ece391fs_print_file_info(ece391fs_file_info_t* file_info)
+ * @input: file_info: the dentry of the file to be displayed
+ * @output: file info on screen
+ * @description: print file info onto screen for debugging.
+ */
 void ece391fs_print_file_info(ece391fs_file_info_t* file_info) {
     int i;
     switch(file_info->type) {
