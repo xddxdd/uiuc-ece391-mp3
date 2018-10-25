@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "rtc.h"	// Added by jinghua3.
+#include "ece391fs.h"
 
 #define PASS 1
 #define FAIL 0
@@ -46,29 +47,8 @@ int idt_test(){
 	return result;
 }
 
-/* Division by zero test
- *
- * Tests if the system:
- * - enters exception handler when it happens
- * - do not exit from it (for now)
- */
-int exception_test() {
-	TEST_HEADER;
-
-	printf("Please verify that:\n");
-	printf("- an exception message is printed out\n");
-	printf("- system no longer reacts to interrupts (for now)\n");
-	printf("Now begin:\n");
-
-	int a = 1;
-	int b = 0;
-	a = a / b;
-
-	return FAIL;	// should never reach this
-}
-
 /* Division by Zero Test - Added by jinghua3.
- * 
+ *
  * Test exception handler division by zero.
  * Inputs: None
  * Outputs: None
@@ -125,8 +105,8 @@ void deref_nonexist_page_test(){
 
 
 /* Video Memory Paging Test - Added by jinghua3.
- * 
- * Dereferencing linear address in range for video memory, 
+ *
+ * Dereferencing linear address in range for video memory,
  * particularly just choose one address randomly, 0xB8000 + 8.
  * (video mem starts at 0xB8000)
  * Inputs: None
@@ -140,13 +120,13 @@ int videoMem_paging_test(){
 
 	int * ptr = (int*)(0xB8000 + 8);
 	int testVar;
-	testVar = *ptr;	
+	testVar = *ptr;
 	return PASS;
 }
 
 /* Kernel Memory Paging Test - Added by jinghua3.
- * 
- * Dereferencing linear address in range for kernel, 
+ *
+ * Dereferencing linear address in range for kernel,
  * particularly just choose one address randomly, 0x400000 + 8.
  * (kernel addresses start at 0x400000)
  * Inputs: None
@@ -157,10 +137,10 @@ int videoMem_paging_test(){
  */
 int kerMem_paging_test(){
 	TEST_HEADER;
-	
+
 	int * ptr = (int*)(0x400000 + 8);
 	int testVar;
-	testVar = *ptr;	
+	testVar = *ptr;
 	return PASS;
 }
 
@@ -176,7 +156,7 @@ int kerMem_paging_test(){
  */
 int paging_struct_test(){
 	TEST_HEADER;
-	
+
 	// test if any of the first 2 entries in page directory is null.
 	if(page_directory[0].pde_KB.present!=1 || page_directory[1].pde_MB.present!=1){
 		printf("\n page directory first two entries not all present. \n");
@@ -193,7 +173,7 @@ int paging_struct_test(){
 
 
 /* RTC Test - Added by jinghua3.
- * 
+ *
  * Enable RTC.
  * Input: None.
  * Output: Should print "tick" on screen in a particular rate.
@@ -211,6 +191,40 @@ void rtc_test(){
 
 
 /* Checkpoint 2 tests */
+int ece391fs_test_read_exist_file() {
+	TEST_HEADER;
+    ece391fs_file_info_t finfo;
+    if(-1 == read_dentry_by_name("frame1.txt", &finfo)) return FAIL;
+	if(ece391fs_size(finfo.inode) == 174) {
+		return PASS;
+	} else {
+		return FAIL;
+	}
+}
+
+int ece391fs_test_read_nonexistent_file() {
+	TEST_HEADER;
+    ece391fs_file_info_t finfo;
+    if(0 == read_dentry_by_name("404.not.found", &finfo)) return FAIL;
+	return PASS;
+}
+
+int ece391fs_test_read_exist_idx() {
+	TEST_HEADER;
+	ece391fs_file_info_t finfo;
+	if(-1 == read_dentry_by_index(0, &finfo)) return FAIL;
+	if(ECE391FS_FILE_TYPE_FOLDER != finfo.type) return FAIL;
+	if(0 != finfo.inode) return FAIL;
+	return PASS;
+}
+
+int ece391fs_test_read_nonexistent_idx() {
+	TEST_HEADER;
+	ece391fs_file_info_t finfo;
+	if(0 == read_dentry_by_index(100, &finfo)) return FAIL;
+	return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -218,19 +232,23 @@ void rtc_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 
 	// Checkpoint 1 - Added by jinghua3.
-	TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
-	TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
-	TEST_OUTPUT("Paging Structure Test", paging_struct_test());
+	//TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
+	//TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
+	//TEST_OUTPUT("Paging Structure Test", paging_struct_test());
 	//dereferencing_null_test();
 	//division_by_zero_test();
 	//deref_nonexist_page_test();
 	//rtc_test();
 
 	// Checkpoint 2
+	TEST_OUTPUT("ECE391FS Exist File", ece391fs_test_read_exist_file());
+	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_test_read_nonexistent_file());
+	TEST_OUTPUT("ECE391FS Exist File", ece391fs_test_read_exist_idx());
+	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_test_read_nonexistent_idx());
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

@@ -12,6 +12,7 @@
 #include "keyboard.h"
 #include "rtc.h"
 #include "paging.h"
+#include "ece391fs.h"
 
 #define RUN_TESTS
 
@@ -56,6 +57,7 @@ void entry(unsigned long magic, unsigned long addr) {
         int mod_count = 0;
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
+        ece391fs_init((uint32_t) mod->mod_start, (uint32_t) mod->mod_end);
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -146,7 +148,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     keyboard_init();
-    rtc_init();
+    //rtc_init();
 
     // initial memory
     init_paging();
@@ -158,9 +160,7 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    clear();
-
-    rtc_set_freq(2);    // Set frequency after initialization,
+    //rtc_set_freq(2);    // Set frequency after initialization,
                         // because it includes CLI and STI
 
 #ifdef RUN_TESTS
