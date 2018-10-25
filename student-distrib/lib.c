@@ -24,6 +24,19 @@ void clear(void) {
     }
 }
 
+/* void clear_row(uint32_t row)
+ * @input: row - the id of row to be cleared, should be in range 0 to (NUM_ROWS - 1)
+ * @output: the row on screen gets cleared
+ * @description: clear one row on the screen
+ */
+void clear_row(uint32_t row) {
+    int32_t i;
+    for(i = row * NUM_COLS; i < (row + 1) * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+}
+
 /* Standard printf().
  * Only supports the following format strings:
  * %%  - print a literal '%' character
@@ -170,13 +183,17 @@ int32_t puts(int8_t* s) {
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y++;
+        clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        if(screen_x >= NUM_COLS) {  // If the line is filled up
+            screen_x = 0;
+            screen_y = ((screen_y + 1) % NUM_ROWS);
+            clear_row(screen_y);
+        }
     }
 }
 
