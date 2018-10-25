@@ -191,7 +191,24 @@ void rtc_test(){
 
 
 /* Checkpoint 2 tests */
-int ece391fs_test_read_exist_file() {
+
+/* int ece391fs_loaded()
+ * @output: PASS / FAIL
+ * @description: test if ece391fs is properly initialized.
+ */
+int ece391fs_loaded() {
+	TEST_HEADER;
+	if(-1 == ece391fs_is_initialized()) return FAIL;
+	return PASS;
+}
+
+/* int ece391fs_read_existent_file()
+ * @output: PASS / FAIL
+ * @description: test getting file entry of "frame1.txt".
+ *     and verify that its size is 174 bytes.
+ *     If the file got modified, this test should be modified too.
+ */
+int ece391fs_read_existent_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
     if(-1 == read_dentry_by_name("frame1.txt", &finfo)) return FAIL;
@@ -202,14 +219,24 @@ int ece391fs_test_read_exist_file() {
 	}
 }
 
-int ece391fs_test_read_nonexistent_file() {
+/* int ece391fs_read_nonexistent_file()
+ * @output: PASS / FAIL
+ * @description: test getting file entry of a nonexistent file.
+ *     The FS call should return -1 (Fail).
+ */
+int ece391fs_read_nonexistent_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
     if(0 == read_dentry_by_name("404.not.found", &finfo)) return FAIL;
 	return PASS;
 }
 
-int ece391fs_test_read_exist_idx() {
+/* int ece391fs_read_exist_idx()
+ * @output: PASS / FAIL
+ * @description: test getting the first file entry, the directory,
+ *     and verify some of its attributes.
+ */
+int ece391fs_read_existent_idx() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
 	if(-1 == read_dentry_by_index(0, &finfo)) return FAIL;
@@ -218,10 +245,42 @@ int ece391fs_test_read_exist_idx() {
 	return PASS;
 }
 
-int ece391fs_test_read_nonexistent_idx() {
+/* int ece391fs_read_nonexistent_idx()
+ * @output: PASS / FAIL
+ * @description: test getting file entry of a nonexistent index.
+ *     The FS call should return -1 (Fail).
+ */
+int ece391fs_read_nonexistent_idx() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
 	if(0 == read_dentry_by_index(100, &finfo)) return FAIL;
+	return PASS;
+}
+
+/* int ece391fs_large_file()
+ * @output: PASS / FAIL
+ * @description: tests getting information of large file with long name,
+ *     verify size (5277 bytes), and verify some segments of data.
+ */
+int ece391fs_large_file() {
+	TEST_HEADER;
+	ece391fs_file_info_t finfo;
+	read_dentry_by_name("verylargetextwithverylongname.txt", &finfo);
+	if(ece391fs_size(finfo.inode) != 5277) return FAIL;
+	char buf[33];
+	buf[32] = '\0';
+	char std1[] = "very large text file with a very";
+	char std2[] = " long name\n123456789012345678901";
+	char std3[] = "jklmnopqrstuvwxyzabcdefghijklmno";
+	char std4[] = "_+`1234567890-=[]\\{}|;\':\",./<>?\n";
+	read_data(finfo.inode, 0, buf, 32);		// Test reading at beginning
+	if(0 != strncmp(buf, std1, 32)) return FAIL;
+	read_data(finfo.inode, 32, buf, 32);	// Test reading with offset
+	if(0 != strncmp(buf, std2, 32)) return FAIL;
+	read_data(finfo.inode, 4090, buf, 32);	// Test reading across block
+	if(0 != strncmp(buf, std3, 32)) return FAIL;
+	read_data(finfo.inode, 5245, buf, 32);	// Test reading at end
+	if(0 != strncmp(buf, std4, 32)) return FAIL;
 	return PASS;
 }
 
@@ -245,10 +304,12 @@ void launch_tests(){
 	//rtc_test();
 
 	// Checkpoint 2
-	TEST_OUTPUT("ECE391FS Exist File", ece391fs_test_read_exist_file());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_test_read_nonexistent_file());
-	TEST_OUTPUT("ECE391FS Exist File", ece391fs_test_read_exist_idx());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_test_read_nonexistent_idx());
+	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
+	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
+	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
+	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
+	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

@@ -10,6 +10,9 @@
 #define ECE391FS_MAX_FILENAME_LEN 32
 #define ECE391FS_MAX_FILE_COUNT 63
 
+#define ECE391FS_CALL_SUCCESS 0
+#define ECE391FS_CALL_FAIL -1
+
 #define ECE391FS_BLOCK_SIZE 4096
 
 typedef struct {
@@ -38,9 +41,10 @@ typedef struct {
 } ece391fs_data_block_t;
 
 int32_t ece391fs_init(uint32_t module_start, uint32_t module_end);
+int32_t ece391fs_is_initialized();
 int32_t ece391fs_size(uint32_t inode_idx);
 int32_t read_dentry_by_name(const char* fname, ece391fs_file_info_t* file_info);
 int32_t read_dentry_by_index(uint32_t index, ece391fs_file_info_t* file_info);
 int32_t read_data(uint32_t inode, uint32_t offset, char* buf, uint32_t length);
-void print_file_info(ece391fs_file_info_t* file_info);
+void ece391fs_print_file_info(ece391fs_file_info_t* file_info);
 #endif
