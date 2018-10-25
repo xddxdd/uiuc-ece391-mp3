@@ -1,8 +1,8 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
-#include "rtc.h"	// Added by jinghua3.
-#include "ece391fs.h"
+#include "devices/rtc.h"	// Added by jinghua3.
+#include "fs/ece391fs.h"
 
 #define PASS 1
 #define FAIL 0

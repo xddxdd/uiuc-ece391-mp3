@@ -1,5 +1,5 @@
 #include "keyboard.h"
-#include "data/keyboard-scancode.h"
+#include "../data/keyboard-scancode.h"
 
 /* void keyboard_init()
  * @effects: Make the system ready to receive keyboard interrupts

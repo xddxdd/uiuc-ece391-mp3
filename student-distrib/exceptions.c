@@ -1,5 +1,5 @@
 #include "exceptions.h"
-#include "vga_text.h"
+#include "devices/vga_text.h"
 #include "data/aqua.h"
 
 // Handlers for exceptions, simple prints out a string.

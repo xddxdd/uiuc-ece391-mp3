@@ -5,14 +5,14 @@
 #include "multiboot.h"
 #include "x86_desc.h"
 #include "lib.h"
-#include "i8259.h"
+#include "devices/i8259.h"
 #include "debug.h"
 #include "tests.h"
 
-#include "keyboard.h"
-#include "rtc.h"
+#include "devices/keyboard.h"
+#include "devices/rtc.h"
 #include "paging.h"
-#include "ece391fs.h"
+#include "fs/ece391fs.h"
 
 #define RUN_TESTS
 

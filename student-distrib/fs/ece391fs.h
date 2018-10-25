@@ -1,7 +1,7 @@
 #ifndef _ECE391FS_H_
 #define _ECE391FS_H_
 
-#include "lib.h"
+#include "../lib.h"
 
 #define ECE391FS_FILE_TYPE_RTC 0
 #define ECE391FS_FILE_TYPE_FOLDER 1

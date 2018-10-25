@@ -32,7 +32,7 @@ Makefile.dep: $(SRC)
 
 .PHONY: clean
 clean:
-	rm -f *.o */*.o Makefile.dep
+	rm -rf *.o */*.o Makefile.dep
 
 ifneq ($(MAKECMDGOALS),dep)
 ifneq ($(MAKECMDGOALS),clean)
