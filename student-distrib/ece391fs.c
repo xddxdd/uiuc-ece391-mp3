@@ -138,6 +138,16 @@ int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t lengt
     return bytes_done;
 }
 
+/* int32_t read_dir(uint32_t offset, char* buf, uint32_t length)
+ * @input: offset - the index of file to be read.
+ *         buf - the location data should be written to.
+ *         length - the size of buffer.
+ * @output: buf - written with file *offset*'s filename
+ * @description: read the directory on ECE391FS.
+ *     As there's only the root directory, we don't need to know
+ *     which directory is being queried (there's only one).
+ *     Offset denotes the index of file to be read.
+ */
 int32_t read_dir(uint32_t offset, char* buf, uint32_t length) {
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
     if(offset >= ECE391FS_MAX_FILE_COUNT) return ECE391FS_CALL_FAIL;  // Index over inode count
