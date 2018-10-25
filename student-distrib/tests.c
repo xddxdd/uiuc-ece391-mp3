@@ -273,14 +273,19 @@ int ece391fs_large_file() {
 	char std2[] = " long name\n123456789012345678901";
 	char std3[] = "jklmnopqrstuvwxyzabcdefghijklmno";
 	char std4[] = "_+`1234567890-=[]\\{}|;\':\",./<>?\n";
-	read_data(finfo.inode, 0, buf, 32);		// Test reading at beginning
+	char std5[] = ",./<>?\n";
+	read_data(finfo.inode, 0, buf, 32);			// Test reading at beginning
 	if(0 != strncmp(buf, std1, 32)) return FAIL;
-	read_data(finfo.inode, 32, buf, 32);	// Test reading with offset
+	read_data(finfo.inode, 32, buf, 32);		// Test reading with offset
 	if(0 != strncmp(buf, std2, 32)) return FAIL;
-	read_data(finfo.inode, 4090, buf, 32);	// Test reading across block
+	read_data(finfo.inode, 4090, buf, 32);		// Test reading across block
 	if(0 != strncmp(buf, std3, 32)) return FAIL;
-	read_data(finfo.inode, 5245, buf, 32);	// Test reading at end
+	read_data(finfo.inode, 5245, buf, 32);		// Test reading at end
 	if(0 != strncmp(buf, std4, 32)) return FAIL;
+	read_data(finfo.inode, 5270, buf, 32);		// Test reading over end
+	if(0 != strncmp(buf, std5, 7)) return FAIL;	// should only read 7 bytes
+	read_data(finfo.inode, 5270, buf, 8000);	// Test reading well over end
+	if(0 != strncmp(buf, std5, 7)) return FAIL;	// should only read 7 bytes
 	return PASS;
 }
 
@@ -291,6 +296,7 @@ int ece391fs_large_file() {
 
 /* Test suite entry point */
 void launch_tests(){
+	clear();
 	//TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 

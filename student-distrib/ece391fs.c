@@ -131,6 +131,7 @@ int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t lengt
             // This is the last block to be processed, length should be enforced.
             block_byte_end = offset + length - i * ECE391FS_BLOCK_SIZE;
         }
+        //printf("Block #%d, done %d, range %d %d\n", data_id, bytes_done, block_byte_begin, block_byte_end);
         memcpy((char*) buf + bytes_done, (char*) data_ptr + block_byte_begin, block_byte_end - block_byte_begin);
         bytes_done += block_byte_end - block_byte_begin;
     }
