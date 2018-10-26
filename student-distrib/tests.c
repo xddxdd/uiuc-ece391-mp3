@@ -310,12 +310,14 @@ void launch_tests(){
 	//rtc_test();
 
 	// Checkpoint 2
+	
 	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
 	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5
