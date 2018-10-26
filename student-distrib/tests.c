@@ -301,21 +301,21 @@ void launch_tests(){
 	// launch your tests here
 
 	// Checkpoint 1 - Added by jinghua3.
-	//TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
-	//TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
-	//TEST_OUTPUT("Paging Structure Test", paging_struct_test());
-	//dereferencing_null_test();
-	//division_by_zero_test();
-	//deref_nonexist_page_test();
-	//rtc_test();
+	TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
+	TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
+	TEST_OUTPUT("Paging Structure Test", paging_struct_test());
+	// dereferencing_null_test();
+	// division_by_zero_test();
+	// deref_nonexist_page_test();
+	// rtc_test();
 
 	// Checkpoint 2
-	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
-	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
-	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
-	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
+	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
+	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
+	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
+	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

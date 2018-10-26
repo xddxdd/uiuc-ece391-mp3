@@ -1,5 +1,9 @@
 #include "rtc.h"
 
+// flag variable used to indicate whether the RTC interrupt
+// has occurred
+static volatile int rtc_interrupt_occurred;
+
 /* void rtc_init()
  * @effects: Put RTC into working state
  * @description: Prepare the RTC for generating interrupts at specified interval
@@ -62,9 +66,39 @@ void rtc_set_freq(uint16_t freq) {
 void rtc_interrupt() {
     //test_interrupts();
     printf("tick! ");
+    // set rtc_interrupt_occurred flag to 1
+    rtc_interrupt_occurred = 1;
     // Read from RTC register C, so it can keep sending interrupts
     outb(RTC_REG_C, RTC_PORT_CMD); // select register C
     inb(RTC_PORT_DATA);		       // just throw away contents
 
     send_eoi(RTC_IRQ);  // And we're done
+}
+
+// System Call Support
+void rtc_open()
+{
+  // set the RTC frequency to 2 Hz
+  rtc_set_freq(2);
+  return;
+}
+
+void rtc_read()
+{
+  rtc_interrupt_occurred = 0;
+  while (rtc_interrupt_occurred != 1) {}
+  return;
+}
+
+void rtc_write(uint16_t freq)
+{
+  // change the frequency of RTC
+  rtc_set_freq(freq);
+  return;
+}
+
+void rtc_close()
+{
+  // there is nothing to do with syscall close() to RTC
+  return;
 }
