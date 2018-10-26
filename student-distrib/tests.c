@@ -320,15 +320,13 @@ int rtc_read_test()
 }
 
 /* Keyboard driver test */
-/* keyboard_write_test */
-int keyboard_write_test()
+/* keyboard_dirver_test */
+int keyboard_dirver_test()
 {
 	TEST_HEADER;
 	keyboard_open();
-	while(1)
-	{
-		keyboard_write();
-	}
+	keyboard_read();
+	keyboard_write();
 	keyboard_close();
 	return PASS;
 }
@@ -363,7 +361,7 @@ void launch_tests(){
 	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_write_test());
+	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
 
 	// Checkpoint 3
 	// Checkpoint 4

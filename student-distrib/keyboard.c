@@ -1,10 +1,14 @@
 #include "keyboard.h"
 #include "data/keyboard-scancode.h"
 
-// 1 additional space for newline character
-static uint8_t keyboard_buffer[MAX_CHAR_NUM + 1];
-// next available index in the keyboard buffer
-static int keyboard_buffer_index;
+// keyboard buffer, one addition place for newline character
+static uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
+// next available index in (i.e. top of) the keyboard buffer
+// (default: 0 -- empty)
+static int keyboard_buffer_top = 0;
+// flag variable used to indicate whether writting to the keyborad buffer
+// is enable or not (default: 0 -- disable)
+static volatile int keyboard_buffer_enable = 0;
 
 /* void keyboard_init()
  * @effects: Make the system ready to receive keyboard interrupts
@@ -19,22 +23,42 @@ void keyboard_init() {
  * @description: Handle keyboard interrupt
  */
 void keyboard_interrupt() {
-    uint8_t key = inb(KEYBOARD_PORT);
+    printf("keyboard_interrupt!\n");
+    uint8_t scancode_idx = inb(KEYBOARD_PORT);
+    char key;
 
-    // disable putc, deletted by Zhenbang Wu
-    // if(key < SCANCODE_TABLE_SIZE) {
-        // putc(scancode[key][0]);
-    // }
-
-    // check the availability of the keyboard buffer
-    if (keyboard_buffer_index < MAX_CHAR_NUM)
+    // echo the keyboard input to the screen
+    if(scancode_idx < SCANCODE_TABLE_SIZE)
     {
-      // record current key
-      keyboard_buffer[keyboard_buffer_index] = scancode[key][0];
-      // increment keyboard_buffer_index
-      keyboard_buffer_index++;
-      // temporarily add a newline character
-      keyboard_buffer[keyboard_buffer_index] = '\n';
+        key = scancode[scancode_idx][0];
+        // printf("%d\n", scancode_idx);
+        putc(key);
+
+        // if keyboard buffer is enable
+        if (keyboard_buffer_enable == 1)
+        {
+          // check the availability of the keyboard buffer
+          if ((keyboard_buffer_top < KEYBOARD_BUFFER_SIZE) &&
+              (key != '\n'))
+          {
+            printf("keyboard_interrupt enters read\n");
+            // record current key
+            keyboard_buffer[keyboard_buffer_top] = key;
+            // increment keyboard_buffer_top
+            keyboard_buffer_top++;
+          }
+          // keyboard read terminates
+          else
+          {
+            printf("keyboard_interrupt ends read\n");
+            // put newline character
+            keyboard_buffer[keyboard_buffer_top] = '\n';
+            // increment keyboard_buffer_top
+            keyboard_buffer_top++;
+            // disable keyboard buffer
+            keyboard_buffer_enable = 0;
+          }
+        }
     }
     // send End Of Interrupt
     send_eoi(KEYBOARD_IRQ);
@@ -46,39 +70,44 @@ void keyboard_interrupt() {
 void keyboard_open()
 {
   // clear the buffer
-  keyboard_buffer_index = 0;
-  // nothing in the buffer
-  keyboard_buffer[0] = '\n';
+  keyboard_buffer_top = 0;
+  // disable keyboard buffer
+  keyboard_buffer_enable = 0;
   return;
 }
 
 /* keyboard_read */
 void keyboard_read()
 {
-  // todo
+  // enable keyboard buffer
+  keyboard_buffer_enable = 1;
+  printf("keyboard_read starts\n");
+  // wait for keyboard inputs
+  while (keyboard_buffer_enable == 1) {}
+  printf("keyboard_read ends\n");
   return;
 }
 
 /* keyboard_write */
 void keyboard_write()
 {
+  // loop index
   int index;
-  // if the keyboard buffer is not empty
-  if (keyboard_buffer_index != 0)
+  // all data in the buffer are displayed to the screen
+  for (index = 0; index < keyboard_buffer_top; index++)
   {
-    for (index = 0; index <= keyboard_buffer_index; index++)
-    {
-        putc(keyboard_buffer[index]);
-    }
+      putc(keyboard_buffer[index]);
   }
-  keyboard_buffer_index = 0;
-  keyboard_buffer[0] = '\n';
+  keyboard_buffer_top = 0;
   return;
 }
 
 /* keyboard_close */
 void keyboard_close()
 {
-  // there is nothing to do with syscall close() to keyboard
+  // clear the buffer
+  keyboard_buffer_top = 0;
+  // disable keyboard buffer
+  keyboard_buffer_enable = 0;
   return;
 }

@@ -33,7 +33,7 @@ char scancode[SCANCODE_TABLE_SIZE][2] = {
    { 'p','P' } ,
    { '[','{' } ,
    { ']','}' } ,
-   {  13,13  } ,
+   {  10,10  } , // editted by Zhenbang Wu, (13,13) -> (10,10) (newline)
    {   0,0   } ,
    { 'a','A' } ,
    { 's','S' } ,
