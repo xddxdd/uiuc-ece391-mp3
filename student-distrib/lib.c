@@ -24,6 +24,7 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+    vga_text_set_cursor_pos(screen_x, screen_y);
 }
 
 /* void clear_row(uint32_t row)
@@ -187,6 +188,7 @@ void putc(uint8_t c) {
         screen_y = ((screen_y + 1) % NUM_ROWS);
         clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
+        vga_text_set_cursor_pos(screen_x, screen_y);
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -196,6 +198,7 @@ void putc(uint8_t c) {
             screen_y = ((screen_y + 1) % NUM_ROWS);
             clear_row(screen_y);
         }
+        vga_text_set_cursor_pos(screen_x, screen_y);
     }
 }
 
