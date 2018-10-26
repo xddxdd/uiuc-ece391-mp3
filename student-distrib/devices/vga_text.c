@@ -61,6 +61,10 @@ void vga_text_enable_cursor() {
     sti();
 }
 
+/* void vga_text_set_cursor_pos(uint8_t x, uint8_t y)
+ * @output: the cursor on VGA text mode changes to (x, y)
+ * @description: set the position of the blinking cursor.
+ */
 void vga_text_set_cursor_pos(uint8_t x, uint8_t y) {
     cli();
     // Calculate the character position on VGA plane, row major order
