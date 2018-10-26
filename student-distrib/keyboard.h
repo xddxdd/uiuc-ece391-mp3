@@ -6,8 +6,16 @@
 
 #define KEYBOARD_IRQ 1
 #define KEYBOARD_PORT 0x60
+#define MAX_CHAR_NUM 127          /* maximum number of characters in the buffer */
+                              /* except for the newline character */
 
 void keyboard_init();
 void keyboard_interrupt();
+
+// Keyboard Driver
+void keyboard_open();
+void keyboard_read();
+void keyboard_write();
+void keyboard_close();
 
 #endif

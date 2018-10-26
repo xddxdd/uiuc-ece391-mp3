@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "rtc.h"	// Added by jinghua3.
 #include "ece391fs.h"
+#include "keyboard.h"
 
 #define PASS 1
 #define FAIL 0
@@ -318,6 +319,19 @@ int rtc_read_test()
 	return PASS;
 }
 
+/* Keyboard driver test */
+/* keyboard_write_test */
+int keyboard_write_test()
+{
+	TEST_HEADER;
+	keyboard_open();
+	while(1)
+	{
+		keyboard_write();
+	}
+	keyboard_close();
+	return PASS;
+}
 
 
 /* Checkpoint 3 tests */
@@ -332,9 +346,9 @@ void launch_tests(){
 	// launch your tests here
 
 	// Checkpoint 1 - Added by jinghua3.
-	TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
-	TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
-	TEST_OUTPUT("Paging Structure Test", paging_struct_test());
+	// TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
+	// TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
+	// TEST_OUTPUT("Paging Structure Test", paging_struct_test());
 	// dereferencing_null_test();
 	// division_by_zero_test();
 	// deref_nonexist_page_test();
@@ -347,8 +361,10 @@ void launch_tests(){
 	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
 	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
-	TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
+	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_write_test());
+
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

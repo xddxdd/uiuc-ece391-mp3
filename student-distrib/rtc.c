@@ -75,7 +75,9 @@ void rtc_interrupt() {
     send_eoi(RTC_IRQ);  // And we're done
 }
 
-// System Call Support
+
+/* RTC Driver */
+/* rtc_open */
 void rtc_open()
 {
   // set the RTC frequency to 2 Hz
@@ -83,6 +85,7 @@ void rtc_open()
   return;
 }
 
+/* rtc_read */
 void rtc_read()
 {
   rtc_interrupt_occurred = 0;
@@ -90,6 +93,7 @@ void rtc_read()
   return;
 }
 
+/* rtc_write */
 void rtc_write(uint16_t freq)
 {
   // enter critical section
@@ -101,6 +105,7 @@ void rtc_write(uint16_t freq)
   return;
 }
 
+/* rtc_close */
 void rtc_close()
 {
   // there is nothing to do with syscall close() to RTC
