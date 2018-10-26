@@ -14,8 +14,9 @@ int8_t serial_init(uint8_t id) {
     outb(0x0c, port + 0);   // Baud rate divisor 115200 / 9600 = 12, low byte
     outb(0x00, port + 1);   // Baud rate divisor, high byte
     outb(0x03, port + 3);   // Disable DLAB, set format to 8/N/1
+    outb(0x01, port + 1);   // Enable interrupt only for data available
     outb(0xc7, port + 2);   // Enable FIFO
-    outb(0x0f, port + 4);   // Enable interrupt only for data available
+    outb(0x0b, port + 4);   // Enable FIFO
     enable_irq(serial_irqs[id]);
     return SERIAL_OP_SUCCESS;
 }
@@ -48,15 +49,12 @@ int8_t serial_write(uint8_t id, uint8_t data) {
 }
 
 void serial_interrupt(uint8_t id) {
+    if(id >= SERIAL_PORTS_COUNT) return;
     printf("IRQ%d", id);
     while(serial_is_available_rx(id)) {
         printf("COM%d: %x\n", id + 1, serial_read(id));
-        /*switch(i) {
-            case 0:
-                printf("Serial message");
-            default: break;
-        }*/
     }
+    send_eoi(serial_irqs[id]);
 }
 
 void serial1_interrupt() { serial_interrupt(COM1); }

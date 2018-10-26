@@ -19,5 +19,6 @@
 
 
 void sb16_init();
+void sb16_set_sampling_rate(uint16_t sampling_rate);
 
 #endif

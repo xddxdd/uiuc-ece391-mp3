@@ -184,7 +184,7 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_y++;
+        screen_y = ((screen_y + 1) % NUM_ROWS);
         clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
     } else {
