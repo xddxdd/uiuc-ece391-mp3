@@ -11,6 +11,8 @@
 
 #include "devices/keyboard.h"
 #include "devices/rtc.h"
+#include "devices/serial.h"
+#include "devices/tux.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
 
@@ -149,6 +151,8 @@ void entry(unsigned long magic, unsigned long addr) {
      * PIC, any other initialization stuff... */
     keyboard_init();
     //rtc_init();
+    //serial_init(COM1);
+    tux_init();
 
     // initial memory
     init_paging();
@@ -160,12 +164,15 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
+    tux_set_led("null", 0x00);
+
+
     //rtc_set_freq(2);    // Set frequency after initialization,
                         // because it includes CLI and STI
 
 #ifdef RUN_TESTS
     /* Run tests */
-    launch_tests();
+    //launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 

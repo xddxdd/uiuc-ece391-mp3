@@ -46,4 +46,6 @@ void idt_init() {
     // Enable interrupt handling for devices attached to i8259 PIC
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_RTC], interrupt_rtc_wrap);
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_KEYBOARD], interrupt_keyboard_wrap);
+    SET_IDT_ENTRY(idt[VECTOR_DEVICE_SERIAL1], interrupt_serial1_wrap);
+    SET_IDT_ENTRY(idt[VECTOR_DEVICE_SERIAL2], interrupt_serial2_wrap);
 }
