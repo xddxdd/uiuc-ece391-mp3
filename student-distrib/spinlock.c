@@ -2,7 +2,7 @@
 
 static inline unsigned xchgl(void *ptr, unsigned x) {
 	__asm__ __volatile__(
-        "xchgl %0,%1"
+        "lock xchgl %0,%1"
 		: "=r" ((unsigned) x)
 		: "m" (*(volatile unsigned *)ptr), "0" (x)
 		: "memory");
