@@ -13,6 +13,8 @@
 #include "devices/rtc.h"
 #include "devices/serial.h"
 #include "devices/tux.h"
+#include "devices/sb16.h"
+#include "devices/speaker.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
 
@@ -152,7 +154,9 @@ void entry(unsigned long magic, unsigned long addr) {
     keyboard_init();
     //rtc_init();
     //serial_init(COM1);
-    tux_init();
+    //tux_init();
+    //sb16_init();
+    speaker_init();
 
     // initial memory
     init_paging();
@@ -164,7 +168,28 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    tux_set_led("null", 0x00);
+    /*uint32_t i;
+    clear();
+    speaker_unmute();
+    speaker_tune(3, TUNE_C);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_tune(3, TUNE_D);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_tune(3, TUNE_E);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_tune(3, TUNE_F);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_tune(3, TUNE_G);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_tune(3, TUNE_A);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_tune(3, TUNE_B);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_tune(4, TUNE_C);
+    for(i = 0; i < 0xfffffff; i++);
+    speaker_mute();*/
+
+    //tux_set_led("null", 0x00);
 
 
     //rtc_set_freq(2);    // Set frequency after initialization,
@@ -172,7 +197,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    launch_tests();
+    //launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 
