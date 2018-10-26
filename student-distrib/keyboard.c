@@ -23,40 +23,48 @@ void keyboard_init() {
  * @description: Handle keyboard interrupt
  */
 void keyboard_interrupt() {
-    printf("keyboard_interrupt!\n");
     uint8_t scancode_idx = inb(KEYBOARD_PORT);
     char key;
+
+    /* Todo: add upper case support */
 
     // echo the keyboard input to the screen
     if(scancode_idx < SCANCODE_TABLE_SIZE)
     {
         key = scancode[scancode_idx][0];
-        // printf("%d\n", scancode_idx);
-        putc(key);
-
+        keyboard_echo(key);
         // if keyboard buffer is enable
         if (keyboard_buffer_enable == 1)
         {
-          // check the availability of the keyboard buffer
-          if ((keyboard_buffer_top < KEYBOARD_BUFFER_SIZE) &&
-              (key != '\n'))
+          if (key == BACKSPACE)
           {
-            printf("keyboard_interrupt enters read\n");
-            // record current key
-            keyboard_buffer[keyboard_buffer_top] = key;
-            // increment keyboard_buffer_top
-            keyboard_buffer_top++;
+            keyboard_buffer_top = (keyboard_buffer_top - 1) < 0 ? 0 :  keyboard_buffer_top - 1;
           }
-          // keyboard read terminates
-          else
+          else if (key == '\n')
           {
-            printf("keyboard_interrupt ends read\n");
             // put newline character
             keyboard_buffer[keyboard_buffer_top] = '\n';
             // increment keyboard_buffer_top
             keyboard_buffer_top++;
             // disable keyboard buffer
             keyboard_buffer_enable = 0;
+          }
+          else if (keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE)
+          {
+            keyboard_echo('\n');
+            // put newline character
+            keyboard_buffer[keyboard_buffer_top] = '\n';
+            // increment keyboard_buffer_top
+            keyboard_buffer_top++;
+            // disable keyboard buffer
+            keyboard_buffer_enable = 0;
+          }
+          else
+          {
+            // record current key
+            keyboard_buffer[keyboard_buffer_top] = key;
+            // increment keyboard_buffer_top
+            keyboard_buffer_top++;
           }
         }
     }
@@ -81,10 +89,10 @@ void keyboard_read()
 {
   // enable keyboard buffer
   keyboard_buffer_enable = 1;
-  printf("keyboard_read starts\n");
+  /* printf("keyboard_read starts\n"); */
   // wait for keyboard inputs
   while (keyboard_buffer_enable == 1) {}
-  printf("keyboard_read ends\n");
+  /* printf("keyboard_read ends\n"); */
   return;
 }
 
