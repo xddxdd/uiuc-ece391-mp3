@@ -289,6 +289,37 @@ int ece391fs_large_file() {
 	return PASS;
 }
 
+/* RTC driver test */
+/* rtc_write_test */
+int rtc_write_test()
+{
+	TEST_HEADER;
+	// new frequency set to the RTC
+	uint16_t freq = 2;
+	rtc_init();
+	rtc_open();
+	printf("Set RTC to %d Hz\n", freq);
+	rtc_write(freq);
+	rtc_close();
+	return PASS;
+}
+
+/* rtc_read_test */
+int rtc_read_test()
+{
+	TEST_HEADER;
+	// new frequency set to the RTC
+	rtc_init();
+	rtc_open();
+	printf("Wait for tick...\n");
+	rtc_read();
+	printf("\nHere it comes!\n");
+	rtc_close();
+	return PASS;
+}
+
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -316,6 +347,8 @@ void launch_tests(){
 	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
 	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+	TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

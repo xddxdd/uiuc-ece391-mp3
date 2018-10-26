@@ -92,8 +92,12 @@ void rtc_read()
 
 void rtc_write(uint16_t freq)
 {
+  // enter critical section
+  cli();
   // change the frequency of RTC
   rtc_set_freq(freq);
+  sti();
+  // quit critical section
   return;
 }
 
