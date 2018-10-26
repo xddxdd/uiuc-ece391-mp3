@@ -4,11 +4,14 @@
 #define TUX_OP_SUCCESS 0
 #define TUX_OP_FAIL -1
 
+#define TC_SERIAL_PORT COM1
+
 #include "../types.h"
 
 extern uint8_t tc_buttons;
 
 int8_t tux_init();
 int8_t tux_set_led(char* word, uint8_t dot);
+void tux_interrupt(char packet);
 
 #endif

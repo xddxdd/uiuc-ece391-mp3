@@ -80,6 +80,43 @@ int8_t tux_set_led(char* word, uint8_t dot) {
     return TUX_OP_SUCCESS;
 }
 
-void tux_interrupt() {
-
+#define TUX_PACKET_BUF_LEN 3
+char tux_packet_buf[TUX_PACKET_BUF_LEN] = {0, 0, 0};
+void tux_interrupt(char packet) {
+    // Move forward buf for handling button events
+    // As we only cache 3 chars, we just use the simple way
+    // of copying 3 times to implement a ring buffer.
+    tux_packet_buf[0] = tux_packet_buf[1];
+    tux_packet_buf[1] = tux_packet_buf[2];
+    tux_packet_buf[2] = packet;
+    // Check if the packet is the last of button event if:
+    // - first packet is MTCP_BIOC_EVENT
+    // - 2nd and 3rd packets' most significant bit is 1
+    // See mp2-tux.pdf provided in mp2 for more info.
+    if(tux_packet_buf[0] == MTCP_BIOC_EVENT
+        && tux_packet_buf[1] & 0x80
+        && tux_packet_buf[2] & 0x80) {
+        // This packet is part of the 3 packets of button event
+        tc_buttons = 0x00                       // Placeholder, make the code look cleaner
+            | (tux_packet_buf[1] & 0x0F)        // Start, A, B, C button, bit 0-3 of pkt 1
+            | ((tux_packet_buf[2] & 0x09) << 4) // Up, Right button, bit 0, 3 of pkt 2
+            | ((tux_packet_buf[2] & 0x02) << 5) // Left button, bit 1 of pkt 2
+            | ((tux_packet_buf[2] & 0x04) << 3);// Down button, bit 2 of pkt 2
+        tc_buttons = ~tc_buttons;               // Flip the states for specs compliance
+        printf("TUX BTN %x\n", tc_buttons);
+    } else if(tux_packet_buf[2] == MTCP_RESET) {
+        // Tux reseted, resend initialization sequence & led sequence
+        printf("TUX RST\n");
+        int i;
+        for(i = 0; i < TC_INITIALIZATION_SEQUENCE_LEN; i++) {
+            if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_initialization_sequence[i])) {
+                return;
+            }
+        }
+        for(i = 0; i < TC_LED_SEQUENCE_LEN; i++) {
+            if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
+                return;
+            }
+        }
+    }
 }

@@ -154,7 +154,7 @@ void entry(unsigned long magic, unsigned long addr) {
     keyboard_init();
     //rtc_init();
     //serial_init(COM1);
-    //tux_init();
+    tux_init();
     //sb16_init();
     speaker_init();
 
@@ -189,7 +189,7 @@ void entry(unsigned long magic, unsigned long addr) {
     for(i = 0; i < 0xfffffff; i++);
     speaker_mute();*/
 
-    //tux_set_led("null", 0x00);
+    tux_set_led("null", 0x00);
 
 
     //rtc_set_freq(2);    // Set frequency after initialization,

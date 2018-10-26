@@ -1,5 +1,6 @@
 #include "serial.h"
 #include "i8259.h"
+#include "tux.h"
 
 #define SERIAL_PORTS_COUNT 2
 uint16_t serial_ports[] = {0x3f8, 0x2f8};
@@ -50,9 +51,9 @@ int8_t serial_write(uint8_t id, uint8_t data) {
 
 void serial_interrupt(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return;
-    printf("IRQ%d", id);
     while(serial_is_available_rx(id)) {
-        printf("COM%d: %x\n", id + 1, serial_read(id));
+        char data = serial_read(id);
+        if(id == TC_SERIAL_PORT) tux_interrupt(data);
     }
     send_eoi(serial_irqs[id]);
 }
