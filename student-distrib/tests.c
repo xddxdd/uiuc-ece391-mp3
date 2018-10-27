@@ -3,7 +3,6 @@
 #include "lib.h"
 #include "devices/rtc.h"	// Added by jinghua3.
 #include "fs/ece391fs.h"
-#include "spinlock.h"
 
 #define PASS 1
 #define FAIL 0
@@ -293,10 +292,6 @@ int ece391fs_large_file() {
 	return PASS;
 }
 
-/* int ece391fs_list_dir()
- * @output: PASS / FAIL
- * @description: tests listing a directory.
- */
 int ece391fs_list_dir() {
 	TEST_HEADER;
 	char buf[ECE391FS_MAX_FILENAME_LEN + 2];
@@ -310,34 +305,6 @@ int ece391fs_list_dir() {
 		buf[ret + 1] = '\0';
 		printf(buf);
 	}
-	return PASS;
-}
-
-/* int spinlock_test()
- * @output: PASS / FAIL
- * @description: tests locking and unlocking a spinlock.
- */
-int spinlock_test() {
-	TEST_HEADER;
-	spinlock_t lock;
-	spin_lock(&lock);
-	if(spin_trylock(&lock)) return FAIL;	// Simulate locking from another threads
-	spin_unlock(&lock);
-	if(!spin_trylock(&lock)) return FAIL;	// Simulate locking an unlocked lock
-	spin_unlock(&lock);
-	return PASS;
-}
-
-/* int spinlock_deadlock()
- * @output: FAIL / Infinite loop
- * @description: tests locking a spinlock twice, should result in infinite loop.
- */
-int spinlock_deadlock() {
-	TEST_HEADER;
-	spinlock_t lock;
-	spin_lock(&lock);
-	spin_lock(&lock);
-	spin_unlock(&lock);
 	return PASS;
 }
 
@@ -362,33 +329,14 @@ void launch_tests(){
 	//rtc_test();
 
 	// Checkpoint 2
-<<<<<<< HEAD
 	/*TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
-=======
-	
-	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
->>>>>>> master
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
-<<<<<<< HEAD
-	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
-	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());*/
-=======
-<<<<<<< HEAD
 	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());*/
 	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
-=======
-	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
-
->>>>>>> master
->>>>>>> lantian
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5
-
-	// Extra
-	//TEST_OUTPUT("Spinlock", spinlock_test());
-	//TEST_OUTPUT("Spinlock Deadlock", spinlock_deadlock());
 }
