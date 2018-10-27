@@ -16,18 +16,25 @@ uint8_t serial_irqs[] = {4, 3};
  *          ret val: SUCCESS / FAIL
  * @description: initializes serial port.
  */
-int8_t serial_init(uint8_t id) {
+int8_t serial_init(uint8_t id, uint32_t baud_rate) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
-    outb(0x00, port + 1);   // Disable interrupts
-    outb(0x80, port + 3);   // Enable DLAB to set baud rate
-    // We use baud rate 9600 with 8/N/1 format
-    outb(0x0c, port + 0);   // Baud rate divisor 115200 / 9600 = 12, low byte
-    outb(0x00, port + 1);   // Baud rate divisor, high byte
-    outb(0x03, port + 3);   // Disable DLAB, set format to 8/N/1
-    outb(0x01, port + 1);   // Enable interrupt only for data available
-    outb(0xc7, port + 2);   // Enable FIFO
-    outb(0x0b, port + 4);   // Enable FIFO
+    // Disable interrupts
+    outb(SERIAL_INTERRUPT_DISABLE, port + SERIAL_REG_OFFSET_INTERRUPT_ENABLE);
+    // Enable DLAB to set baud rate
+    outb(SERIAL_LINE_CONTROL_DLAB, port + SERIAL_REG_OFFSET_LINE_CONTROL);
+    // We use baud rate 9600 with 8/N/1 format, so the divisor is 12
+    uint32_t divisor = SERIAL_BASE_BAUDRATE / baud_rate;
+    outb((uint8_t) divisor, port + SERIAL_REG_OFFSET_BAUDRATE_LOWBYTE);
+    outb((uint8_t) (divisor >> 8), port + SERIAL_REG_OFFSET_BAUDRATE_HIGHBYTE);
+    // Disable DLAB, set format to 8/N/1
+    outb(SERIAL_LINE_CONTROL_8N1, port + SERIAL_REG_OFFSET_LINE_CONTROL);
+    // Enable interrupt only for data available
+    outb(SERIAL_INTERRUPT_ENABLE_DATA, port + SERIAL_REG_OFFSET_INTERRUPT_ENABLE);
+    // Enable serial modem FIFO
+    outb(SERIAL_INTERRUPT_ID, port + SERIAL_REG_OFFSET_INTERRUPT_IDENTIFICATION);
+    outb(SERIAL_MODEM_CONTROL, port + SERIAL_REG_OFFSET_MODEM_CONTROL);
+    // Enable IRQ and done
     enable_irq(serial_irqs[id]);
     return SERIAL_OP_SUCCESS;
 }
@@ -40,7 +47,8 @@ int8_t serial_init(uint8_t id) {
 int8_t serial_is_available_rx(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
-    return inb(port + 5) & 0x01;
+    // The state is in bit 0 of line status register, hence the magic number
+    return inb(port + SERIAL_REG_OFFSET_LINE_STATUS) & 0x01;
 }
 
 /* int8_t serial_is_available_tx(uint8_t id)
@@ -51,7 +59,8 @@ int8_t serial_is_available_rx(uint8_t id) {
 int8_t serial_is_available_tx(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
-    return inb(port + 5) & 0x20;
+    // The state is in bit 5 of line status register, hence the magic number
+    return inb(port + SERIAL_REG_OFFSET_LINE_STATUS) & 0x20;
 }
 
 /* int8_t serial_read(uint8_t id)
@@ -64,7 +73,7 @@ int8_t serial_read(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
     while(!serial_is_available_rx(id));
-    return inb(port);
+    return inb(port + SERIAL_REG_OFFSET_DATA);
 }
 
 /* int8_t serial_write(uint8_t id, uint8_t data)
@@ -77,7 +86,7 @@ int8_t serial_write(uint8_t id, uint8_t data) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
     while(!serial_is_available_tx(id));
-    outb(data, port);
+    outb(data, port + SERIAL_REG_OFFSET_DATA);
     return SERIAL_OP_SUCCESS;
 }
 

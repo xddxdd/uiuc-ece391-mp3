@@ -5,6 +5,7 @@
 #define TUX_OP_FAIL -1
 
 #define TC_SERIAL_PORT COM1
+#define TC_SERIAL_BAUDRATE 9600
 
 #include "../types.h"
 
