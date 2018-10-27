@@ -99,7 +99,9 @@ void dereferencing_null_test(){
 void deref_nonexist_page_test(){
 	TEST_HEADER;
 
-	int* ptr = (int*)(0x800000 + 8);
+	//int* ptr = (int*)(0xB8000 - 4); // test mem addr in first 4MB but not in video mem.
+	//int* ptr = (int*)(0x800000 - 4); // test mem addr in first 4MB but not in video mem.
+	//int* ptr = (int*)(0x800000 + 8);
 	int testVar;
 	testVar = *(ptr);
 }
@@ -360,13 +362,28 @@ void launch_tests(){
 	//rtc_test();
 
 	// Checkpoint 2
+<<<<<<< HEAD
 	/*TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+=======
+	
+	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+>>>>>>> master
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
+<<<<<<< HEAD
 	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());*/
+=======
+<<<<<<< HEAD
+	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());*/
+	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
+=======
+	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+
+>>>>>>> master
+>>>>>>> lantian
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5
