@@ -6,6 +6,7 @@
     void interrupt_rtc_wrap();
     void interrupt_serial1_wrap();
     void interrupt_serial2_wrap();
+    void interrupt_sb16_wrap();
 #endif
 
 #endif

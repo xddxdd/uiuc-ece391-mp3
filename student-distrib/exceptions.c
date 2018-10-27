@@ -38,6 +38,15 @@ void exception_handler_real(char* message) {
 
     cli();  // Disable interruption
 
+    // Print the big 00P5 and exception message
+    printf("+---+ +---+ +---+ +---+\n");
+    printf("|   | |   | |   | |    \n");
+    printf("| . | | . | +---+ +---+\n");
+    printf("|   | |   | |         |\n");
+    printf("+---+ +---+ +     +---+\n");
+    printf("The following exception happened:\n");
+    printf(message);
+
     // Draw aqua on the bottom right of the screen
     for(y = 0; y < AQUA_HEIGHT; y++) {
         for(x = 0; x < AQUA_WIDTH; x++) {
@@ -59,15 +68,6 @@ void exception_handler_real(char* message) {
             }
         }
     }
-
-    // Print the big 00P5 and exception message
-    printf("+---+ +---+ +---+ +---+\n");
-    printf("|   | |   | |   | |    \n");
-    printf("| . | | . | +---+ +---+\n");
-    printf("|   | |   | |         |\n");
-    printf("+---+ +---+ +     +---+\n");
-    printf("The following exception happened:\n");
-    printf(message);
 
     // Infinite loop
     asm volatile (".1: hlt; jmp .1;");

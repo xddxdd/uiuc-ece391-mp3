@@ -154,9 +154,9 @@ void entry(unsigned long magic, unsigned long addr) {
     keyboard_init();
     //rtc_init();
     //serial_init(COM1);
-    tux_init();
-    //sb16_init();
-    speaker_init();
+    //tux_init();
+    sb16_init();
+    //speaker_init();
 
     // initial memory
     init_paging();
@@ -168,28 +168,24 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    /*uint32_t i;
-    clear();
-    speaker_unmute();
-    speaker_tune(3, TUNE_C);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_tune(3, TUNE_D);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_tune(3, TUNE_E);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_tune(3, TUNE_F);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_tune(3, TUNE_G);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_tune(3, TUNE_A);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_tune(3, TUNE_B);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_tune(4, TUNE_C);
-    for(i = 0; i < 0xfffffff; i++);
-    speaker_mute();*/
+    ece391fs_file_info_t finfo;
+    read_dentry_by_name("xqxa.wav", &finfo);
+    ece391fs_print_file_info(&finfo);
+    uint32_t size = read_data(finfo.inode, 0, (char*) 0x10000, 0x10000);
+    uint32_t pos = 0x10000;
+    sb16_play();
+    while(1) {
+        sb16_read();
+        size = read_data(finfo.inode, pos, (char*) ((pos & 0x8000) ? 0x18000 : 0x10000), 0x8000);
+        pos += 0x8000;
+        if(size < 0x8000) {
+            sb16_stop_after_block();
+            break;
+        }
+    }
 
-    tux_set_led("null", 0x00);
+
+    //tux_set_led("null", 0x00);
 
 
     //rtc_set_freq(2);    // Set frequency after initialization,
@@ -197,7 +193,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    //launch_tests();
+    launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 
