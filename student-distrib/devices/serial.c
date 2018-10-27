@@ -2,10 +2,20 @@
 #include "i8259.h"
 #include "tux.h"
 
+// Serial port definitions, corresponding to values in QEMU source code.
+// May or may not work on actual machines.
 #define SERIAL_PORTS_COUNT 2
 uint16_t serial_ports[] = {0x3f8, 0x2f8};
 uint8_t serial_irqs[] = {4, 3};
 
+/* int8_t serial_init(uint8_t id)
+ * @input: id - ID of com port to be initialized
+ * @output: the port gets initialized to following mode:
+ *          - Interrupt enabled for receiving data
+ *          - 9600 baudrate, 8/N/1
+ *          ret val: SUCCESS / FAIL
+ * @description: initializes serial port.
+ */
 int8_t serial_init(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
@@ -22,18 +32,34 @@ int8_t serial_init(uint8_t id) {
     return SERIAL_OP_SUCCESS;
 }
 
+/* int8_t serial_is_available_rx(uint8_t id)
+ * @input: id - ID of com port to be checked
+ * @output: 0 if no data is available, 1 otherwise
+ * @description: checks if the port has something in its receiving buffer.
+ */
 int8_t serial_is_available_rx(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
     return inb(port + 5) & 0x01;
 }
 
+/* int8_t serial_is_available_tx(uint8_t id)
+ * @input: id - ID of com port to be checked
+ * @output: 0 if data should not be sent, 1 otherwise
+ * @description: checks if the port is ready for sending data.
+ */
 int8_t serial_is_available_tx(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
     return inb(port + 5) & 0x20;
 }
 
+/* int8_t serial_read(uint8_t id)
+ * @input: id - ID of com port to be checked
+ * @output: -1 if no data is available,
+ *          the data otherwise
+ * @description: read a byte from serial port.
+ */
 int8_t serial_read(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
@@ -41,6 +67,12 @@ int8_t serial_read(uint8_t id) {
     return inb(port);
 }
 
+/* int8_t serial_write(uint8_t id, uint8_t data)
+ * @input: id - ID of com port to be checked
+ *         data - data to be written
+ * @output: SUCCESS / FAIL
+ * @description: write a byte to serial port.
+ */
 int8_t serial_write(uint8_t id, uint8_t data) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
     uint16_t port = serial_ports[id];
@@ -49,6 +81,10 @@ int8_t serial_write(uint8_t id, uint8_t data) {
     return SERIAL_OP_SUCCESS;
 }
 
+/* void serial_interrupt(uint8_t id)
+ * @input: id - ID of com port to be checked
+ * @description: interrupt handler of serial events
+ */
 void serial_interrupt(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return;
     while(serial_is_available_rx(id)) {
@@ -58,5 +94,7 @@ void serial_interrupt(uint8_t id) {
     send_eoi(serial_irqs[id]);
 }
 
+/* void serial1_interrupt() - interrupt handler wrapper for previous function */
 void serial1_interrupt() { serial_interrupt(COM1); }
+/* void serial2_interrupt() - interrupt handler wrapper for previous function */
 void serial2_interrupt() { serial_interrupt(COM2); }
