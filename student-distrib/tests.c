@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "rtc.h"	// Added by jinghua3.
 #include "ece391fs.h"
+#include "keyboard.h"
 
 #define PASS 1
 #define FAIL 0
@@ -291,6 +292,48 @@ int ece391fs_large_file() {
 	return PASS;
 }
 
+/* RTC driver test */
+/* rtc_write_test */
+int rtc_write_test()
+{
+	TEST_HEADER;
+	// new frequency set to the RTC
+	uint16_t freq = 2;
+	rtc_init();
+	rtc_open();
+	printf("Set RTC to %d Hz\n", freq);
+	rtc_write(freq);
+	rtc_close();
+	return PASS;
+}
+
+/* rtc_read_test */
+int rtc_read_test()
+{
+	TEST_HEADER;
+	// new frequency set to the RTC
+	rtc_init();
+	rtc_open();
+	printf("Wait for tick...\n");
+	rtc_read();
+	printf("\nHere it comes!\n");
+	rtc_close();
+	return PASS;
+}
+
+/* Keyboard driver test */
+/* keyboard_dirver_test */
+int keyboard_dirver_test()
+{
+	TEST_HEADER;
+	keyboard_open();
+	keyboard_read();
+	keyboard_write();
+	keyboard_close();
+	return PASS;
+}
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -303,15 +346,16 @@ void launch_tests(){
 	// launch your tests here
 
 	// Checkpoint 1 - Added by jinghua3.
-	//TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
-	//TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
-	//TEST_OUTPUT("Paging Structure Test", paging_struct_test());
-	//dereferencing_null_test();
-	//division_by_zero_test();
-	//deref_nonexist_page_test();
-	//rtc_test();
+	// TEST_OUTPUT("Video Memory Paging Test", videoMem_paging_test());
+	// TEST_OUTPUT("Kernel Memory Paging Test", kerMem_paging_test());
+	// TEST_OUTPUT("Paging Structure Test", paging_struct_test());
+	// dereferencing_null_test();
+	// division_by_zero_test();
+	// deref_nonexist_page_test();
+	// rtc_test();
 
 	// Checkpoint 2
+<<<<<<< HEAD
 	
 	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
@@ -319,6 +363,17 @@ void launch_tests(){
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
 	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+=======
+	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
+	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
+	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
+	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
+	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
+	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
+>>>>>>> 42360f56aca0e97cf1e03d3916cddb1b2c05c4af
 
 	// Checkpoint 3
 	// Checkpoint 4

@@ -21,4 +21,10 @@ uint8_t rtc_freq_to_config(uint16_t freq);
 void rtc_set_freq(uint16_t freq);
 void rtc_interrupt();
 
+// RTC Driver
+void rtc_open();
+void rtc_read();
+void rtc_write(uint16_t freq);
+void rtc_close();
+
 #endif
