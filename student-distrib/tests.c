@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "devices/rtc.h"	// Added by jinghua3.
 #include "fs/ece391fs.h"
+#include "devices/sb16.h"
 
 #define PASS 1
 #define FAIL 0
@@ -100,9 +101,9 @@ void deref_nonexist_page_test(){
 
 	//int* ptr = (int*)(0xB8000 - 4); // test mem addr in first 4MB but not in video mem.
 	//int* ptr = (int*)(0x800000 - 4); // test mem addr in first 4MB but not in video mem.
-	//int* ptr = (int*)(0x800000 + 8);
+	int* ptr = (int*)(0x800000 + 8);
 	int testVar;
-	//testVar = *(ptr);
+	testVar = *(ptr);
 }
 
 
@@ -292,6 +293,10 @@ int ece391fs_large_file() {
 	return PASS;
 }
 
+/* int ece391fs_list_dir()
+ * @output: PASS / FAIL
+ * @description: Lists every file in ECE391FS
+ */
 int ece391fs_list_dir() {
 	TEST_HEADER;
 	char buf[ECE391FS_MAX_FILENAME_LEN + 2];
@@ -312,6 +317,36 @@ int ece391fs_list_dir() {
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
+/* Extra feature tests */
+/* int sb16_play_music()
+ * @output: PASS / FAIL
+ * @description: Tests reading music from filesystem and playing it.
+ */
+int sb16_play_music() {
+	TEST_HEADER;
+	ece391fs_file_info_t finfo;
+	read_dentry_by_name("xqxa.wav", &finfo);
+	// Read the first chunk of data, and record position
+	uint32_t size = read_data(finfo.inode, 0, (char*) SB16_BUF_ADDR, (SB16_BUF_LEN + 1));
+	uint32_t pos = (SB16_BUF_LEN + 1);
+	// Initialize playing with 22050 Hz, Mono, Unsigned PCM
+	sb16_play(22050, SB16_MODE_MONO, SB16_MODE_UNSIGNED);
+	while(1) {
+		sb16_read();	// Wait until one block finished
+		// Read the next chunk of data, copy into block correspondingly
+		size = read_data(finfo.inode, pos,
+			(char*) ((pos & 0x8000) ? SB16_BUF_MID : SB16_BUF_ADDR), (SB16_BUF_LEN_HALF + 1));
+		// Move file pos
+		pos += (SB16_BUF_LEN_HALF + 1);
+		if(size < (SB16_BUF_LEN_HALF + 1)) {
+			// The remaining data isn't sufficient for one block
+			// Finish after this block
+			sb16_stop_after_block();
+			break;
+		}
+	}
+	return PASS;
+}
 
 /* Test suite entry point */
 void launch_tests(){
@@ -334,8 +369,9 @@ void launch_tests(){
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
-	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());*/
-	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
+	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());*/
+	TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

@@ -168,26 +168,6 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    ece391fs_file_info_t finfo;
-    read_dentry_by_name("xqxa.wav", &finfo);
-    ece391fs_print_file_info(&finfo);
-    uint32_t size = read_data(finfo.inode, 0, (char*) 0x10000, 0x10000);
-    uint32_t pos = 0x10000;
-    sb16_play();
-    while(1) {
-        sb16_read();
-        size = read_data(finfo.inode, pos, (char*) ((pos & 0x8000) ? 0x18000 : 0x10000), 0x8000);
-        pos += 0x8000;
-        if(size < 0x8000) {
-            sb16_stop_after_block();
-            break;
-        }
-    }
-
-
-    //tux_set_led("null", 0x00);
-
-
     //rtc_set_freq(2);    // Set frequency after initialization,
                         // because it includes CLI and STI
 
