@@ -98,7 +98,9 @@ void dereferencing_null_test(){
 void deref_nonexist_page_test(){
 	TEST_HEADER;
 
-	int* ptr = (int*)(0x800000 + 8);
+	//int* ptr = (int*)(0xB8000 - 4); // test mem addr in first 4MB but not in video mem.
+	//int* ptr = (int*)(0x800000 - 4); // test mem addr in first 4MB but not in video mem.
+	//int* ptr = (int*)(0x800000 + 8);
 	int testVar;
 	testVar = *(ptr);
 }
