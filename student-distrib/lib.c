@@ -170,7 +170,7 @@ format_char_switch:
 /* int32_t puts(int8_t* s);
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
- *    Function: Output a string to the console */
+ *   Function: Output a string to the console */
 int32_t puts(int8_t* s) {
     register int32_t index = 0;
     while (s[index] != '\0') {
@@ -183,13 +183,17 @@ int32_t puts(int8_t* s) {
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
- *  Function: Output a character to the console */
+ * Function: Output a character to the console */
 void putc(uint8_t c) {
+    if (NUM_COLS * screen_y + screen_x >= NUM_COLS * NUM_ROWS)
+    {
+      roll_up();
+    }
+
     if(c == '\n' || c == '\r') {
         screen_y = ((screen_y + 1) % NUM_ROWS);
         clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
-        vga_text_set_cursor_pos(screen_x, screen_y);
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -199,9 +203,25 @@ void putc(uint8_t c) {
             screen_y = ((screen_y + 1) % NUM_ROWS);
             clear_row(screen_y);
         }
-        vga_text_set_cursor_pos(screen_x, screen_y);
     }
     vga_text_set_cursor_pos(screen_x, screen_y);
+}
+
+/* void roll_up();
+ * Inputs: none
+ * Return Value: void
+ * Function:roll the page up one line */
+void roll_up()
+{
+  int32_t index;
+  for (index = 0; index < (NUM_ROWS - 1) * NUM_COLS; index++)
+  {
+      *(uint8_t *)(video_mem + (index << 1)) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1));
+      *(uint8_t *)(video_mem + (index << 1) + 1) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1) + 1);
+  }
+  screen_x = 0;
+  screen_y = NUM_ROWS - 1;
+  clear_row(NUM_ROWS - 1);
 }
 
 /* void keyboard_echo(uint8_t c);
@@ -210,10 +230,17 @@ void putc(uint8_t c) {
  *  Function: Output a character to the console (only used by keyboard driver) */
 void keyboard_echo(uint8_t c)
 {
-     /* Todo: add Ctrl+L clear screen support */
+    if (NUM_COLS * screen_y + screen_x >= NUM_COLS * NUM_ROWS)
+    {
+      roll_up();
+    }
 
     if(c == '\n' || c == '\r') {
         screen_y++;
+        if (screen_y >= NUM_ROWS)
+        {
+          roll_up();
+        }
         clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
     }
@@ -223,10 +250,14 @@ void keyboard_echo(uint8_t c)
       // If the line is filled up
       if(screen_x < 0)
       {
+          clear_row(screen_y);
           screen_x = NUM_COLS - 1;
           screen_y -= 1;
-          if(screen_y < 0) screen_y = NUM_ROWS - 1;
-          clear_row((screen_y + 1) % NUM_ROWS);
+          if(screen_y < 0)
+          {
+            screen_x = 0;
+            screen_y = 0;
+          }
       }
       *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
       *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -240,8 +271,12 @@ void keyboard_echo(uint8_t c)
         if(screen_x >= NUM_COLS)
         {
             screen_x = 0;
-            screen_y = ((screen_y + 1) % NUM_ROWS);
-            clear_row(screen_y);
+            screen_y++;
+            if (screen_y >= NUM_ROWS)
+            {
+              roll_up();
+            }
+            clear_row(screen_y);    // Clear the new line for better display
         }
     }
     vga_text_set_cursor_pos(screen_x, screen_y);
