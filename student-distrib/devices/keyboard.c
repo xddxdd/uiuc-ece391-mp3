@@ -33,7 +33,7 @@ void keyboard_interrupt() {
     uint8_t scancode_idx = inb(KEYBOARD_PORT);
     char key;
     int is_special_key;
-    /* Todo: add upper case support */
+
     is_special_key = update_special_key_stat(scancode_idx);
     if (is_special_key == 1){
       // send End Of Interrupt
@@ -41,6 +41,19 @@ void keyboard_interrupt() {
       return;
     }
 
+    if(ctrl_pressed==1){
+      key = scancode[scancode_idx][0];
+      if(key == 'l'){
+        // Ctrl+L or Ctrl+l received, clear screen and put cursor at the top.
+        clear();
+        // clear the keyboard buffer.
+        keyboard_buffer_top = 0;
+      }
+
+      // send End Of Interrupt
+      send_eoi(KEYBOARD_IRQ);
+      return;
+    }
     // echo the keyboard input to the screen
     if(scancode_idx < SCANCODE_TABLE_SIZE)
     {
@@ -161,7 +174,7 @@ int update_special_key_stat(uint8_t keyboard_input){
       return 1;
 
     case CAPSLOCK_RELEASE:
-
+      capslock_pressed = 0;
       return 1;
 
     case LEFT_SHIFT_PRESS:

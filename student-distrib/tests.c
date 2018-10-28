@@ -407,18 +407,6 @@ void launch_tests(){
 	// rtc_test();
 
 	// Checkpoint 2
-<<<<<<< HEAD
-	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
-	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
-	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
-	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
-	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
-	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
-	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
-	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
-
-=======
 	/*TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
@@ -430,7 +418,6 @@ void launch_tests(){
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	// TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
 	//TEST_OUTPUT("SB16 Play Music", sb16_play_music());
->>>>>>> 3375c7ea4ec939cdc18871447538c9f1b4a2eab5
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5
