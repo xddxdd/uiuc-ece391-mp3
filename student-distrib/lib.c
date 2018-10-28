@@ -184,10 +184,12 @@ int32_t puts(int8_t* s) {
  * Inputs: uint_8* c = character to print
  * Return Value: void
  * Function: Output a character to the console */
-void putc(uint8_t c) {
+void putc(uint8_t c)
+{
+    // if reach the right bottom of the screen
     if (NUM_COLS * screen_y + screen_x >= NUM_COLS * NUM_ROWS)
     {
-      roll_up();
+        roll_up();
     }
 
     if(c == '\n' || c == '\r') {
@@ -205,9 +207,10 @@ void putc(uint8_t c) {
         if(screen_x >= NUM_COLS) {  // If the line is filled up
             screen_x = 0;
             screen_y++;
+            // if reach the right bottom of the screen
             if (screen_y >= NUM_ROWS)
             {
-              roll_up();
+                roll_up();
             }
             clear_row(screen_y);    // Clear the new line for better display
         }
@@ -221,15 +224,15 @@ void putc(uint8_t c) {
  * Function:roll the page up one line */
 void roll_up()
 {
-  int32_t index;
-  for (index = 0; index < (NUM_ROWS - 1) * NUM_COLS; index++)
-  {
-      *(uint8_t *)(video_mem + (index << 1)) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1));
-      *(uint8_t *)(video_mem + (index << 1) + 1) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1) + 1);
-  }
-  screen_x = 0;
-  screen_y = NUM_ROWS - 1;
-  clear_row(NUM_ROWS - 1);
+    int32_t index;
+    for (index = 0; index < (NUM_ROWS - 1) * NUM_COLS; index++)
+    {
+        *(uint8_t *)(video_mem + (index << 1)) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1));
+        *(uint8_t *)(video_mem + (index << 1) + 1) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1) + 1);
+    }
+    screen_x = 0;
+    screen_y = NUM_ROWS - 1;
+    clear_row(NUM_ROWS - 1);
 }
 
 /* void keyboard_echo(uint8_t c);
@@ -238,38 +241,42 @@ void roll_up()
  *  Function: Output a character to the console (only used by keyboard driver) */
 void keyboard_echo(uint8_t c)
 {
+    // if reach the right bottom of the screen
     if (NUM_COLS * screen_y + screen_x >= NUM_COLS * NUM_ROWS)
     {
-      roll_up();
+        roll_up();
     }
-
+    // new line
     if(c == '\n' || c == '\r') {
         screen_y++;
+        // if reach the right bottom of the screen
         if (screen_y >= NUM_ROWS)
         {
-          roll_up();
+            roll_up();
         }
         clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
     }
+    // backspace
     else if (c == BACKSPACE)
     {
-      screen_x--;
-      // If the line is filled up
-      if(screen_x < 0)
-      {
-          clear_row(screen_y);
-          screen_x = NUM_COLS - 1;
-          screen_y -= 1;
-          if(screen_y < 0)
-          {
-            screen_x = 0;
-            screen_y = 0;
-          }
-      }
-      *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-      *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x--;
+        // If the line is filled up
+        if(screen_x < 0)
+        {
+            clear_row(screen_y);
+            screen_x = NUM_COLS - 1;
+            screen_y -= 1;
+            if(screen_y < 0)
+            {
+                screen_x = 0;
+                screen_y = 0;
+            }
+        }
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
     }
+    // default
     else
     {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
@@ -280,9 +287,10 @@ void keyboard_echo(uint8_t c)
         {
             screen_x = 0;
             screen_y++;
+            // if reach the right bottom of the screen
             if (screen_y >= NUM_ROWS)
             {
-              roll_up();
+                roll_up();
             }
             clear_row(screen_y);    // Clear the new line for better display
         }
