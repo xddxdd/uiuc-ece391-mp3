@@ -25,7 +25,7 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
-    update_cursor(screen_x, screen_y);
+    vga_text_set_cursor_pos(screen_x, screen_y);
 }
 
 /* void clear_row(uint32_t row)
@@ -186,9 +186,10 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_y++;
+        screen_y = ((screen_y + 1) % NUM_ROWS);
         clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
+        vga_text_set_cursor_pos(screen_x, screen_y);
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -198,8 +199,9 @@ void putc(uint8_t c) {
             screen_y = ((screen_y + 1) % NUM_ROWS);
             clear_row(screen_y);
         }
+        vga_text_set_cursor_pos(screen_x, screen_y);
     }
-    update_cursor(screen_x, screen_y);
+    vga_text_set_cursor_pos(screen_x, screen_y);
 }
 
 /* void keyboard_echo(uint8_t c);
@@ -222,7 +224,8 @@ void keyboard_echo(uint8_t c)
       if(screen_x < 0)
       {
           screen_x = NUM_COLS - 1;
-          screen_y = ((screen_y - 1) % NUM_ROWS);
+          screen_y -= 1;
+          if(screen_y < 0) screen_y = NUM_ROWS - 1;
           clear_row((screen_y + 1) % NUM_ROWS);
       }
       *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
@@ -241,7 +244,7 @@ void keyboard_echo(uint8_t c)
             clear_row(screen_y);
         }
     }
-    update_cursor(screen_x, screen_y);
+    vga_text_set_cursor_pos(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

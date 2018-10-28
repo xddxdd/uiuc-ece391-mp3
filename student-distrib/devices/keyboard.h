@@ -1,7 +1,7 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "lib.h"
+#include "../lib.h"
 #include "i8259.h"
 #include "vga_text.h"
 

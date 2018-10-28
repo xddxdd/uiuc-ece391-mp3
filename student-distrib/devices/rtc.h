@@ -1,7 +1,7 @@
 #ifndef _RTC_H_
 #define _RTC_H_
 
-#include "lib.h"
+#include "../lib.h"
 #include "i8259.h"
 
 // IRQ line connected to RTC, as used on x86 machines

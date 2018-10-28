@@ -17,7 +17,10 @@ void init_paging()
   for (index = 0; index < NUM_PTE; index++)
   {
     // initially, clear all flags
-    page_table[index].present = (index==VIDEO_MEM_INDEX) ? 1 : 0;  //modified by jinghua3.
+    page_table[index].present
+        = (index == VIDEO_MEM_INDEX
+            || (index >= SB16_MEM_BEGIN && index < SB16_MEM_END))
+            ? 1 : 0;  //modified by jinghua3.
     page_table[index].read_write = 0;
     page_table[index].user_supervisor = 0;
     page_table[index].write_through = 0;

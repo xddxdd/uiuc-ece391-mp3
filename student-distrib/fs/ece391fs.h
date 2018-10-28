@@ -1,7 +1,7 @@
 #ifndef _ECE391FS_H_
 #define _ECE391FS_H_
 
-#include "lib.h"
+#include "../lib.h"
 
 #define ECE391FS_FILE_TYPE_RTC 0
 #define ECE391FS_FILE_TYPE_FOLDER 1
@@ -46,5 +46,6 @@ int32_t ece391fs_size(uint32_t inode_idx);
 int32_t read_dentry_by_name(const char* fname, ece391fs_file_info_t* file_info);
 int32_t read_dentry_by_index(uint32_t index, ece391fs_file_info_t* file_info);
 int32_t read_data(uint32_t inode, uint32_t offset, char* buf, uint32_t length);
+int32_t read_dir(uint32_t offset, char* buf, uint32_t length);
 void ece391fs_print_file_info(ece391fs_file_info_t* file_info);
 #endif

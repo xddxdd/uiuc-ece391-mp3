@@ -5,14 +5,18 @@
 #include "multiboot.h"
 #include "x86_desc.h"
 #include "lib.h"
-#include "i8259.h"
+#include "devices/i8259.h"
 #include "debug.h"
 #include "tests.h"
 
-#include "keyboard.h"
-#include "rtc.h"
+#include "devices/keyboard.h"
+#include "devices/rtc.h"
+#include "devices/serial.h"
+#include "devices/tux.h"
+#include "devices/sb16.h"
+#include "devices/speaker.h"
 #include "paging.h"
-#include "ece391fs.h"
+#include "fs/ece391fs.h"
 
 #define RUN_TESTS
 
@@ -148,7 +152,11 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     keyboard_init();
-    // rtc_init();
+    //rtc_init();
+    //serial_init(COM1);
+    //tux_init();
+    //sb16_init();
+    //speaker_init();
 
     // initial memory
     init_paging();

@@ -1,9 +1,10 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
-#include "rtc.h"	// Added by jinghua3.
-#include "ece391fs.h"
-#include "keyboard.h"
+#include "devices/rtc.h"	// Added by jinghua3.
+#include "fs/ece391fs.h"
+#include "devices/sb16.h"
+#include "devices/keyboard.h"
 
 #define PASS 1
 #define FAIL 0
@@ -268,7 +269,7 @@ int ece391fs_read_nonexistent_idx() {
 int ece391fs_large_file() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	read_dentry_by_name("verylargetextwithverylongname.txt", &finfo);
+	if(-1 == read_dentry_by_name("verylargetextwithverylongname.txt", &finfo)) return FAIL;
 	if(ece391fs_size(finfo.inode) != 5277) return FAIL;
 	char buf[33];
 	buf[32] = '\0';
@@ -277,18 +278,39 @@ int ece391fs_large_file() {
 	char std3[] = "jklmnopqrstuvwxyzabcdefghijklmno";
 	char std4[] = "_+`1234567890-=[]\\{}|;\':\",./<>?\n";
 	char std5[] = ",./<>?\n";
-	read_data(finfo.inode, 0, buf, 32);			// Test reading at beginning
+	if(32 != read_data(finfo.inode, 0, buf, 32)) return FAIL;		// Test reading at beginning
 	if(0 != strncmp(buf, std1, 32)) return FAIL;
-	read_data(finfo.inode, 32, buf, 32);		// Test reading with offset
+	if(32 != read_data(finfo.inode, 32, buf, 32)) return FAIL;		// Test reading with offset
 	if(0 != strncmp(buf, std2, 32)) return FAIL;
-	read_data(finfo.inode, 4090, buf, 32);		// Test reading across block
+	if(32 != read_data(finfo.inode, 4090, buf, 32)) return FAIL;	// Test reading across block
 	if(0 != strncmp(buf, std3, 32)) return FAIL;
-	read_data(finfo.inode, 5245, buf, 32);		// Test reading at end
+	if(32 != read_data(finfo.inode, 5245, buf, 32)) return FAIL;	// Test reading at end
 	if(0 != strncmp(buf, std4, 32)) return FAIL;
-	read_data(finfo.inode, 5270, buf, 32);		// Test reading over end
-	if(0 != strncmp(buf, std5, 7)) return FAIL;	// should only read 7 bytes
-	read_data(finfo.inode, 5270, buf, 8000);	// Test reading well over end
-	if(0 != strncmp(buf, std5, 7)) return FAIL;	// should only read 7 bytes
+	if(7 != read_data(finfo.inode, 5270, buf, 32)) return FAIL;		// Test reading over end
+	if(0 != strncmp(buf, std5, 7)) return FAIL;						// should only read 7 bytes
+	if(7 != read_data(finfo.inode, 5270, buf, 8000)) return FAIL;	// Test reading well over end
+	if(0 != strncmp(buf, std5, 7)) return FAIL;						// should only read 7 bytes
+	if(0 != read_data(finfo.inode, 5280, buf, 32)) return FAIL;		// Test reading after end
+	return PASS;
+}
+
+/* int ece391fs_list_dir()
+ * @output: PASS / FAIL
+ * @description: Lists every file in ECE391FS
+ */
+int ece391fs_list_dir() {
+	TEST_HEADER;
+	char buf[ECE391FS_MAX_FILENAME_LEN + 2];
+	int32_t ret;
+	int i;
+	for(i = 0; i < ECE391FS_MAX_FILE_COUNT; i++) {
+		ret = read_dir(i, buf, ECE391FS_MAX_FILENAME_LEN);
+		if(ret == 0) break;
+		if(ret < 0) return FAIL;
+		buf[ret] = '\n';
+		buf[ret + 1] = '\0';
+		printf(buf);
+	}
 	return PASS;
 }
 
@@ -338,6 +360,36 @@ int keyboard_dirver_test()
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
+/* Extra feature tests */
+/* int sb16_play_music()
+ * @output: PASS / FAIL
+ * @description: Tests reading music from filesystem and playing it.
+ */
+int sb16_play_music() {
+	TEST_HEADER;
+	ece391fs_file_info_t finfo;
+	if(-1 == read_dentry_by_name("halloffame.wav", &finfo)) return FAIL;
+	// Read the first chunk of data, and record position
+	uint32_t size = read_data(finfo.inode, 0, (char*) SB16_BUF_ADDR, (SB16_BUF_LEN + 1));
+	uint32_t pos = (SB16_BUF_LEN + 1);
+	// Initialize playing with 22050 Hz, Mono, Unsigned PCM
+	sb16_play(22050, SB16_MODE_STEREO, SB16_MODE_UNSIGNED);
+	while(1) {
+		sb16_read();	// Wait until one block finished
+		// Read the next chunk of data, copy into block correspondingly
+		size = read_data(finfo.inode, pos,
+			(char*) ((pos & 0x8000) ? SB16_BUF_MID : SB16_BUF_ADDR), (SB16_BUF_LEN_HALF + 1));
+		// Move file pos
+		pos += (SB16_BUF_LEN_HALF + 1);
+		if(size < (SB16_BUF_LEN_HALF + 1)) {
+			// The remaining data isn't sufficient for one block
+			// Finish after this block
+			sb16_stop_after_block();
+			break;
+		}
+	}
+	return PASS;
+}
 
 /* Test suite entry point */
 void launch_tests(){
@@ -355,6 +407,7 @@ void launch_tests(){
 	// rtc_test();
 
 	// Checkpoint 2
+<<<<<<< HEAD
 	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
@@ -365,6 +418,19 @@ void launch_tests(){
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
 
+=======
+	/*TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
+	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
+	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
+	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
+	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());*/
+	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
+	// TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
+	//TEST_OUTPUT("SB16 Play Music", sb16_play_music());
+>>>>>>> 3375c7ea4ec939cdc18871447538c9f1b4a2eab5
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5

@@ -1,5 +1,5 @@
 #include "keyboard.h"
-#include "data/keyboard-scancode.h"
+#include "../data/keyboard-scancode.h"
 
 // keyboard buffer, one addition place for newline character
 static uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
