@@ -368,12 +368,12 @@ int keyboard_dirver_test()
 int sb16_play_music() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(-1 == read_dentry_by_name("xqxa.wav", &finfo)) return FAIL;
+	if(-1 == read_dentry_by_name("halloffame.wav", &finfo)) return FAIL;
 	// Read the first chunk of data, and record position
 	uint32_t size = read_data(finfo.inode, 0, (char*) SB16_BUF_ADDR, (SB16_BUF_LEN + 1));
 	uint32_t pos = (SB16_BUF_LEN + 1);
 	// Initialize playing with 22050 Hz, Mono, Unsigned PCM
-	sb16_play(22050, SB16_MODE_MONO, SB16_MODE_UNSIGNED);
+	sb16_play(22050, SB16_MODE_STEREO, SB16_MODE_UNSIGNED);
 	while(1) {
 		sb16_read();	// Wait until one block finished
 		// Read the next chunk of data, copy into block correspondingly
