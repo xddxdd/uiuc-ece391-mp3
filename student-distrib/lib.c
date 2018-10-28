@@ -224,7 +224,8 @@ void keyboard_echo(uint8_t c)
       if(screen_x < 0)
       {
           screen_x = NUM_COLS - 1;
-          screen_y = ((screen_y - 1) % NUM_ROWS);
+          screen_y -= 1;
+          if(screen_y < 0) screen_y = NUM_ROWS - 1;
           clear_row((screen_y + 1) % NUM_ROWS);
       }
       *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
