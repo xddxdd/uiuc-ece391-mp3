@@ -25,11 +25,7 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
-<<<<<<< HEAD
     vga_text_set_cursor_pos(screen_x, screen_y);
-=======
-    update_cursor(screen_x, screen_y);
->>>>>>> zw
 }
 
 /* void clear_row(uint32_t row)
@@ -205,7 +201,7 @@ void putc(uint8_t c) {
         }
         vga_text_set_cursor_pos(screen_x, screen_y);
     }
-    update_cursor(screen_x, screen_y);
+    vga_text_set_cursor_pos(screen_x, screen_y);
 }
 
 /* void keyboard_echo(uint8_t c);
@@ -247,7 +243,7 @@ void keyboard_echo(uint8_t c)
             clear_row(screen_y);
         }
     }
-    update_cursor(screen_x, screen_y);
+    vga_text_set_cursor_pos(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

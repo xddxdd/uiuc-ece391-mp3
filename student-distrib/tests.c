@@ -4,7 +4,7 @@
 #include "devices/rtc.h"	// Added by jinghua3.
 #include "fs/ece391fs.h"
 #include "devices/sb16.h"
-#include "keyboard.h"
+#include "devices/keyboard.h"
 
 #define PASS 1
 #define FAIL 0
@@ -368,7 +368,7 @@ int keyboard_dirver_test()
 int sb16_play_music() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	read_dentry_by_name("xqxa.wav", &finfo);
+	if(-1 == read_dentry_by_name("xqxa.wav", &finfo)) return FAIL;
 	// Read the first chunk of data, and record position
 	uint32_t size = read_data(finfo.inode, 0, (char*) SB16_BUF_ADDR, (SB16_BUF_LEN + 1));
 	uint32_t pos = (SB16_BUF_LEN + 1);

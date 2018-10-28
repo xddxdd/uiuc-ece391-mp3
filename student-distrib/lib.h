@@ -6,11 +6,7 @@
 #define _LIB_H
 
 #include "types.h"
-<<<<<<< HEAD
 #include "devices/vga_text.h"
-=======
-#include "vga_text.h"
->>>>>>> zw
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
