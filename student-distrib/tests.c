@@ -8,6 +8,7 @@
 
 #define PASS 1
 #define FAIL 0
+#define SCANCODE_ENTER 0x1C
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -319,12 +320,25 @@ int ece391fs_list_dir() {
 int rtc_write_test()
 {
 	TEST_HEADER;
+	// keyboard scancode
+	uint8_t curr_scancode = 0;
+	uint8_t prev_scancode = 0;
 	// new frequency set to the RTC
 	uint16_t freq = 2;
 	rtc_init();
 	rtc_open();
-	printf("Set RTC to %d Hz\n", freq);
-	rtc_write(freq);
+	while (freq <= 1024)
+	{
+		curr_scancode = inb(KEYBOARD_PORT);
+		if (curr_scancode == SCANCODE_ENTER && prev_scancode != curr_scancode)
+		{
+			freq *= 2;
+			rtc_write(freq);
+		}
+		prev_scancode = curr_scancode;
+	}
+	// reset frequcy to 2
+	rtc_write(2);
 	rtc_close();
 	return PASS;
 }
@@ -414,7 +428,7 @@ void launch_tests(){
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
 	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());*/
-	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	// TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
 	//TEST_OUTPUT("SB16 Play Music", sb16_play_music());

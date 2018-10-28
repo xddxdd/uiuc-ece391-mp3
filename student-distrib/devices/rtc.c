@@ -3,6 +3,7 @@
 // flag variable used to indicate whether the RTC interrupt
 // has occurred
 static volatile int rtc_interrupt_occurred;
+static uint16_t rtc_freq;
 
 /* void rtc_init()
  * @effects: Put RTC into working state
@@ -14,7 +15,7 @@ void rtc_init() {
     char prev = inb(RTC_PORT_DATA);	    // read the current value of register B
     outb(RTC_REG_B, RTC_PORT_CMD);	    // set the index again (a read will reset the index to register D)
     outb(prev | 0x40, RTC_PORT_DATA);   // write the previous value ORed with 0x40. This turns on bit 6 of register B
-
+    rtc_freq = 1024;
     enable_irq(RTC_IRQ);
 }
 
@@ -57,6 +58,7 @@ void rtc_set_freq(uint16_t freq) {
     old_freq = inb(RTC_PORT_DATA);  // we're doing this
     outb(RTC_REG_A, RTC_PORT_CMD);
     outb((old_freq & 0xF0) | new_freq, RTC_PORT_DATA);
+    rtc_freq = new_freq;
     sti();  // Quit critical section
 }
 
@@ -65,7 +67,7 @@ void rtc_set_freq(uint16_t freq) {
  */
 void rtc_interrupt() {
     //test_interrupts();
-    printf("tick! ");
+    printf("%d ", rtc_freq);
     // set rtc_interrupt_occurred flag to 1
     rtc_interrupt_occurred = 1;
     // Read from RTC register C, so it can keep sending interrupts
@@ -82,6 +84,7 @@ void rtc_open()
 {
   // set the RTC frequency to 2 Hz
   rtc_set_freq(2);
+  rtc_freq = 2;
   return;
 }
 
@@ -100,6 +103,7 @@ void rtc_write(uint16_t freq)
   cli();
   // change the frequency of RTC
   rtc_set_freq(freq);
+  rtc_freq = freq;
   sti();
   // quit critical section
   return;

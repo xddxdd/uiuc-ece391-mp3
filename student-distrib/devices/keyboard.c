@@ -67,7 +67,7 @@ void keyboard_interrupt() {
         else{
           key = scancode[scancode_idx][0];
         }
-        
+
         keyboard_echo(key);
         // if keyboard buffer is enable
         if (keyboard_buffer_enable == 1)
@@ -161,7 +161,7 @@ void keyboard_close()
  * update the status: (pressed/not pressed) of Shift, Ctrl, Capslock
  * INPUT:  data from keyboard port.
  * OUTPUT: updates special key status.
- * RETURN: 0 if the scancode from keyboard is not a special key like Shift, Ctrl and Capslock, 
+ * RETURN: 0 if the scancode from keyboard is not a special key like Shift, Ctrl and Capslock,
  *         otherwise 1.
  */
 int update_special_key_stat(uint8_t keyboard_input){
@@ -219,7 +219,7 @@ int is_alphabet(uint8_t scancode_idx){
   else{
     return 0;
   }
-  
+
   if(key>='a' && key<='z'){
     return 1;
   }
