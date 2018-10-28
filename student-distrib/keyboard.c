@@ -10,6 +10,13 @@ static int keyboard_buffer_top = 0;
 // is enable or not (default: 0 -- disable)
 static volatile int keyboard_buffer_enable = 0;
 
+// Keyboard flags, tracking whether shift, ctrl, capslock are pressed or not.
+// Added by jinghua3.
+uint8_t shift_pressed = 0;
+uint8_t ctrl_pressed = 0;
+uint8_t capslock_pressed = 0;
+uint8_t capslock = 0;
+
 /* void keyboard_init()
  * @effects: Make the system ready to receive keyboard interrupts
  * @description: Enable the keyboard IRQ so that we can receive its interrupts
@@ -25,13 +32,26 @@ void keyboard_init() {
 void keyboard_interrupt() {
     uint8_t scancode_idx = inb(KEYBOARD_PORT);
     char key;
-
+    int is_special_key;
     /* Todo: add upper case support */
+    is_special_key = update_special_key_stat(scancode_idx);
+    if (is_special_key == 1){
+      // send End Of Interrupt
+      send_eoi(KEYBOARD_IRQ);
+      return;
+    }
 
     // echo the keyboard input to the screen
     if(scancode_idx < SCANCODE_TABLE_SIZE)
     {
-        key = scancode[scancode_idx][0];
+        // Caps check, modified by jinghua3.
+        if((capslock==1) != (shift_pressed==1)){
+          key = scancode[scancode_idx][1];
+        }
+        else{
+          key = scancode[scancode_idx][0];
+        }
+        
         keyboard_echo(key);
         // if keyboard buffer is enable
         if (keyboard_buffer_enable == 1)
@@ -118,4 +138,51 @@ void keyboard_close()
   // disable keyboard buffer
   keyboard_buffer_enable = 0;
   return;
+}
+
+/* update_special_key_stat - Added by jinghua3.
+ *
+ * update the status: (pressed/not pressed) of Shift, Ctrl, Capslock
+ * INPUT:  data from keyboard port.
+ * OUTPUT: updates special key status.
+ * RETURN: 0 if the scancode from keyboard is not a special key like Shift, Ctrl and Capslock, 
+ *         otherwise 1.
+ */
+int update_special_key_stat(uint8_t keyboard_input){
+  switch(keyboard_input){
+    case CAPSLOCK_PRESS:
+      capslock_pressed = 1;
+      if (capslock==0){
+        capslock = 1;
+      }
+      else{
+        capslock = 0;
+      }
+      return 1;
+
+    case CAPSLOCK_RELEASE:
+
+      return 1;
+
+    case LEFT_SHIFT_PRESS:
+    case RIGHT_SHIFT_PRESS:
+      shift_pressed = 1;
+      return 1;
+
+    case LEFT_SHIFT_RELEASE:
+    case RIGHT_SHIFT_RELEASE:
+      shift_pressed = 0;
+      return 1;
+
+    case LEFT_CTRL_PRESS:
+      ctrl_pressed = 1;
+      return 1;
+
+    case LEFT_CTRL_RELEASE:
+      ctrl_pressed = 0;
+      return 1;
+
+    default:
+      return 0;
+  }
 }

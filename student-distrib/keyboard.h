@@ -11,8 +11,20 @@
                                     /* except for the newline character */
 #define BACKSPACE   0x8
 
+// PS/2 keyboard input data
+#define CAPSLOCK_PRESS      0x3A
+#define CAPSLOCK_RELEASE    0xBA
+#define LEFT_SHIFT_PRESS    0x2A
+#define RIGHT_SHIFT_PRESS   0x36
+#define LEFT_SHIFT_RELEASE  0xAA
+#define RIGHT_SHIFT_RELEASE 0xB6
+#define LEFT_CTRL_PRESS     0x1D
+#define LEFT_CTRL_RELEASE   0x9D
+
 void keyboard_init();
 void keyboard_interrupt();
+
+int update_special_key_stat(uint8_t keyboard_input);
 
 // Keyboard Driver
 void keyboard_open();
