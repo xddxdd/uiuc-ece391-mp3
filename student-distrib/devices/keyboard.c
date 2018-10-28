@@ -58,7 +58,10 @@ void keyboard_interrupt() {
     if(scancode_idx < SCANCODE_TABLE_SIZE)
     {
         // Caps check, modified by jinghua3.
-        if((capslock==1) != (shift_pressed==1)){
+        if(((capslock) != (shift_pressed)) && is_alphabet(scancode_idx)){
+          key = scancode[scancode_idx][1];
+        }
+        else if(!is_alphabet(scancode_idx) && shift_pressed){
           key = scancode[scancode_idx][1];
         }
         else{
@@ -197,5 +200,30 @@ int update_special_key_stat(uint8_t keyboard_input){
 
     default:
       return 0;
+  }
+}
+
+/* is_alphabet - Added by jinghua3.
+ *
+ * check if keyboard input is an alphabet
+ * INPUT: scancode from keyboard.
+ * OUTPUT:none
+ * RETURN: 1 if is alphabet, 0 if not.
+ */
+
+int is_alphabet(uint8_t scancode_idx){
+  char key;
+  if (scancode_idx < SCANCODE_TABLE_SIZE){
+    key = scancode[scancode_idx][0];
+  }
+  else{
+    return 0;
+  }
+  
+  if(key>='a' && key<='z'){
+    return 1;
+  }
+  else {
+    return 0;
   }
 }

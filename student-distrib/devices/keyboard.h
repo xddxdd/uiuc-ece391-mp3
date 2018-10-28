@@ -25,6 +25,7 @@ void keyboard_init();
 void keyboard_interrupt();
 
 int update_special_key_stat(uint8_t keyboard_input);
+int is_alphabet(uint8_t scancode);
 
 // Keyboard Driver
 void keyboard_open();
