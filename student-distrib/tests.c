@@ -355,15 +355,6 @@ void launch_tests(){
 	// rtc_test();
 
 	// Checkpoint 2
-<<<<<<< HEAD
-	
-	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
-	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
-	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
-	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
-=======
 	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
@@ -373,7 +364,6 @@ void launch_tests(){
 	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
->>>>>>> 42360f56aca0e97cf1e03d3916cddb1b2c05c4af
 
 	// Checkpoint 3
 	// Checkpoint 4
