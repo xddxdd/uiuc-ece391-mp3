@@ -191,7 +191,11 @@ void putc(uint8_t c) {
     }
 
     if(c == '\n' || c == '\r') {
-        screen_y = ((screen_y + 1) % NUM_ROWS);
+        screen_y++;
+        if (screen_y >= NUM_ROWS)
+        {
+          roll_up();
+        }
         clear_row(screen_y);    // Clear the new line for better display
         screen_x = 0;
     } else {
@@ -200,8 +204,12 @@ void putc(uint8_t c) {
         screen_x++;
         if(screen_x >= NUM_COLS) {  // If the line is filled up
             screen_x = 0;
-            screen_y = ((screen_y + 1) % NUM_ROWS);
-            clear_row(screen_y);
+            screen_y++;
+            if (screen_y >= NUM_ROWS)
+            {
+              roll_up();
+            }
+            clear_row(screen_y);    // Clear the new line for better display
         }
     }
     vga_text_set_cursor_pos(screen_x, screen_y);
