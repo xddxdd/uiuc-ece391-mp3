@@ -74,33 +74,41 @@ void keyboard_interrupt() {
         {
           if (key == BACKSPACE)
           {
-            keyboard_buffer_top = (keyboard_buffer_top - 1) < 0 ? 0 :  keyboard_buffer_top - 1;
+            cli();
+            keyboard_buffer_top = (keyboard_buffer_top - 1) < 0 ? 0 :  keyboard_buffer_top - 1;\
+            sti();
           }
           else if (key == '\n')
           {
+            cli();
             // put newline character
             keyboard_buffer[keyboard_buffer_top] = '\n';
             // increment keyboard_buffer_top
             keyboard_buffer_top++;
+            sti();
             // disable keyboard buffer
             keyboard_buffer_enable = 0;
           }
           else if (keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE)
           {
             keyboard_echo('\n');
+            cli();
             // put newline character
             keyboard_buffer[keyboard_buffer_top] = '\n';
             // increment keyboard_buffer_top
             keyboard_buffer_top++;
+            sti();
             // disable keyboard buffer
             keyboard_buffer_enable = 0;
           }
           else
           {
+            cli();
             // record current key
             keyboard_buffer[keyboard_buffer_top] = key;
             // increment keyboard_buffer_top
             keyboard_buffer_top++;
+            sti();
           }
         }
     }
@@ -137,12 +145,14 @@ void keyboard_write()
 {
   // loop index
   int index;
+  cli();
   // all data in the buffer are displayed to the screen
   for (index = 0; index < keyboard_buffer_top; index++)
   {
       putc(keyboard_buffer[index]);
   }
   keyboard_buffer_top = 0;
+  sti();
   return;
 }
 
