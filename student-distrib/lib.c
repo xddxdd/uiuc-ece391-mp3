@@ -7,6 +7,7 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+#define BACKSPACE   0x8
 
 static int screen_x;
 static int screen_y;
@@ -24,7 +25,11 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+<<<<<<< HEAD
     vga_text_set_cursor_pos(screen_x, screen_y);
+=======
+    update_cursor(screen_x, screen_y);
+>>>>>>> zw
 }
 
 /* void clear_row(uint32_t row)
@@ -200,6 +205,49 @@ void putc(uint8_t c) {
         }
         vga_text_set_cursor_pos(screen_x, screen_y);
     }
+    update_cursor(screen_x, screen_y);
+}
+
+/* void keyboard_echo(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console (only used by keyboard driver) */
+void keyboard_echo(uint8_t c)
+{
+     /* Todo: add Ctrl+L clear screen support */
+
+    if(c == '\n' || c == '\r') {
+        screen_y++;
+        clear_row(screen_y);    // Clear the new line for better display
+        screen_x = 0;
+    }
+    else if (c == BACKSPACE)
+    {
+      screen_x--;
+      // If the line is filled up
+      if(screen_x < 0)
+      {
+          screen_x = NUM_COLS - 1;
+          screen_y = ((screen_y - 1) % NUM_ROWS);
+          clear_row((screen_y + 1) % NUM_ROWS);
+      }
+      *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+      *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    }
+    else
+    {
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;
+        // If the line is filled up
+        if(screen_x >= NUM_COLS)
+        {
+            screen_x = 0;
+            screen_y = ((screen_y + 1) % NUM_ROWS);
+            clear_row(screen_y);
+        }
+    }
+    update_cursor(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

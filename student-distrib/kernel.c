@@ -152,11 +152,15 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     keyboard_init();
+<<<<<<< HEAD
     //rtc_init();
     //serial_init(COM1);
     //tux_init();
     sb16_init();
     //speaker_init();
+=======
+    // rtc_init();
+>>>>>>> zw
 
     // initial memory
     init_paging();
