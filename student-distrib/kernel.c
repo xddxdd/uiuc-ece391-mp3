@@ -155,7 +155,7 @@ void entry(unsigned long magic, unsigned long addr) {
     //rtc_init();
     //serial_init(COM1);
     //tux_init();
-    sb16_init();
+    //sb16_init();
     //speaker_init();
 
     // initial memory
