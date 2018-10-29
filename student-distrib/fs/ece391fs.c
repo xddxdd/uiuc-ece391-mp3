@@ -211,6 +211,7 @@ int32_t file_open(int32_t* fd, char* filename) {
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
     if(-1 == read_dentry_by_name(filename, &finfo)) return ECE391FS_CALL_FAIL;
     if(finfo.type != ECE391FS_FILE_TYPE_FILE) return ECE391FS_CALL_FAIL;
+    *fd = finfo.inode;
     return ECE391FS_CALL_SUCCESS;
 }
 
