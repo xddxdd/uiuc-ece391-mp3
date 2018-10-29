@@ -13,6 +13,12 @@ uint16_t notes[] = {
     4186,4435,4699,4978,5274,5588,5920,6272,6645,7040,7459,7902,
 };
 
+/* uint16_t note_tune(uint8_t row, tune_t tune)
+ * @input: row - the number of row in frequency table, e.g. 3 for C3
+ *         tune - the number of column in frequency table, e.g. C for C3
+ * @output: ret val - frequency of the note
+ * @description: convert note to frequency for speaker playing
+ */
 uint16_t note_tune(uint8_t row, tune_t tune) {
     return notes[row * TUNE_TOTAL + tune];
 }
