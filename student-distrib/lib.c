@@ -8,6 +8,7 @@
 #define NUM_ROWS    25
 #define ATTRIB      0x7
 #define BACKSPACE   0x8
+#define NULL_CHAR   0
 
 static int screen_x;
 static int screen_y;
@@ -241,6 +242,10 @@ void roll_up()
  *  Function: Output a character to the console (only used by keyboard driver) */
 void keyboard_echo(uint8_t c)
 {
+    if (c == NULL_CHAR)
+    {
+        return;
+    }
     // if reach the right bottom of the screen
     if (NUM_COLS * screen_y + screen_x >= NUM_COLS * NUM_ROWS)
     {
