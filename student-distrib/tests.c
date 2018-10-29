@@ -428,10 +428,10 @@ void launch_tests(){
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
 	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());*/
-	//TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	// TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
-	//TEST_OUTPUT("SB16 Play Music", sb16_play_music());
+	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
+	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 	// Checkpoint 3
 	// Checkpoint 4
 	// Checkpoint 5
