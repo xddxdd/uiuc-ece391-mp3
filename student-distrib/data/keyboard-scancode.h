@@ -20,7 +20,7 @@ char scancode[SCANCODE_TABLE_SIZE][2] = {
    { '-','_' } ,
    { '=','+' } ,
    {   8,8   } ,
-   {   9,9   } ,
+   {   0,0   } , // modified by jinghua3, disable tab for vga text mode.
    { 'q','Q' } ,
    { 'w','W' } ,
    { 'e','E' } ,
