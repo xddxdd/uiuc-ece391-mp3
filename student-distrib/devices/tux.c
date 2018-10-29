@@ -47,17 +47,21 @@ const uint8_t tc_led_segments[] = {
  */
 int8_t tux_init() {
     if(SERIAL_OP_SUCCESS != serial_init(TC_SERIAL_PORT, TC_SERIAL_BAUDRATE)) return TUX_OP_FAIL;
+    cli();
     int i;
     for(i = 0; i < TC_INITIALIZATION_SEQUENCE_LEN; i++) {
         if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_initialization_sequence[i])) {
+            sti();
             return TUX_OP_FAIL;
         }
     }
     for(i = 0; i < TC_LED_SEQUENCE_LEN; i++) {
         if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
+            sti();
             return TUX_OP_FAIL;
         }
     }
+    sti();
     return TUX_OP_SUCCESS;
 }
 
