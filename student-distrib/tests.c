@@ -451,8 +451,8 @@ int rtc_read_test()
 }
 
 /* terminal driver test */
-/* terminal_dirver_test */
-int terminal_dirver_test()
+/* terminal_driver_test */
+int terminal_driver_test()
 {
 	TEST_HEADER;
 	int32_t read_retval, write_retval;
@@ -535,7 +535,7 @@ void launch_tests(){
 	// TEST_OUTPUT("Generic FS Nonexistent Directory", fs_read_nonexistent_dir());
 	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	TEST_OUTPUT("Terminal Driver Write Test", terminal_dirver_test());
+	TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 	// Checkpoint 3
 	// Checkpoint 4
