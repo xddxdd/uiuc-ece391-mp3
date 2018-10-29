@@ -10,6 +10,7 @@ static uint16_t rtc_freq;
  * @description: Prepare the RTC for generating interrupts at specified interval
  */
 void rtc_init() {
+    cli();
     // From https://wiki.osdev.org/RTC
     outb(RTC_REG_B, RTC_PORT_CMD);	    // select register B, and disable NMI
     char prev = inb(RTC_PORT_DATA);	    // read the current value of register B
@@ -17,6 +18,7 @@ void rtc_init() {
     outb(prev | 0x40, RTC_PORT_DATA);   // write the previous value ORed with 0x40. This turns on bit 6 of register B
     rtc_freq = 1024;
     enable_irq(RTC_IRQ);
+    sti();
 }
 
 /* uint8_t rtc_freq_to_config(uint16_t freq)

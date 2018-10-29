@@ -22,7 +22,9 @@ uint8_t capslock = 0;
  * @description: Enable the keyboard IRQ so that we can receive its interrupts
  */
 void keyboard_init() {
+    cli();
     enable_irq(KEYBOARD_IRQ);
+    sti();
 }
 
 /* void keyboard_interrupt()

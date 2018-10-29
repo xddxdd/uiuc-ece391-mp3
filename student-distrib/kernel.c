@@ -30,6 +30,11 @@ void entry(unsigned long magic, unsigned long addr) {
 
     multiboot_info_t *mbi;
 
+    // Init the PIC
+    // CLI/STI is used for printf, so we initialize i8259 first
+    // to prevent unwanted interrupts
+    i8259_init();
+
     /* Clear the screen. */
     clear();
 
@@ -145,9 +150,6 @@ void entry(unsigned long magic, unsigned long addr) {
         tss.esp0 = 0x800000;
         ltr(KERNEL_TSS);
     }
-
-    /* Init the PIC */
-    i8259_init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
