@@ -82,6 +82,7 @@ void rtc_interrupt() {
 /* rtc_open */
 void rtc_open()
 {
+  rtc_init();
   // set the RTC frequency to 2 Hz
   rtc_set_freq(2);
   rtc_freq = 2;
@@ -112,6 +113,7 @@ void rtc_write(uint16_t freq)
 /* rtc_close */
 void rtc_close()
 {
+  disable_irq(RTC_IRQ);
   // there is nothing to do with syscall close() to RTC
   return;
 }

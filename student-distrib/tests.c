@@ -414,7 +414,7 @@ int rtc_write_test()
 	uint8_t prev_scancode = 0;
 	// new frequency set to the RTC
 	uint16_t freq = 2;
-	rtc_init();
+	//rtc_init();
 	rtc_open();
 	while (freq <= 1024)
 	{
@@ -437,7 +437,7 @@ int rtc_read_test()
 {
 	TEST_HEADER;
 	// new frequency set to the RTC
-	rtc_init();
+	//rtc_init();
 	rtc_open();
 	printf("Wait for tick...\n");
 	rtc_read();
