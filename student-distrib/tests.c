@@ -249,7 +249,7 @@ int ece391fs_read_toolong_file() {
 	return PASS;
 }
 
-/* int ece391fs_read_exist_idx()
+/* int ece391fs_read_existent_idx()
  * @output: PASS / FAIL
  * @description: test getting the first file entry, the directory,
  *     and verify some of its attributes.
@@ -522,20 +522,20 @@ void launch_tests(){
 
 	// Checkpoint 2
 	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
-	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
+	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
 	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
 	// TEST_OUTPUT("ECE391FS Toolong File", ece391fs_read_toolong_file());
 	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	// TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
-	TEST_OUTPUT("Generic FS Existent File", fs_read_existent_file());
-	TEST_OUTPUT("Generic FS Nonexistent File", fs_read_nonexistent_file());
-	TEST_OUTPUT("Generic FS Existent Directory", fs_read_existent_dir());
-	TEST_OUTPUT("Generic FS Nonexistent Directory", fs_read_nonexistent_dir());
+	// TEST_OUTPUT("Generic FS Existent File", fs_read_existent_file());
+	// TEST_OUTPUT("Generic FS Nonexistent File", fs_read_nonexistent_file());
+	// TEST_OUTPUT("Generic FS Existent Directory", fs_read_existent_dir());
+	// TEST_OUTPUT("Generic FS Nonexistent Directory", fs_read_nonexistent_dir());
 	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	// TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
+	TEST_OUTPUT("Keyboard Driver Write Test", terminal_dirver_test());
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 	// Checkpoint 3
 	// Checkpoint 4
