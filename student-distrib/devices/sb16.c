@@ -14,6 +14,7 @@ int32_t sb16_init() {
 
     // Sound Blaster 16 initialization sequence,
     // as described in the code in https://wiki.osdev.org/Sound_Blaster_16
+    cli();
     outb(1, SB16_PORT_RESET);   // Enter reset mode
     int i = 0;                  // Wait 10000 cycles,
     for(i = 0; i < 10000; i++); // around 3us assuming 3GHz CPU
@@ -21,10 +22,12 @@ int32_t sb16_init() {
     // Verify if SB16 is present
     uint8_t data = inb(SB16_PORT_READ);
     sb16_here = data == SB16_STATUS_READY;
+    sti();
 
     if(!sb16_here) return SB16_CALL_FAIL;   // If SB16 isn't present, quit
 
     printf("Sound Blaster 16 Detected\n");
+    cli();
     enable_irq(SB16_IRQ);   // Enable its IRQ for music transmission
 
     // DMA initialization
@@ -47,6 +50,7 @@ int32_t sb16_init() {
         | DMA_MODE_AUTO | DMA_MODE_TRANSFER_SINGLE, DMA_REG_MODE);
     // 8. Unmask DMA channel 1
     outb(DMA_UNMASK_CHANNEL | DMA_SELECT_CHANNEL_1, DMA_REG_CHANNEL_MASK);
+    sti();
 
     return SB16_CALL_SUCCESS;
 }

@@ -18,6 +18,7 @@ uint8_t serial_irqs[] = {4, 3};
  */
 int8_t serial_init(uint8_t id, uint32_t baud_rate) {
     if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
+    cli();
     uint16_t port = serial_ports[id];
     // Disable interrupts
     outb(SERIAL_INTERRUPT_DISABLE, port + SERIAL_REG_OFFSET_INTERRUPT_ENABLE);
@@ -36,6 +37,7 @@ int8_t serial_init(uint8_t id, uint32_t baud_rate) {
     outb(SERIAL_MODEM_CONTROL, port + SERIAL_REG_OFFSET_MODEM_CONTROL);
     // Enable IRQ and done
     enable_irq(serial_irqs[id]);
+    sti();
     return SERIAL_OP_SUCCESS;
 }
 

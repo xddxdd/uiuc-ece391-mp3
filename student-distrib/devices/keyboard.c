@@ -22,7 +22,9 @@ uint8_t capslock = 0;
  * @description: Enable the keyboard IRQ so that we can receive its interrupts
  */
 void keyboard_init() {
+    cli();
     enable_irq(KEYBOARD_IRQ);
+    sti();
 }
 
 /* void keyboard_interrupt()
@@ -68,47 +70,43 @@ void keyboard_interrupt() {
           key = scancode[scancode_idx][0];
         }
 
+        cli();
         keyboard_echo(key);
+        sti();
         // if keyboard buffer is enable
         if (keyboard_buffer_enable == 1)
         {
           if (key == BACKSPACE)
           {
-            cli();
             keyboard_buffer_top = (keyboard_buffer_top - 1) < 0 ? 0 :  keyboard_buffer_top - 1;\
-            sti();
           }
           else if (key == '\n')
           {
-            cli();
             // put newline character
             keyboard_buffer[keyboard_buffer_top] = '\n';
             // increment keyboard_buffer_top
             keyboard_buffer_top++;
-            sti();
             // disable keyboard buffer
             keyboard_buffer_enable = 0;
           }
           else if (keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE)
           {
-            keyboard_echo('\n');
             cli();
+            keyboard_echo('\n');
+            sti();
             // put newline character
             keyboard_buffer[keyboard_buffer_top] = '\n';
             // increment keyboard_buffer_top
             keyboard_buffer_top++;
-            sti();
             // disable keyboard buffer
             keyboard_buffer_enable = 0;
           }
           else
           {
-            cli();
             // record current key
             keyboard_buffer[keyboard_buffer_top] = key;
             // increment keyboard_buffer_top
             keyboard_buffer_top++;
-            sti();
           }
         }
     }
@@ -117,53 +115,83 @@ void keyboard_interrupt() {
 }
 
 
-/* Keyboard Driver */
-/* keyboard_open */
-void keyboard_open()
+/* terminal Driver */
+/* terminal_open */
+int32_t terminal_open(const uint8_t* filename)
 {
-  // clear the buffer
-  keyboard_buffer_top = 0;
-  // disable keyboard buffer
-  keyboard_buffer_enable = 0;
-  return;
+    // clear the buffer
+    keyboard_buffer_top = 0;
+    // disable keyboard buffer
+    keyboard_buffer_enable = 0;
+    return 0;
 }
 
-/* keyboard_read */
-void keyboard_read()
+/* terminal_read */
+int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes)
 {
-  // enable keyboard buffer
-  keyboard_buffer_enable = 1;
-  /* printf("keyboard_read starts\n"); */
-  // wait for keyboard inputs
-  while (keyboard_buffer_enable == 1) {}
-  /* printf("keyboard_read ends\n"); */
-  return;
+    // invalid input
+    if (buf == NULL)
+    {
+      return -1;
+    }
+    // loop index
+    int index;
+    // return value
+    int min_size;
+    // enable keyboard buffer
+    keyboard_buffer_enable = 1;
+    /* printf("keyboard_read starts\n"); */
+    // wait for keyboard inputs
+    while (keyboard_buffer_enable == 1) {}
+    /* printf("keyboard_read ends\n"); */
+    for (index = 0; index < nbytes; index++)
+    {
+        if (index < keyboard_buffer_top)
+        {
+            *(uint8_t *)(buf + index) = keyboard_buffer[index];
+        }
+        else
+        {
+            *(uint8_t *)(buf + index) = 0;
+        }
+    }
+    min_size = keyboard_buffer_top < nbytes ? keyboard_buffer_top : nbytes;
+    keyboard_buffer_top = 0;
+    return min_size;
 }
 
-/* keyboard_write */
-void keyboard_write()
+/* terminal_write */
+int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes)
 {
-  // loop index
-  int index;
-  cli();
-  // all data in the buffer are displayed to the screen
-  for (index = 0; index < keyboard_buffer_top; index++)
-  {
-      putc(keyboard_buffer[index]);
-  }
-  keyboard_buffer_top = 0;
-  sti();
-  return;
+    // invalid input
+    if (buf == NULL)
+    {
+      return -1;
+    }
+    // loop index
+    int index;
+    cli();
+    // all data in the buffer are displayed to the screen
+    for (index = 0; index < nbytes; index++)
+    {
+        if (*(uint8_t *)(buf + index) == 0)
+        {
+          break;
+        }
+        putc(*(uint8_t *)(buf +index));
+    }
+    sti();
+    return index;
 }
 
-/* keyboard_close */
-void keyboard_close()
+/* terminal_close */
+int32_t terminal_close(int32_t fd)
 {
-  // clear the buffer
-  keyboard_buffer_top = 0;
-  // disable keyboard buffer
-  keyboard_buffer_enable = 0;
-  return;
+    // clear the buffer
+    keyboard_buffer_top = 0;
+    // disable keyboard buffer
+    keyboard_buffer_enable = 0;
+    return 0;
 }
 
 /* update_special_key_stat - Added by jinghua3.
