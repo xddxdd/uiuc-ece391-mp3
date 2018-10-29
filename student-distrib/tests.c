@@ -217,11 +217,12 @@ int ece391fs_read_existent_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
     if(ECE391FS_CALL_FAIL == read_dentry_by_name("frame1.txt", &finfo)) return FAIL;
-	if(ece391fs_size(finfo.inode) == 174) {
-		return PASS;
-	} else {
-		return FAIL;
-	}
+	if(ece391fs_size(finfo.inode) != 174) return FAIL;
+	char buf[200];
+	if(174 != read_data(finfo.inode, 0, buf, 200)) return FAIL;
+	int i;
+	for(i = 0; i < 174; i++) putc(buf[i]);
+	return PASS;
 }
 
 /* int ece391fs_read_nonexistent_file()
@@ -341,8 +342,10 @@ int fs_read_existent_file() {
 	uint32_t offset = 0;
 	char buf[200];
 	if(ECE391FS_CALL_FAIL == file_open(&fd, "frame1.txt")) return FAIL;
-	if(174 != file_read(&fd, &offset, buf, 200)) return FAIL;
+	if(ECE391FS_CALL_FAIL == file_read(&fd, &offset, buf, 200)) return FAIL;
 	if(offset != 174) return FAIL;
+	int i;
+	for(i = 0; i < offset; i++) putc(buf[i]);
 	if(ECE391FS_CALL_FAIL == file_close(&fd)) return FAIL;
 	if(0 != fd) return FAIL;
 	return PASS;
@@ -511,21 +514,21 @@ void launch_tests(){
 	// rtc_test();
 
 	// Checkpoint 2
-	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
-	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
-	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
-	TEST_OUTPUT("ECE391FS Toolong File", ece391fs_read_toolong_file());
-	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
-	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
+	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
+	// TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
+	// TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
+	// TEST_OUTPUT("ECE391FS Toolong File", ece391fs_read_toolong_file());
+	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
+	// TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
 	TEST_OUTPUT("Generic FS Existent File", fs_read_existent_file());
 	TEST_OUTPUT("Generic FS Nonexistent File", fs_read_nonexistent_file());
 	TEST_OUTPUT("Generic FS Existent Directory", fs_read_existent_dir());
 	TEST_OUTPUT("Generic FS Nonexistent Directory", fs_read_nonexistent_dir());
-	TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
-	TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
+	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
+	// TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 	// Checkpoint 3
 	// Checkpoint 4
