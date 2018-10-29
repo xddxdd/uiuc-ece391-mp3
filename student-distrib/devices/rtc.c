@@ -80,38 +80,43 @@ void rtc_interrupt() {
 
 /* RTC Driver */
 /* rtc_open */
-void rtc_open()
+int32_t rtc_open(const uint8_t* filename)
 {
   // set the RTC frequency to 2 Hz
   rtc_set_freq(2);
   rtc_freq = 2;
-  return;
+  return 0;
 }
 
 /* rtc_read */
-void rtc_read()
+int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 {
   rtc_interrupt_occurred = 0;
   while (rtc_interrupt_occurred != 1) {}
-  return;
+  return 0;
 }
 
 /* rtc_write */
-void rtc_write(uint16_t freq)
+int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
+  // invalid input
+  if (buf == NULL)
+  {
+    return -1;
+  }
   // enter critical section
   cli();
   // change the frequency of RTC
-  rtc_set_freq(freq);
-  rtc_freq = freq;
+  rtc_set_freq(*(uint16_t *)buf);
+  rtc_freq = *(uint16_t *)buf;
   sti();
   // quit critical section
-  return;
+  return 0;
 }
 
 /* rtc_close */
-void rtc_close()
+int32_t rtc_close(int32_t fd)
 {
   // there is nothing to do with syscall close() to RTC
-  return;
+  return 0;
 }

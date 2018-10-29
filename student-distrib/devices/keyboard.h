@@ -27,10 +27,10 @@ void keyboard_interrupt();
 int update_special_key_stat(uint8_t keyboard_input);
 int is_alphabet(uint8_t scancode);
 
-// Keyboard Driver
-void keyboard_open();
-void keyboard_read();
-void keyboard_write();
-void keyboard_close();
+// terminal Driver
+int32_t terminal_open(const uint8_t* filename);
+int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes);
+int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes);
+int32_t terminal_close(int32_t fd);
 
 #endif

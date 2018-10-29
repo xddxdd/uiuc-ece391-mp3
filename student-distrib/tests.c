@@ -415,20 +415,21 @@ int rtc_write_test()
 	// new frequency set to the RTC
 	uint16_t freq = 2;
 	rtc_init();
-	rtc_open();
+	rtc_open(NULL);
 	while (freq <= 1024)
 	{
 		curr_scancode = inb(KEYBOARD_PORT);
 		if (curr_scancode == SCANCODE_ENTER && prev_scancode != curr_scancode)
 		{
 			freq *= 2;
-			rtc_write(freq);
+			rtc_write(NULL, &freq, 0);
 		}
 		prev_scancode = curr_scancode;
 	}
 	// reset frequcy to 2
-	rtc_write(2);
-	rtc_close();
+	freq = 2;
+	rtc_write(NULL, &freq, 0);
+	rtc_close(NULL);
 	return PASS;
 }
 
@@ -438,23 +439,29 @@ int rtc_read_test()
 	TEST_HEADER;
 	// new frequency set to the RTC
 	rtc_init();
-	rtc_open();
+	rtc_open(NULL);
 	printf("Wait for tick...\n");
-	rtc_read();
+	rtc_read(NULL, NULL, 0);
 	printf("\nHere it comes!\n");
-	rtc_close();
+	rtc_close(NULL);
 	return PASS;
 }
 
-/* Keyboard driver test */
-/* keyboard_dirver_test */
-int keyboard_dirver_test()
+/* terminal driver test */
+/* terminal_dirver_test */
+int terminal_dirver_test()
 {
 	TEST_HEADER;
-	keyboard_open();
-	keyboard_read();
-	keyboard_write();
-	keyboard_close();
+	int32_t read_retval, write_retval;
+	terminal_open(NULL);
+	uint8_t buf[128];
+	printf("Hi, what's your name? ");
+	read_retval = terminal_read(NULL, buf, 128);
+	printf("Hello, ");
+	write_retval = terminal_write(NULL, buf, 128);
+	terminal_close(NULL);
+	printf("Read %d characters from terminal, and write %d characters to terminal.\n",
+	       read_retval, write_retval);
 	return PASS;
 }
 
@@ -511,6 +518,7 @@ void launch_tests(){
 	// rtc_test();
 
 	// Checkpoint 2
+	/*
 	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
@@ -523,9 +531,10 @@ void launch_tests(){
 	TEST_OUTPUT("Generic FS Nonexistent File", fs_read_nonexistent_file());
 	TEST_OUTPUT("Generic FS Existent Directory", fs_read_existent_dir());
 	TEST_OUTPUT("Generic FS Nonexistent Directory", fs_read_nonexistent_dir());
-	TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	*/
+	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
+	// TEST_OUTPUT("Terminal Driver Write Test", terminal_dirver_test());
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 	// Checkpoint 3
 	// Checkpoint 4
