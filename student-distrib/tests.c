@@ -203,7 +203,7 @@ void rtc_test(){
  */
 int ece391fs_loaded() {
 	TEST_HEADER;
-	if(-1 == ece391fs_is_initialized()) return FAIL;
+	if(ECE391FS_CALL_FAIL == ece391fs_is_initialized()) return FAIL;
 	return PASS;
 }
 
@@ -216,7 +216,7 @@ int ece391fs_loaded() {
 int ece391fs_read_existent_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
-    if(-1 == read_dentry_by_name("frame1.txt", &finfo)) return FAIL;
+    if(ECE391FS_CALL_FAIL == read_dentry_by_name("frame1.txt", &finfo)) return FAIL;
 	if(ece391fs_size(finfo.inode) == 174) {
 		return PASS;
 	} else {
@@ -227,12 +227,24 @@ int ece391fs_read_existent_file() {
 /* int ece391fs_read_nonexistent_file()
  * @output: PASS / FAIL
  * @description: test getting file entry of a nonexistent file.
- *     The FS call should return -1 (Fail).
+ *     The FS call should return FAIL.
  */
 int ece391fs_read_nonexistent_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
-    if(0 == read_dentry_by_name("404.not.found", &finfo)) return FAIL;
+    if(ECE391FS_CALL_SUCCESS == read_dentry_by_name("404.not.found", &finfo)) return FAIL;
+	return PASS;
+}
+
+/* int ece391fs_read_toolong_file()
+ * @output: PASS / FAIL
+ * @description: test getting file entry of a file with name > 32 chars.
+ *     The FS call should return FAIL.
+ */
+int ece391fs_read_toolong_file() {
+	TEST_HEADER;
+    ece391fs_file_info_t finfo;
+    if(ECE391FS_CALL_SUCCESS == read_dentry_by_name("verylargetextwithverylongname.txt", &finfo)) return FAIL;
 	return PASS;
 }
 
@@ -244,7 +256,7 @@ int ece391fs_read_nonexistent_file() {
 int ece391fs_read_existent_idx() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(-1 == read_dentry_by_index(0, &finfo)) return FAIL;
+	if(ECE391FS_CALL_FAIL == read_dentry_by_index(0, &finfo)) return FAIL;
 	if(ECE391FS_FILE_TYPE_FOLDER != finfo.type) return FAIL;
 	if(0 != finfo.inode) return FAIL;
 	return PASS;
@@ -253,12 +265,12 @@ int ece391fs_read_existent_idx() {
 /* int ece391fs_read_nonexistent_idx()
  * @output: PASS / FAIL
  * @description: test getting file entry of a nonexistent index.
- *     The FS call should return -1 (Fail).
+ *     The FS call should return FAIL.
  */
 int ece391fs_read_nonexistent_idx() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(0 == read_dentry_by_index(100, &finfo)) return FAIL;
+	if(ECE391FS_CALL_SUCCESS == read_dentry_by_index(100, &finfo)) return FAIL;
 	return PASS;
 }
 
@@ -270,7 +282,7 @@ int ece391fs_read_nonexistent_idx() {
 int ece391fs_large_file() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(-1 == read_dentry_by_name("verylargetextwithverylongname.txt", &finfo)) return FAIL;
+	if(ECE391FS_CALL_FAIL == read_dentry_by_name("verylargetextwithverylongname.tx", &finfo)) return FAIL;
 	if(ece391fs_size(finfo.inode) != 5277) return FAIL;
 	char buf[33];
 	buf[32] = '\0';
@@ -301,19 +313,96 @@ int ece391fs_large_file() {
  */
 int ece391fs_list_dir() {
 	TEST_HEADER;
-	char buf[ECE391FS_MAX_FILENAME_LEN + 2];
+	char buf[ECE391FS_MAX_FILENAME_LEN + 1];
 	int32_t ret;
 	int i;
 	for(i = 0; i < ECE391FS_MAX_FILE_COUNT; i++) {
 		ret = read_dir(i, buf, ECE391FS_MAX_FILENAME_LEN);
 		if(ret == 0) break;
+		if(ret > ECE391FS_MAX_FILENAME_LEN) return FAIL;
 		if(ret < 0) return FAIL;
-		buf[ret] = '\n';
-		buf[ret + 1] = '\0';
+		buf[ret] = '\0';
 		printf(buf);
+		printf(", ");
 	}
 	return PASS;
 }
+
+/* int fs_read_existent_file()
+ * @output: PASS / FAIL
+ * @description: test reading 174 bytes out of frame1.txt.
+ *     Uses generic filesystem functions instead of ECE391FS specific ones.
+ *     174 is the exact file size of frame1.txt.
+ *     If the file got modified, this test should be modified too.
+ */
+int fs_read_existent_file() {
+	TEST_HEADER;
+	int32_t fd;
+	uint32_t offset = 0;
+	char buf[200];
+	if(ECE391FS_CALL_FAIL == file_open(&fd, "frame1.txt")) return FAIL;
+	if(174 != file_read(&fd, &offset, buf, 200)) return FAIL;
+	if(offset != 174) return FAIL;
+	if(ECE391FS_CALL_FAIL == file_close(&fd)) return FAIL;
+	if(0 != fd) return FAIL;
+	return PASS;
+}
+
+/* int fs_read_nonexistent_file()
+ * @output: PASS / FAIL
+ * @description: test getting file entry of a nonexistent file.
+ *     Uses generic filesystem functions instead of ECE391FS specific ones.
+ *     The FS call should return -1 (Fail).
+ */
+int fs_read_nonexistent_file() {
+	TEST_HEADER;
+	int32_t fd = 0;
+    if(ECE391FS_CALL_SUCCESS == file_open(&fd, "404.not.found")) return FAIL;
+	if(0 != fd) return FAIL;
+	return PASS;
+}
+
+/* int fs_read_existent_dir()
+ * @output: PASS / FAIL
+ * @description: test listing files in root folder.
+ *     Uses generic filesystem functions instead of ECE391FS specific ones.
+ */
+int fs_read_existent_dir() {
+	TEST_HEADER;
+	int32_t fd = 0;
+	char buf[ECE391FS_MAX_FILENAME_LEN + 1];
+	if(ECE391FS_CALL_FAIL == dir_open(&fd, ".")) return FAIL;
+
+	int32_t ret;
+	uint32_t offset = 0;
+	while(1) {
+		ret = dir_read(&fd, &offset, buf, ECE391FS_MAX_FILENAME_LEN);
+		if(ret == 0) break;
+		if(ret > ECE391FS_MAX_FILENAME_LEN) return FAIL;
+		if(ret < 0) return FAIL;
+		buf[ret] = '\0';
+		printf(buf);
+		printf(", ");
+	}
+	if(ECE391FS_CALL_FAIL == dir_close(&fd)) return FAIL;
+	if(fd != 0) return FAIL;
+	return PASS;
+}
+
+/* int fs_read_nonexistent_dir()
+ * @output: PASS / FAIL
+ * @description: test reading from an nonexistent dir.
+ *     Uses generic filesystem functions instead of ECE391FS specific ones.
+ *     The FS call should return -1 (Fail).
+ */
+int fs_read_nonexistent_dir() {
+	TEST_HEADER;
+	int32_t fd = 0;
+    if(ECE391FS_CALL_SUCCESS == dir_open(&fd, "404.not.found")) return FAIL;
+	if(0 != fd) return FAIL;
+	return PASS;
+}
+
 
 /* RTC driver test */
 /* rtc_write_test */
@@ -382,14 +471,15 @@ int keyboard_dirver_test()
 int sb16_play_music() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(-1 == read_dentry_by_name("halloffame.wav", &finfo)) return FAIL;
+	if(ECE391FS_CALL_FAIL == read_dentry_by_name("halloffame.wav", &finfo)) return FAIL;
 	// Read the first chunk of data, and record position
 	uint32_t size = read_data(finfo.inode, 0, (char*) SB16_BUF_ADDR, (SB16_BUF_LEN + 1));
 	uint32_t pos = (SB16_BUF_LEN + 1);
 	// Initialize playing with 22050 Hz, Mono, Unsigned PCM
-	sb16_play(22050, SB16_MODE_STEREO, SB16_MODE_UNSIGNED);
+	if(SB16_CALL_FAIL == sb16_init()) return FAIL;
+	if(SB16_CALL_FAIL == sb16_play(22050, SB16_MODE_STEREO, SB16_MODE_UNSIGNED)) return FAIL;
 	while(1) {
-		sb16_read();	// Wait until one block finished
+		if(SB16_CALL_FAIL == sb16_read()) return FAIL;	// Wait until one block finished
 		// Read the next chunk of data, copy into block correspondingly
 		size = read_data(finfo.inode, pos,
 			(char*) ((pos & 0x8000) ? SB16_BUF_MID : SB16_BUF_ADDR), (SB16_BUF_LEN_HALF + 1));
@@ -398,7 +488,7 @@ int sb16_play_music() {
 		if(size < (SB16_BUF_LEN_HALF + 1)) {
 			// The remaining data isn't sufficient for one block
 			// Finish after this block
-			sb16_stop_after_block();
+			if(SB16_CALL_FAIL == sb16_stop_after_block()) return FAIL;
 			break;
 		}
 	}
@@ -421,15 +511,20 @@ void launch_tests(){
 	// rtc_test();
 
 	// Checkpoint 2
-	/*TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
+	TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_file());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_file());
 	TEST_OUTPUT("ECE391FS Existent File", ece391fs_read_existent_idx());
 	TEST_OUTPUT("ECE391FS Nonexistent File", ece391fs_read_nonexistent_idx());
+	TEST_OUTPUT("ECE391FS Toolong File", ece391fs_read_toolong_file());
 	TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
-	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());*/
-	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
-	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
+	TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
+	TEST_OUTPUT("Generic FS Existent File", fs_read_existent_file());
+	TEST_OUTPUT("Generic FS Nonexistent File", fs_read_nonexistent_file());
+	TEST_OUTPUT("Generic FS Existent Directory", fs_read_existent_dir());
+	TEST_OUTPUT("Generic FS Nonexistent Directory", fs_read_nonexistent_dir());
+	TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
+	TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	TEST_OUTPUT("Keyboard Driver Write Test", keyboard_dirver_test());
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 	// Checkpoint 3

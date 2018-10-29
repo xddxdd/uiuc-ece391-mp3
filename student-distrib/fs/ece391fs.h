@@ -48,4 +48,14 @@ int32_t read_dentry_by_index(uint32_t index, ece391fs_file_info_t* file_info);
 int32_t read_data(uint32_t inode, uint32_t offset, char* buf, uint32_t length);
 int32_t read_dir(uint32_t offset, char* buf, uint32_t length);
 void ece391fs_print_file_info(ece391fs_file_info_t* file_info);
+
+// Temporary functions for CP2
+int32_t file_open(int32_t* fd, char* filename);
+int32_t file_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
+int32_t file_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
+int32_t file_close(int32_t* fd);
+int32_t dir_open(int32_t* fd, char* filename);
+int32_t dir_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
+int32_t dir_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
+int32_t dir_close(int32_t* fd);
 #endif

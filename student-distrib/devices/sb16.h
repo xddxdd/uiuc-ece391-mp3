@@ -8,6 +8,9 @@
 #define SB16_BUF_LEN 0xffff
 #define SB16_BUF_LEN_HALF 0x7fff
 
+#define SB16_CALL_SUCCESS 0
+#define SB16_CALL_FAIL -1
+
 #define SB16_IRQ 5
 
 #define SB16_PORT_RESET 0x226
@@ -51,12 +54,12 @@
 #define DMA_MODE_TRANSFER_BLOCK 0x80
 #define DMA_MODE_TRANSFER_CASCADE 0xc0
 
-void sb16_init();
-void sb16_play(uint16_t sampling_rate, uint8_t is_stereo, uint8_t is_signed);
-void sb16_continue();
-void sb16_pause();
-void sb16_stop_after_block();
-void sb16_read();
+int32_t sb16_init();
+int32_t sb16_play(uint16_t sampling_rate, uint8_t is_stereo, uint8_t is_signed);
+int32_t sb16_continue();
+int32_t sb16_pause();
+int32_t sb16_stop_after_block();
+int32_t sb16_read();
 void sb16_interrupt();
 
 #endif

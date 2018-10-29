@@ -61,14 +61,11 @@ int32_t ece391fs_size(uint32_t inode_idx) {
 int32_t read_dentry_by_name(const char* fname, ece391fs_file_info_t* file_info) {
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
     if(!file_info) return ECE391FS_CALL_FAIL;   // File info ptr invalid
+    if(strlen(fname) > ECE391FS_MAX_FILENAME_LEN) return ECE391FS_CALL_FAIL;// Filename too long
     int i;
     for(i = 0; i < ECE391FS_MAX_FILE_COUNT; i++) {
         ece391fs_file_info_t* f = &(fs_bootblk->file[i]);
-        int name_length = strlen(fname);
-        if(name_length > ECE391FS_MAX_FILENAME_LEN) {
-            name_length = ECE391FS_MAX_FILENAME_LEN;
-        }
-        if(0 == strncmp(fname, f->name, name_length)) {
+        if(0 == strncmp(fname, f->name, strlen(fname))) {
             // This is the file we're looking for
             *file_info = *f;
             return ECE391FS_CALL_SUCCESS;
@@ -199,4 +196,115 @@ void ece391fs_print_file_info(ece391fs_file_info_t* file_info) {
         printf("%d ", inode->data[i]);
     }
     printf("\n");
+}
+
+// Following code only works for CP2, not meant for CP3 and afterwards
+/* int32_t file_open(int32_t* fd, char* filename)
+ * @input: fd - file descriptor
+ *         filename - name of file to be opened
+ * @output: fd - set to inode id of file
+ *          ret val - SUCCESS / FAIL
+ * @description: open a file.
+ */
+int32_t file_open(int32_t* fd, char* filename) {
+    ece391fs_file_info_t finfo;
+    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    if(-1 == read_dentry_by_name(filename, &finfo)) return ECE391FS_CALL_FAIL;
+    if(finfo.type != ECE391FS_FILE_TYPE_FILE) return ECE391FS_CALL_FAIL;
+    return ECE391FS_CALL_SUCCESS;
+}
+
+/* int32_t file_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
+ * @input: fd - file descriptor
+ *         offset - starting position to be read
+ *         buf - location data to be written to
+ *         len - length of data to be written to
+ * @output: buf - data written
+ *          offset - added the number of bytes written to buf
+ *          ret val - bytes written / FAIL
+ * @description: read data from a file.
+ */
+int32_t file_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    int32_t result = read_data(*fd, *offset, buf, len);
+    if(result > 0) *offset += result;
+    return result;
+}
+
+/* int32_t file_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
+ * @input: fd - file descriptor
+ *         offset - starting position to be read
+ *         buf - location data to be read from
+ *         len - length of data to be read
+ * @output: ret val - FAIL
+ * @description: write data to a file. Just return fail as filesystem is readonly.
+ */
+int32_t file_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+    return ECE391FS_CALL_FAIL;
+}
+
+/* int32_t file_close(int32_t* fd)
+ * @input: fd - file descriptor
+ * @output: fd - set to 0
+ *          ret val - SUCCESS
+ * @description: closes a file
+ */
+int32_t file_close(int32_t* fd) {
+    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    *fd = 0;
+    return ECE391FS_CALL_SUCCESS;
+}
+
+/* int32_t dir_open(int32_t* fd, char* filename)
+ * @input: fd - file descriptor
+ *         filename - name of dir to be opened
+ * @output: ret val - SUCCESS / FAIL
+ * @description: open a directory.
+ */
+int32_t dir_open(int32_t* fd, char* filename) {
+    ece391fs_file_info_t finfo;
+    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    if(-1 == read_dentry_by_name(filename, &finfo)) return ECE391FS_CALL_FAIL;
+    if(finfo.type != ECE391FS_FILE_TYPE_FOLDER) return ECE391FS_CALL_FAIL;
+    *fd = finfo.inode;
+    return ECE391FS_CALL_SUCCESS;
+}
+
+/* int32_t dir_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
+ * @input: fd - file descriptor
+ *         offset - starting position to be read
+ *         buf - location data to be written to
+ *         len - length of data to be written to
+ * @output: buf - data written
+ *          offset - added 1 to indicate next file.
+ *          ret val - bytes written / FAIL
+ * @description: read file list from a folder.
+ */
+int32_t dir_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    int32_t result = read_dir(*offset, buf, len);
+    if(result > 0) *offset += 1;
+    return result;
+}
+
+/* int32_t dir_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
+ * @input: fd - file descriptor
+ *         offset - starting position to be read
+ *         buf - location data to be read from
+ *         len - length of data to be read
+ * @output: ret val - FAIL
+ * @description: write data to a folder. Just return fail as filesystem is readonly.
+ */
+int32_t dir_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+    return ECE391FS_CALL_FAIL;
+}
+
+/* int32_t dir_close(int32_t* fd)
+ * @input: fd - file descriptor
+ * @output: ret val - SUCCESS
+ * @description: closes a directory
+ */
+int32_t dir_close(int32_t* fd) {
+    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    return ECE391FS_CALL_SUCCESS;
 }
