@@ -81,7 +81,11 @@ void rtc_interrupt() {
 
 
 /* RTC Driver */
-/* rtc_open */
+/* int32_t rtc_open(const uint8_t* filename)
+ * @input: filename - ignored
+ * @output: 0 (SUCCESS)
+ * @description: initialize RTC, set freq to 2 Hz
+ */
 int32_t rtc_open(const uint8_t* filename)
 {
   rtc_init();
@@ -91,7 +95,11 @@ int32_t rtc_open(const uint8_t* filename)
   return 0;
 }
 
-/* rtc_read */
+/* int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
+ * @input: all ignored
+ * @output: 0 (SUCCESS)
+ * @description: wait until the next RTC tick.
+ */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 {
   rtc_interrupt_occurred = 0;
@@ -99,7 +107,11 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
   return 0;
 }
 
-/* rtc_write */
+/* int32_t rtc_write(int32_t fd, void* buf, int32_t nbytes)
+ * @input: buf - value of new frequency for RTC
+ * @output: 0 (SUCCESS) / -1 (FAIL)
+ * @description: set the frequency of interrupts by RTC
+ */
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
   // invalid input
@@ -117,7 +129,11 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
   return 0;
 }
 
-/* rtc_close */
+/* int32_t rtc_close(int32_t fd)
+ * @input: fd - ignored
+ * @output: 0 (SUCCESS)
+ * @description: close RTC, currently does nothing
+ */
 int32_t rtc_close(int32_t fd)
 {
   disable_irq(RTC_IRQ);
