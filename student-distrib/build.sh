@@ -1,3 +1,3 @@
 make clean
 make dep
-sudo -S make
+echo 'ece391' | sudo -S make
