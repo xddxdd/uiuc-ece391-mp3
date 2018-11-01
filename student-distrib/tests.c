@@ -5,6 +5,7 @@
 #include "fs/ece391fs.h"
 #include "devices/sb16.h"
 #include "devices/keyboard.h"
+#include "sys_calls.h"
 
 #define PASS 1
 #define FAIL 0
