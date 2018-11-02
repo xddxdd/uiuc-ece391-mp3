@@ -1,3 +1,6 @@
+#ifndef _SYS_CALL_H
+#define _SYS_CALL_H
+
 #include "fs/ece391fs.h"
 #include "x86_desc.h"
 #include "lib.h"
@@ -21,3 +24,5 @@ int32_t vidmap (uint8_t** screen_start);
 //Extra credit system calls.
 int32_t set_handler (int32_t signum, void* handler_address);
 int32_t sigreturn (void);
+
+#endif /* _SYS_CALL_H */
