@@ -268,33 +268,38 @@ void _execute_context_switch ()
     char* user_mem = (char *)USER_PROCESS_ADDR;
     // get the entry point from bytes 24-27 of the executable
     uint32_t entry_point = (*(uint32_t *)(user_mem + 24));
+    uint32_t user_kmode_stack = KERNEL_STACK_BASE_ADDR -
+                                (process_count - 1) * USER_KMODE_STACK_SIZE - 0x4;
     printf("_execute_context_switch(): user mem addr is %x\n", user_mem);       /* for testing */
     printf("_execute_context_switch(): entry point is %x\n", entry_point);      /* for testing */
     printf("_execute_context_switch(): user stack is at %x\n", USER_STACK_ADDR);/* for testing */
-    // modify TSS:
-    // ss0: kernel’s stack segment, esp0: process’s kernel-mode stack
-    uint32_t user_kmode_stack = KERNEL_STACK_BASE_ADDR - (process_count - 1) * USER_KMODE_STACK_SIZE;
     printf("_execute_context_switch(): user kmode stack is at %x\n",
            user_kmode_stack);                                                   /* for testing */
+    // modify TSS:
+    // ss0: kernel’s stack segment, esp0: process’s kernel-mode stack
+    printf("_execute_context_switch(): preparing TSS for IRET\n");              /* for testing */
     tss.ss0 = KERNEL_DS;
     tss.esp0 = user_kmode_stack;
-    printf("_execute_context_switch(): about to call IRET\n");                  /* for testing */
+    printf("_execute_context_switch(): preparing stack for IRET\n");            /* for testing */
     // 1. set up stack: (top) EIP, CS, EFLAGS, ESP, SS (bottom)
     // 2. set DS to point to the correct entry in GDT for the user mode data segment
     // reference: https://www.felixcloutier.com/x86/IRET:IRETD.html
     asm volatile ("                \n\
+            andl    $0x00FF, %%ebx \n\
+            movw    %%bx, %%ds     \n\
+            movw    %%bx, %%es     \n\
+            movw    %%bx, %%fs     \n\
+            movw    %%bx, %%gs     \n\
             pushl   %%ebx          \n\
             pushl   %%edx          \n\
             pushfl                 \n\
             pushl   %%ecx          \n\
             pushl   %%eax          \n\
-            andl    $0x00FF, %%ebx \n\
-            movw    %%bx, %%ds     \n\
-            iret                   \n\
             "
             :
             : "a"(entry_point), "b"(USER_DS), "c"(USER_CS), "d"(USER_STACK_ADDR)
             : "cc"
     );
+    asm volatile ("iret");
     return;
 }

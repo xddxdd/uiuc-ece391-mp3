@@ -18,7 +18,7 @@
 #define FILE_EXE_HEADER_2       0x4C
 #define FILE_EXE_HEADER_3       0x46
 #define USER_PROCESS_ADDR       0x08048000
-#define USER_STACK_ADDR         0x08400000
+#define USER_STACK_ADDR         0x08400000 - 0x4
 #define USER_PAGE_SIZE          0x400000               // 4 MB
 #define KERNEL_STACK_BASE_ADDR  0x800000               // 8 MB
 #define USER_KMODE_STACK_SIZE   0x2000                 // 8 kB
