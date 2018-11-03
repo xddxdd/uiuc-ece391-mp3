@@ -12,15 +12,18 @@
 
 // some contants
 #define SPACE                   ' '
-#define FILE_HEADER_LEN         40
+#define FILE_HEADER_LEN         40                     // 40 Bytes
 #define FILE_EXE_HEADER_0       0x7F
 #define FILE_EXE_HEADER_1       0x45
 #define FILE_EXE_HEADER_2       0x4C
 #define FILE_EXE_HEADER_3       0x46
 #define USER_PROCESS_ADDR       0x08048000
-#define USER_PAGE_SIZE          0x400000
+#define USER_STACK_ADDR         0x08400000
+#define USER_PAGE_SIZE          0x400000               // 4 MB
+#define KERNEL_STACK_BASE_ADDR  0x800000               // 8 MB
+#define USER_KMODE_STACK_SIZE   0x2000                 // 8 kB
 #define PD_ADDR_OFFSET          22
-#define PROCESS_PYSC_BASE_ADDR  2
+#define PROCESS_PYSC_BASE_ADDR  2                      // 8 MB
 
 // System calls for checkpoint 3.
 int32_t halt (uint8_t status);
@@ -44,6 +47,6 @@ void _execute_parse (const uint8_t* command, uint8_t* filename);
 int32_t _execute_exe_check (int32_t* fd);
 void _execute_paging ();
 int32_t _execute_pgm_loader (int32_t* fd);
-void _execute_context_switch (int32_t* fd);
+void _execute_context_switch ();
 
 #endif

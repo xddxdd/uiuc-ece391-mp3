@@ -471,6 +471,18 @@ int terminal_driver_test()
 
 
 /* Checkpoint 3 tests */
+/* syscall_execute_test */
+int syscall_execute_test()
+{
+	TEST_HEADER;
+	// to be added
+	char* command = "testprint";
+	printf("command is %s\n", command);
+	execute ((uint8_t*)command);
+	return PASS;
+}
+
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -540,6 +552,7 @@ void launch_tests(){
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 
 	// Checkpoint 3
+	TEST_OUTPUT("Syscall execute", syscall_execute_test());
 	// Checkpoint 4
 	// Checkpoint 5
 }
