@@ -180,6 +180,7 @@ int paging_struct_test(){
 
 
 /* RTC Test - Added by jinghua3.
+ * Not working anymore due to API changes - yuhuixu2
  *
  * Enable RTC.
  * Input: None.
@@ -188,12 +189,11 @@ int paging_struct_test(){
  * Coverage: RTC
  * Files: rtc.c
  */
-void rtc_test(){
+/*void rtc_test(){
 	TEST_HEADER;
 
-	rtc_init();
 	rtc_set_freq(4);
-}
+}*/
 
 
 
@@ -419,21 +419,17 @@ int rtc_write_test()
 	uint8_t prev_scancode = 0;
 	// new frequency set to the RTC
 	uint16_t freq = 2;
-	rtc_init();
-	rtc_open(NULL);
+	rtc_open(NULL, NULL);
 	while (freq <= 1024)
 	{
 		curr_scancode = inb(KEYBOARD_PORT);
 		if (curr_scancode == SCANCODE_ENTER && prev_scancode != curr_scancode)
 		{
 			freq *= 2;
-			rtc_write(NULL, &freq, 0);
+			rtc_write(NULL, NULL, (void*) &freq, sizeof(uint16_t));
 		}
 		prev_scancode = curr_scancode;
 	}
-	// reset frequcy to 2
-	freq = 2;
-	rtc_write(NULL, &freq, 0);
 	rtc_close(NULL);
 	return PASS;
 }
@@ -443,10 +439,9 @@ int rtc_read_test()
 {
 	TEST_HEADER;
 	// new frequency set to the RTC
-	rtc_init();
-	rtc_open(NULL);
+	rtc_open(NULL, NULL);
 	printf("Wait for tick...\n");
-	rtc_read(NULL, NULL, 0);
+	rtc_read(NULL, NULL, NULL, 0);
 	printf("\nHere it comes!\n");
 	rtc_close(NULL);
 	return PASS;
@@ -542,6 +537,52 @@ int unified_fs_invalid_fd() {
 	return PASS;
 }
 
+int unified_fs_rtc_write() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t fd;
+	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "rtc"))) return FAIL;
+
+	// keyboard scancode
+	uint8_t curr_scancode = 0;
+	uint8_t prev_scancode = 0;
+	// new frequency set to the RTC
+	uint16_t freq = 2;
+	while (freq <= 1024)
+	{
+		curr_scancode = inb(KEYBOARD_PORT);
+		if (curr_scancode == SCANCODE_ENTER && prev_scancode != curr_scancode)
+		{
+			freq *= 2;
+			if(UNIFIED_FS_FAIL == unified_write(fd_array, fd, &freq, sizeof(uint16_t))) return FAIL;
+		}
+		prev_scancode = curr_scancode;
+	}
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd));
+	return PASS;
+}
+
+/* rtc_read_test */
+int unified_fs_rtc_read()
+{
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t fd;
+	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "rtc"))) return FAIL;
+	uint16_t freq = 2;
+	if(UNIFIED_FS_FAIL == unified_write(fd_array, fd, &freq, sizeof(uint16_t))) return FAIL;
+
+	printf("Wait for tick...\n");
+	if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, NULL, 0)) return FAIL;
+	printf("\nHere it comes!\n");
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	return PASS;
+}
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -590,7 +631,7 @@ void launch_tests(){
 	// dereferencing_null_test();
 	// division_by_zero_test();
 	// deref_nonexist_page_test();
-	// rtc_test();
+	// rtc_test(); - not working anymore due to API changes - yuhuixu2
 
 	// Checkpoint 2
 	// TEST_OUTPUT("ECE391FS Loaded", ece391fs_loaded());
@@ -611,10 +652,12 @@ void launch_tests(){
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 
 	// Checkpoint 3
-	TEST_OUTPUT("Unified FS File", unified_fs_read_file());
-	TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
-	TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
-	TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
+	// TEST_OUTPUT("Unified FS File", unified_fs_read_file());
+	// TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
+	// TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
+	// TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
+	TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
+	TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
 	// Checkpoint 4
 	// Checkpoint 5
 }

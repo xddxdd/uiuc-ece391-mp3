@@ -5,21 +5,12 @@
 static volatile int rtc_interrupt_occurred;
 static uint16_t rtc_freq;
 
-/* void rtc_init()
- * @effects: Put RTC into working state
- * @description: Prepare the RTC for generating interrupts at specified interval
- */
-void rtc_init() {
-    cli();
-    // From https://wiki.osdev.org/RTC
-    outb(RTC_REG_B, RTC_PORT_CMD);	    // select register B, and disable NMI
-    char prev = inb(RTC_PORT_DATA);	    // read the current value of register B
-    outb(RTC_REG_B, RTC_PORT_CMD);	    // set the index again (a read will reset the index to register D)
-    outb(prev | 0x40, RTC_PORT_DATA);   // write the previous value ORed with 0x40. This turns on bit 6 of register B
-    rtc_freq = 1024;
-    enable_irq(RTC_IRQ);
-    sti();
-}
+unified_fs_interface_t rtc_if = {
+    .open = rtc_open,
+    .read = rtc_read,
+    .write = rtc_write,
+    .close = rtc_close
+};
 
 /* uint8_t rtc_freq_to_config(uint16_t freq)
  * @input: freq - the desired frequency for RTC to send interrupts.
@@ -60,7 +51,7 @@ void rtc_set_freq(uint16_t freq) {
     old_freq = inb(RTC_PORT_DATA);  // we're doing this
     outb(RTC_REG_A, RTC_PORT_CMD);
     outb((old_freq & 0xF0) | new_freq, RTC_PORT_DATA);
-    rtc_freq = new_freq;
+    rtc_freq = freq;
     sti();  // Quit critical section
 }
 
@@ -86,11 +77,27 @@ void rtc_interrupt() {
  * @output: 0 (SUCCESS)
  * @description: initialize RTC, set freq to 2 Hz
  */
-int32_t rtc_open(const uint8_t* filename)
+int32_t rtc_open(int32_t* inode, char* filename)
 {
+  cli();
+  // Initialization code, from https://wiki.osdev.org/RTC
+  outb(RTC_REG_B, RTC_PORT_CMD);	    // select register B, and disable NMI
+  char prev = inb(RTC_PORT_DATA);	    // read the current value of register B
+  outb(RTC_REG_B, RTC_PORT_CMD);	    // set the index again (a read will reset the index to register D)
+  outb(prev | 0x40, RTC_PORT_DATA);   // write the previous value ORed with 0x40. This turns on bit 6 of register B
+  rtc_freq = 1024;
+  enable_irq(RTC_IRQ);
+
   // set the RTC frequency to 2 Hz
-  rtc_set_freq(2);
+  uint8_t new_freq = rtc_freq_to_config(2);    // Convert freq to RTC command
+  uint8_t old_freq;
+  outb(RTC_REG_A, RTC_PORT_CMD);  // Read https://wiki.osdev.org/RTC for why
+  old_freq = inb(RTC_PORT_DATA);  // we're doing this
+  outb(RTC_REG_A, RTC_PORT_CMD);
+  outb((old_freq & 0xF0) | new_freq, RTC_PORT_DATA);
   rtc_freq = 2;
+
+  sti();
   return 0;
 }
 
@@ -99,7 +106,7 @@ int32_t rtc_open(const uint8_t* filename)
  * @output: 0 (SUCCESS)
  * @description: wait until the next RTC tick.
  */
-int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
+int32_t rtc_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
 {
   rtc_interrupt_occurred = 0;
   while (rtc_interrupt_occurred != 1) {}
@@ -111,19 +118,13 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
  * @output: 0 (SUCCESS) / -1 (FAIL)
  * @description: set the frequency of interrupts by RTC
  */
-int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
+int32_t rtc_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
 {
   // invalid input
-  if (buf == NULL)
-  {
-    return -1;
-  }
-  // enter critical section
-  cli();
+  if(len != sizeof(uint16_t)) return -1;
+  if(buf == NULL) return -1;
   // change the frequency of RTC
   rtc_set_freq(*(uint16_t *)buf);
-  rtc_freq = *(uint16_t *)buf;
-  sti();
   // quit critical section
   return 0;
 }
@@ -133,8 +134,8 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
  * @output: 0 (SUCCESS)
  * @description: close RTC, currently does nothing
  */
-int32_t rtc_close(int32_t fd)
+int32_t rtc_close(int32_t* inode)
 {
-  // there is nothing to do with syscall close() to RTC
+  disable_irq(RTC_IRQ);
   return 0;
 }

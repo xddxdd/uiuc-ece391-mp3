@@ -1,5 +1,6 @@
 #include "unified_fs.h"
 #include "ece391fs.h"
+#include "../devices/rtc.h"
 
 int32_t unified_init(fd_array_t* fd_array) {
     // Initialize array to prevent page fault
@@ -31,7 +32,7 @@ int32_t unified_open(fd_array_t* fd_array, const char* filename) {
                 fd_array[id].interface = &ece391fs_dir_if;
                 break;
             case ECE391FS_FILE_TYPE_RTC:
-                return UNIFIED_FS_FAIL; // not implemented yet
+                fd_array[id].interface = &rtc_if;
         }
     } else {
         return UNIFIED_FS_FAIL;
