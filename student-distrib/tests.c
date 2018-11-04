@@ -453,12 +453,12 @@ int terminal_driver_test()
 {
 	TEST_HEADER;
 	int32_t read_retval, write_retval;
-	terminal_open(NULL);
-	uint8_t buf[128];
+	terminal_open(NULL, NULL);
+	char buf[128];
 	printf("Hi, what's your name? ");
-	read_retval = terminal_read(NULL, buf, 128);
+	read_retval = terminal_read(NULL, NULL, buf, 128);
 	printf("Hello, ");
-	write_retval = terminal_write(NULL, buf, 128);
+	write_retval = terminal_write(NULL, NULL, buf, 128);
 	terminal_close(NULL);
 	printf("Read %d characters from terminal, and write %d characters to terminal.\n",
 	       read_retval, write_retval);
@@ -564,7 +564,6 @@ int unified_fs_rtc_write() {
 	return PASS;
 }
 
-/* rtc_read_test */
 int unified_fs_rtc_read()
 {
 	TEST_HEADER;
@@ -580,6 +579,19 @@ int unified_fs_rtc_read()
 	if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, NULL, 0)) return FAIL;
 	printf("\nHere it comes!\n");
 	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	return PASS;
+}
+
+int unified_fs_stdio() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	char buf[128];
+	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, "Hi, what's your name? ", 22)) return FAIL;
+	if(UNIFIED_FS_FAIL == unified_read(fd_array, 0, buf, 128)) return FAIL;
+	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, "Hello, ", 7)) return FAIL;
+	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, buf, 128)) return FAIL;
 	return PASS;
 }
 
@@ -735,17 +747,18 @@ void launch_tests(){
 	// TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
 
 	// Checkpoint 3
-	// TEST_OUTPUT("Unified FS File", unified_fs_read_file());
-	// TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
-	// TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
-	// TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
-	// TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
-	// TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
+	TEST_OUTPUT("Unified FS File", unified_fs_read_file());
+	TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
+	TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
+	TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
+	TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
+	TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
+	TEST_OUTPUT("Unified FS STDIO", unified_fs_stdio());
 	// Checkpoint 4
 	// Checkpoint 5
 
 	// Extra features
 	// TEST_OUTPUT("Tux Controller Read", unified_fs_tux_read());
-	TEST_OUTPUT("Tux Controller Write", unified_fs_tux_write());
+	// TEST_OUTPUT("Tux Controller Write", unified_fs_tux_write());
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 }
