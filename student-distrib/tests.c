@@ -762,14 +762,28 @@ int sb16_play_music() {
 	if(SB16_CALL_FAIL == sb16_init()) return FAIL;
 	if(SB16_CALL_FAIL == sb16_play(22050, SB16_MODE_STEREO, SB16_MODE_UNSIGNED)) return FAIL;
 	while(1) {
-		if(SB16_CALL_FAIL == sb16_read()) return FAIL;	// Wait until one block finished
+		// Wait until one block finished
+		if(SB16_CALL_FAIL == sb16_read()) return FAIL;
+		// Tell SB16 to stop temporarily after this block, to handle slow FS operations better
+		if(SB16_CALL_FAIL == sb16_stop_after_block()) return FAIL;
+
 		// Read the next chunk of data, copy into block correspondingly
 		size = unified_read(fd_array, fd,
 			(char*) (copy_count % 2 ? SB16_BUF_MID : SB16_BUF_ADDR), SB16_BUF_LEN_HALF + 1);
 		if(size < 0) return FAIL;
+		if(size < SB16_BUF_LEN_HALF + 1) {
+			// Clear the remaining part of the block
+			memset((char*) (copy_count % 2 ? SB16_BUF_MID : SB16_BUF_ADDR),
+				0, SB16_BUF_LEN_HALF + 1 - size);
+		}
 		// Move file pos
 		copy_count++;
+		// Tell SB16 to not stop playing after this block, or resume if already stopped
+		if(SB16_CALL_FAIL == sb16_continue()) return FAIL;
+
 		if(size < SB16_BUF_LEN_HALF + 1) {
+			// Wait until second last block finished
+			if(SB16_CALL_FAIL == sb16_read()) return FAIL;
 			// The remaining data isn't sufficient for one block
 			// Finish after this block
 			if(SB16_CALL_FAIL == sb16_stop_after_block()) return FAIL;
