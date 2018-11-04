@@ -1,6 +1,22 @@
 #include "keyboard.h"
 #include "../data/keyboard-scancode.h"
 
+// Unified FS interface definition for STDIN.
+unified_fs_interface_t terminal_stdin_if = {
+    .open = terminal_open,
+    .read = terminal_read,
+    .write = NULL,
+    .close = terminal_close
+};
+
+// Unified FS interface definition for STDOUT.
+unified_fs_interface_t terminal_stdout_if = {
+    .open = terminal_open,
+    .read = NULL,
+    .write = terminal_write,
+    .close = terminal_close
+};
+
 // keyboard buffer, one addition place for newline character
 static uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
 // next available index in (i.e. top of) the keyboard buffer
@@ -114,10 +130,12 @@ void keyboard_interrupt() {
     send_eoi(KEYBOARD_IRQ);
 }
 
-
-/* terminal Driver */
-/* terminal_open */
-int32_t terminal_open(const uint8_t* filename)
+/* int32_t terminal_open(int32_t* inode, char* filename)
+ * @input: all ignored
+ * @output: SUCCESS
+ * @description: prepare terminal for printing characters.
+ */
+int32_t terminal_open(int32_t* inode, char* filename)
 {
     // clear the buffer
     keyboard_buffer_top = 0;
@@ -126,8 +144,14 @@ int32_t terminal_open(const uint8_t* filename)
     return 0;
 }
 
-/* terminal_read */
-int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes)
+/* int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: buf - buffer to be written to
+ *         len - max length of string to be read from keyboard
+ * @output: ret val - SUCCESS / FAIL
+ *          buf - written with user's input
+ * @description: read from keyboard input.
+ */
+int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
 {
     // invalid input
     if (buf == NULL)
@@ -144,7 +168,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes)
     // wait for keyboard inputs
     while (keyboard_buffer_enable == 1) {}
     /* printf("keyboard_read ends\n"); */
-    for (index = 0; index < nbytes; index++)
+    for (index = 0; index < len; index++)
     {
         if (index < keyboard_buffer_top)
         {
@@ -155,13 +179,18 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes)
             *(uint8_t *)(buf + index) = 0;
         }
     }
-    min_size = keyboard_buffer_top < nbytes ? keyboard_buffer_top : nbytes;
+    min_size = keyboard_buffer_top < len ? keyboard_buffer_top : len;
     keyboard_buffer_top = 0;
     return min_size;
 }
 
-/* terminal_write */
-int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes)
+/* int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
+ * @input: buf - buffer to be read from
+ *         len - length of characters to be printed on screen
+ * @output: ret val - SUCCESS / FAIL
+ * @description: print characters onto the screen.
+ */
+int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
 {
     // invalid input
     if (buf == NULL)
@@ -170,22 +199,21 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes)
     }
     // loop index
     int index;
-    cli();
     // all data in the buffer are displayed to the screen
-    for (index = 0; index < nbytes; index++)
+    for (index = 0; index < len; index++)
     {
-        if (*(uint8_t *)(buf + index) == 0)
-        {
-          break;
-        }
+        if (*(uint8_t *)(buf + index) == 0) break;
         putc(*(uint8_t *)(buf +index));
     }
-    sti();
     return index;
 }
 
-/* terminal_close */
-int32_t terminal_close(int32_t fd)
+/* int32_t terminal_close(int32_t* inode)
+ * @input: all ignored
+ * @output: ret val - SUCCESS
+ * @description: close terminal.
+ */
+int32_t terminal_close(int32_t* inode)
 {
     // clear the buffer
     keyboard_buffer_top = 0;

@@ -2,7 +2,7 @@
 #include "i8259.h"
 
 uint8_t sb16_here = 0;          // Store whether SB16 has been initialized
-uint8_t sb16_interrupted = 0;   // Interrupt counter, used for sb16_read()
+volatile uint8_t sb16_interrupted = 0;   // Interrupt counter, used for sb16_read()
 
 /* int32_t sb16_init()
  * @output: Sound Blaster 16 initialized

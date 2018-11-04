@@ -2,6 +2,20 @@
 
 ece391fs_bootblk_t* fs_bootblk = NULL;
 
+unified_fs_interface_t ece391fs_file_if = {
+    .open = file_open,
+    .read = file_read,
+    .write = file_write,
+    .close = file_close
+};
+
+unified_fs_interface_t ece391fs_dir_if = {
+    .open = dir_open,
+    .read = dir_read,
+    .write = dir_write,
+    .close = dir_close
+};
+
 /* int32_t ece391fs_init(uint32_t module_start, uint32_t module_end)
  * @input: module_start - start position of initramfs
  *         module_end - end position of initramfs
@@ -199,24 +213,24 @@ void ece391fs_print_file_info(ece391fs_file_info_t* file_info) {
 }
 
 // Following code only works for CP2, not meant for CP3 and afterwards
-/* int32_t file_open(int32_t* fd, char* filename)
- * @input: fd - file descriptor
+/* int32_t file_open(int32_t* inode, char* filename)
+ * @input: inode - file descriptor
  *         filename - name of file to be opened
- * @output: fd - set to inode id of file
+ * @output: inode - set to inode id of file
  *          ret val - SUCCESS / FAIL
  * @description: open a file.
  */
-int32_t file_open(int32_t* fd, char* filename) {
+int32_t file_open(int32_t* inode, char* filename) {
     ece391fs_file_info_t finfo;
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
     if(-1 == read_dentry_by_name(filename, &finfo)) return ECE391FS_CALL_FAIL;
     if(finfo.type != ECE391FS_FILE_TYPE_FILE) return ECE391FS_CALL_FAIL;
-    *fd = finfo.inode;
+    *inode = finfo.inode;
     return ECE391FS_CALL_SUCCESS;
 }
 
-/* int32_t file_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
- * @input: fd - file descriptor
+/* int32_t file_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: inode - file descriptor
  *         offset - starting position to be read
  *         buf - location data to be written to
  *         len - length of data to be written to
@@ -225,54 +239,54 @@ int32_t file_open(int32_t* fd, char* filename) {
  *          ret val - bytes written / FAIL
  * @description: read data from a file.
  */
-int32_t file_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+int32_t file_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    int32_t result = read_data(*fd, *offset, buf, len);
+    int32_t result = read_data(*inode, *offset, buf, len);
     if(result > 0) *offset += result;
     return result;
 }
 
-/* int32_t file_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
- * @input: fd - file descriptor
+/* int32_t file_write(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: inode - file descriptor
  *         offset - starting position to be read
  *         buf - location data to be read from
  *         len - length of data to be read
  * @output: ret val - FAIL
  * @description: write data to a file. Just return fail as filesystem is readonly.
  */
-int32_t file_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+int32_t file_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
     return ECE391FS_CALL_FAIL;
 }
 
-/* int32_t file_close(int32_t* fd)
- * @input: fd - file descriptor
- * @output: fd - set to 0
+/* int32_t file_close(int32_t* inode)
+ * @input: inode - file descriptor
+ * @output: inode - set to 0
  *          ret val - SUCCESS
  * @description: closes a file
  */
-int32_t file_close(int32_t* fd) {
+int32_t file_close(int32_t* inode) {
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    *fd = 0;
+    *inode = 0;
     return ECE391FS_CALL_SUCCESS;
 }
 
-/* int32_t dir_open(int32_t* fd, char* filename)
- * @input: fd - file descriptor
+/* int32_t dir_open(int32_t* inode, char* filename)
+ * @input: inode - file descriptor
  *         filename - name of dir to be opened
  * @output: ret val - SUCCESS / FAIL
  * @description: open a directory.
  */
-int32_t dir_open(int32_t* fd, char* filename) {
+int32_t dir_open(int32_t* inode, char* filename) {
     ece391fs_file_info_t finfo;
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
     if(-1 == read_dentry_by_name(filename, &finfo)) return ECE391FS_CALL_FAIL;
     if(finfo.type != ECE391FS_FILE_TYPE_FOLDER) return ECE391FS_CALL_FAIL;
-    *fd = finfo.inode;
+    *inode = finfo.inode;
     return ECE391FS_CALL_SUCCESS;
 }
 
-/* int32_t dir_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
- * @input: fd - file descriptor
+/* int32_t dir_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: inode - file descriptor
  *         offset - starting position to be read
  *         buf - location data to be written to
  *         len - length of data to be written to
@@ -281,31 +295,31 @@ int32_t dir_open(int32_t* fd, char* filename) {
  *          ret val - bytes written / FAIL
  * @description: read file list from a folder.
  */
-int32_t dir_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+int32_t dir_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
     int32_t result = read_dir(*offset, buf, len);
     if(result > 0) *offset += 1;
     return result;
 }
 
-/* int32_t dir_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len)
- * @input: fd - file descriptor
+/* int32_t dir_write(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: inode - file descriptor
  *         offset - starting position to be read
  *         buf - location data to be read from
  *         len - length of data to be read
  * @output: ret val - FAIL
  * @description: write data to a folder. Just return fail as filesystem is readonly.
  */
-int32_t dir_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len) {
+int32_t dir_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
     return ECE391FS_CALL_FAIL;
 }
 
-/* int32_t dir_close(int32_t* fd)
- * @input: fd - file descriptor
+/* int32_t dir_close(int32_t* inode)
+ * @input: inode - file descriptor
  * @output: ret val - SUCCESS
  * @description: closes a directory
  */
-int32_t dir_close(int32_t* fd) {
+int32_t dir_close(int32_t* inode) {
     if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
     return ECE391FS_CALL_SUCCESS;
 }
