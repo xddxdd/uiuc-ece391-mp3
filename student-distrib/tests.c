@@ -408,9 +408,12 @@ int ece391fs_interface_read_nonexistent_dir() {
 	return PASS;
 }
 
-
-/* RTC driver test */
-/* rtc_write_test */
+/* int rtc_write_test()
+ * @output: PASS / FAIL
+ * @description: Tests setting frequency of RTC.
+ *     Test starts from 2 Hz, doubles frequency at each press of Enter key,
+ *     and ends after 1024 Hz.
+ */
 int rtc_write_test()
 {
 	TEST_HEADER;
@@ -434,7 +437,10 @@ int rtc_write_test()
 	return PASS;
 }
 
-/* rtc_read_test */
+/* int rtc_read_test()
+ * @output: PASS / FAIL
+ * @description: Tests waiting for a RTC tick.
+ */
 int rtc_read_test()
 {
 	TEST_HEADER;
@@ -447,8 +453,11 @@ int rtc_read_test()
 	return PASS;
 }
 
-/* terminal driver test */
-/* terminal_driver_test */
+/* int terminal_driver_test()
+ * @output: PASS / FAIL
+ * @description: Tests reading/writing from/to terminal driver.
+ *     Repeats the name entered.
+ */
 int terminal_driver_test()
 {
 	TEST_HEADER;
@@ -465,8 +474,12 @@ int terminal_driver_test()
 	return PASS;
 }
 
-
 /* Checkpoint 3 tests */
+/* int unified_fs_read_file()
+ * @output: PASS / FAIL
+ * @description: Tests reading contents of a file using Unified FS interface.
+ *     Covers file open, file pos storage, over-end handling, etc.
+ */
 int unified_fs_read_file() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
@@ -490,6 +503,10 @@ int unified_fs_read_file() {
 	return PASS;
 }
 
+/* int unified_fs_read_dir()
+ * @output: PASS / FAIL
+ * @description: Tests listing directory using Unified FS interface.
+ */
 int unified_fs_read_dir() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
@@ -515,6 +532,10 @@ int unified_fs_read_dir() {
 	return PASS;
 }
 
+/* int unified_fs_read_nonexistent()
+ * @output: PASS / FAIL
+ * @description: Tests opening a nonexistent file using Unified FS interface.
+ */
 int unified_fs_read_nonexistent() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
@@ -524,12 +545,16 @@ int unified_fs_read_nonexistent() {
 	return PASS;
 }
 
+/* int unified_fs_invalid_fd()
+ * @output: PASS / FAIL
+ * @description: Tests Unified FS interface handing of invalid file descriptor.
+ */
 int unified_fs_invalid_fd() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
 	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
 
-	int32_t fd = 2;
+	int32_t fd = 2;	// There's no fd 2, we haven't opened anything!
 	char buf[100];
 	if(UNIFIED_FS_FAIL != unified_read(fd_array, fd, buf, 100)) return FAIL;
 	if(UNIFIED_FS_FAIL != unified_write(fd_array, fd, buf, 100)) return FAIL;
@@ -537,6 +562,12 @@ int unified_fs_invalid_fd() {
 	return PASS;
 }
 
+/* unified_fs_rtc_write()
+ * @output: PASS / FAIL
+ * @description: Tests setting frequency of RTC with Unified FS interface.
+ *     Test starts from 2 Hz, doubles frequency at each press of Enter key,
+ *     and ends after 1024 Hz.
+ */
 int unified_fs_rtc_write() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
@@ -564,6 +595,10 @@ int unified_fs_rtc_write() {
 	return PASS;
 }
 
+/* int unified_fs_rtc_read()
+ * @output: PASS / FAIL
+ * @description: Tests waiting for a RTC tick using Unified FS interface.
+ */
 int unified_fs_rtc_read()
 {
 	TEST_HEADER;
@@ -582,6 +617,11 @@ int unified_fs_rtc_read()
 	return PASS;
 }
 
+/* int unified_fs_stdio()
+ * @output: PASS / FAIL
+ * @description: Tests reading/writing from/to terminal driver with Unified FS interface.
+ *     Repeats the name entered.
+ */
 int unified_fs_stdio() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
@@ -599,6 +639,10 @@ int unified_fs_stdio() {
 /* Checkpoint 5 tests */
 
 /* Extra feature tests */
+/* int unified_fs_tux_read()
+ * @output: PASS / FAIL
+ * @description: Tests reading tux's button state using Unified FS interface.
+ */
 int unified_fs_tux_read() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
@@ -607,6 +651,7 @@ int unified_fs_tux_read() {
 	int32_t fd;
 	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "tux"))) return FAIL;
 
+	// List of buttons, see function interface of tux_read()
 	char buttons[8][6] = {"START", "A", "B", "C", "Up", "Down", "Left", "Right"};
 
 	uint8_t prev_buttons = 0;
@@ -618,21 +663,26 @@ int unified_fs_tux_read() {
 		int i;
 		for(i = 0; i < 8; i++) {
 			if(!(prev_buttons & (1 << i)) && (curr_buttons & (1 << i))) {
+				// A button has been pressed
 				printf("Press ");
 				printf(buttons[i]);
 				printf("\n");
+				// Add counter for quit test every time START is pressed
 				if(i == 0) {
 					quit_count++;
 				} else {
 					quit_count = 0;
 				}
 			} else if((prev_buttons & (1 << i)) && !(curr_buttons & (1 << i))) {
+				// A button has been released
 				printf("Release ");
 				printf(buttons[i]);
 				printf("\n");
 			}
 		}
 		prev_buttons = curr_buttons;
+
+		// If START pressed more than 3 times in a row, quit
 		if(quit_count >= 3) break;
 	}
 
@@ -640,11 +690,16 @@ int unified_fs_tux_read() {
 	return PASS;
 }
 
+/* int unified_fs_tux_write()
+ * @output: PASS / FAIL
+ * @description: Tests setting tux's LED using Unified FS interface.
+ */
 int unified_fs_tux_write() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
 	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
 
+	// Tries to open both Tux and RTC
 	int32_t tux_fd;
 	if(UNIFIED_FS_FAIL == (tux_fd = unified_open(fd_array, "tux"))) return FAIL;
 	int32_t rtc_fd;
@@ -652,6 +707,7 @@ int unified_fs_tux_write() {
 	uint16_t freq = 2;
 	if(UNIFIED_FS_FAIL == unified_write(fd_array, rtc_fd, &freq, sizeof(uint16_t))) return FAIL;
 
+	// sequence of strings to be displayed on Tux
 	char seq[16][6] = {
 		"T",
 		"TE",
@@ -671,13 +727,16 @@ int unified_fs_tux_write() {
 		{'N', 'U', 'L', 'L', 0x08, 0}
 	};
 
+	// Display the strings, 3 loops total
 	int i = 0;
 	while(i < 16 * 3) {
 		if(UNIFIED_FS_FAIL == unified_write(fd_array, tux_fd, seq[i % 16], strlen(seq[i % 16]))) return FAIL;
+		// Wait 0.5s for each operation
 		if(UNIFIED_FS_FAIL == unified_read(fd_array, rtc_fd, NULL, 0)) return FAIL;
 		i++;
 	}
 
+	// Closes everything
 	if(UNIFIED_FS_FAIL == unified_close(fd_array, tux_fd)) return FAIL;
 	if(UNIFIED_FS_FAIL == unified_close(fd_array, rtc_fd)) return FAIL;
 	return PASS;
