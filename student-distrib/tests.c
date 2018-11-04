@@ -746,7 +746,7 @@ int unified_fs_tux_write() {
  * @output: PASS / FAIL
  * @description: Tests reading music from filesystem and playing it.
  */
-int sb16_play_music() {
+/*int sb16_play_music() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
 	if(ECE391FS_CALL_FAIL == read_dentry_by_name("halloffame.wav", &finfo)) return FAIL;
@@ -770,6 +770,40 @@ int sb16_play_music() {
 			break;
 		}
 	}
+	return PASS;
+}*/
+
+int sb16_play_music() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t fd;
+	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "halloffame.wav"))) return FAIL;
+
+	// Read the first chunk of data, and record position
+	int32_t size = unified_read(fd_array, fd, (char*) SB16_BUF_ADDR, SB16_BUF_LEN + 1);
+	if(size < 0) return FAIL;
+	uint8_t copy_count = 0;
+	// Initialize playing with 22050 Hz, Mono, Unsigned PCM
+	if(SB16_CALL_FAIL == sb16_init()) return FAIL;
+	if(SB16_CALL_FAIL == sb16_play(22050, SB16_MODE_STEREO, SB16_MODE_UNSIGNED)) return FAIL;
+	while(1) {
+		if(SB16_CALL_FAIL == sb16_read()) return FAIL;	// Wait until one block finished
+		// Read the next chunk of data, copy into block correspondingly
+		size = unified_read(fd_array, fd,
+			(char*) (copy_count % 2 ? SB16_BUF_MID : SB16_BUF_ADDR), SB16_BUF_LEN_HALF + 1);
+		if(size < 0) return FAIL;
+		// Move file pos
+		copy_count++;
+		if(size < SB16_BUF_LEN_HALF + 1) {
+			// The remaining data isn't sufficient for one block
+			// Finish after this block
+			if(SB16_CALL_FAIL == sb16_stop_after_block()) return FAIL;
+			break;
+		}
+	}
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
 	return PASS;
 }
 
@@ -806,18 +840,18 @@ void launch_tests(){
 	// TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
 
 	// Checkpoint 3
-	TEST_OUTPUT("Unified FS File", unified_fs_read_file());
-	TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
-	TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
-	TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
-	TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
-	TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
-	TEST_OUTPUT("Unified FS STDIO", unified_fs_stdio());
+	// TEST_OUTPUT("Unified FS File", unified_fs_read_file());
+	// TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
+	// TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
+	// TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
+	// TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
+	// TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
+	// TEST_OUTPUT("Unified FS STDIO", unified_fs_stdio());
 	// Checkpoint 4
 	// Checkpoint 5
 
 	// Extra features
 	// TEST_OUTPUT("Tux Controller Read", unified_fs_tux_read());
 	// TEST_OUTPUT("Tux Controller Write", unified_fs_tux_write());
-	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
+	TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 }
