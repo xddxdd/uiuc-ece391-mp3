@@ -1,6 +1,7 @@
 #include "keyboard.h"
 #include "../data/keyboard-scancode.h"
 
+// Unified FS interface definition for STDIN.
 unified_fs_interface_t terminal_stdin_if = {
     .open = terminal_open,
     .read = terminal_read,
@@ -8,6 +9,7 @@ unified_fs_interface_t terminal_stdin_if = {
     .close = terminal_close
 };
 
+// Unified FS interface definition for STDOUT.
 unified_fs_interface_t terminal_stdout_if = {
     .open = terminal_open,
     .read = NULL,
@@ -128,9 +130,11 @@ void keyboard_interrupt() {
     send_eoi(KEYBOARD_IRQ);
 }
 
-
-/* terminal Driver */
-/* terminal_open */
+/* int32_t terminal_open(int32_t* inode, char* filename)
+ * @input: all ignored
+ * @output: SUCCESS
+ * @description: prepare terminal for printing characters.
+ */
 int32_t terminal_open(int32_t* inode, char* filename)
 {
     // clear the buffer
@@ -140,7 +144,13 @@ int32_t terminal_open(int32_t* inode, char* filename)
     return 0;
 }
 
-/* terminal_read */
+/* int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: buf - buffer to be written to
+ *         len - max length of string to be read from keyboard
+ * @output: ret val - SUCCESS / FAIL
+ *          buf - written with user's input
+ * @description: read from keyboard input.
+ */
 int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
 {
     // invalid input
@@ -174,7 +184,12 @@ int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
     return min_size;
 }
 
-/* terminal_write */
+/* int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
+ * @input: buf - buffer to be read from
+ *         len - length of characters to be printed on screen
+ * @output: ret val - SUCCESS / FAIL
+ * @description: print characters onto the screen.
+ */
 int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
 {
     // invalid input
@@ -193,7 +208,11 @@ int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32
     return index;
 }
 
-/* terminal_close */
+/* int32_t terminal_close(int32_t* inode)
+ * @input: all ignored
+ * @output: ret val - SUCCESS
+ * @description: close terminal.
+ */
 int32_t terminal_close(int32_t* inode)
 {
     // clear the buffer

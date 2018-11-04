@@ -5,6 +5,7 @@
 static volatile int rtc_interrupt_occurred;
 static uint16_t rtc_freq;
 
+// Unified FS interface for RTC.
 unified_fs_interface_t rtc_if = {
     .open = rtc_open,
     .read = rtc_read,
@@ -72,8 +73,8 @@ void rtc_interrupt() {
 
 
 /* RTC Driver */
-/* int32_t rtc_open(const uint8_t* filename)
- * @input: filename - ignored
+/* int32_t rtc_open(int32_t* inode, char* filename)
+ * @input: all ignored
  * @output: 0 (SUCCESS)
  * @description: initialize RTC, set freq to 2 Hz
  */
@@ -101,7 +102,7 @@ int32_t rtc_open(int32_t* inode, char* filename)
   return 0;
 }
 
-/* int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
+/* int32_t rtc_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
  * @input: all ignored
  * @output: 0 (SUCCESS)
  * @description: wait until the next RTC tick.
@@ -113,8 +114,9 @@ int32_t rtc_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
   return 0;
 }
 
-/* int32_t rtc_write(int32_t fd, void* buf, int32_t nbytes)
+/* int32_t rtc_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
  * @input: buf - value of new frequency for RTC
+ *         len - length of buf, should be sizeof(uint16_t)
  * @output: 0 (SUCCESS) / -1 (FAIL)
  * @description: set the frequency of interrupts by RTC
  */
@@ -129,8 +131,8 @@ int32_t rtc_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t le
   return 0;
 }
 
-/* int32_t rtc_close(int32_t fd)
- * @input: fd - ignored
+/* int32_t rtc_close(int32_t* inode)
+ * @input: inode - ignored
  * @output: 0 (SUCCESS)
  * @description: close RTC, currently does nothing
  */

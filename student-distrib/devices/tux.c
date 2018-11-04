@@ -157,10 +157,23 @@ void tux_interrupt(char packet) {
     }
 }
 
+/* int32_t tux_open(int32_t* inode, char* filename)
+ * @input: all ignored
+ * @output: tux initialized
+ * @description: enable tux controller.
+ */
 int32_t tux_open(int32_t* inode, char* filename) {
     return tux_init();
 }
 
+/* int32_t tux_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: buf - where tux's button state to be written to
+ *         len - length of buf, should be sizeof(uint8_t)
+ * @output: ret val - SUCCESS / FAIL
+ *          buf - written with tux's button state
+ * @description: copy tux's button state into buf, total 8 bits.
+ *     Button bit relationship from 0 to 7: START, A, B, C, UP, DOWN, LEFT, RIGHT
+ */
 int32_t tux_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
     if(buf == NULL) return TUX_OP_FAIL;
     if(len != sizeof(uint8_t)) return TUX_OP_FAIL;
@@ -168,6 +181,17 @@ int32_t tux_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
     return TUX_OP_SUCCESS;
 }
 
+/* int32_t tux_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
+ * @input: buf - text (and decimal points) to be displayed on tux's LED
+ *         len - length of buf, should be in range 1-5
+ * @output: ret val - SUCCESS / FAIL
+ *          tux controller's LED set with the given string
+ * @description: set Tux Controller's LED to given string.
+ *     If length in range 1-4, only text is displayed. If length < 4, the string is automatically
+ *       padded to length 4 with spaces.
+ *     If length is 5, first 4 characters are interpreted as text and displayed. The 5th byte's low 4 bits
+ *       will be used to control which dots to be enabled.
+ */
 int32_t tux_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
     char word[TC_LED_COUNT];
     uint8_t dot;
@@ -185,6 +209,11 @@ int32_t tux_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t le
     return tux_set_led(word, dot);
 }
 
+/* int32_t tux_close(int32_t* inode)
+ * @input: all ignored
+ * @output: ret val - SUCCESS
+ * @description: closes Tux Controller, currently does nothing.
+ */
 int32_t tux_close(int32_t* inode) {
     return TUX_OP_SUCCESS;
 }
