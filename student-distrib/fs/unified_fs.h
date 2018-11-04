@@ -1,7 +1,7 @@
 #ifndef _UNIFIED_FS_H_
 #define _UNIFIED_FS_H_
 
-#include "../types.h"
+#include "../lib.h"
 
 typedef struct {
     int32_t (*open)(int32_t*, char*);

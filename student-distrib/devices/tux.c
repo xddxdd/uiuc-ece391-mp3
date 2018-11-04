@@ -2,6 +2,13 @@
 #include "serial.h"
 #include "tux-mtcp.h"
 
+unified_fs_interface_t tux_if = {
+    .open = tux_open,
+    .read = tux_read,
+    .write = tux_write,
+    .close = tux_close
+};
+
 #define TC_SERIAL_PORT COM1
 
 // Initialization sequence of Tux Controller
@@ -83,6 +90,8 @@ int8_t tux_set_led(char* word, uint8_t dot) {
             tc_led_sequence[TC_LED_OFFSET + i] = tc_led_segments[(int) (ch - 'A' + 10)];
         } else if(ch >= 'a' && ch <= 'z') {
             tc_led_sequence[TC_LED_OFFSET + i] = tc_led_segments[(int) (ch - 'a' + 10)];
+        } else if(ch == ' ') {
+            tc_led_sequence[TC_LED_OFFSET + i] = 0;
         } else {
             return TUX_OP_FAIL;
         }
@@ -146,4 +155,36 @@ void tux_interrupt(char packet) {
             }
         }
     }
+}
+
+int32_t tux_open(int32_t* inode, char* filename) {
+    return tux_init();
+}
+
+int32_t tux_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
+    if(buf == NULL) return TUX_OP_FAIL;
+    if(len != sizeof(uint8_t)) return TUX_OP_FAIL;
+    *buf = tc_buttons;
+    return TUX_OP_SUCCESS;
+}
+
+int32_t tux_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
+    char word[TC_LED_COUNT];
+    uint8_t dot;
+
+    if(buf == NULL) return TUX_OP_FAIL;
+    if(len == 0 || len > TC_LED_COUNT + 1) return TUX_OP_FAIL;
+
+    int i;
+    for(i = 0; i < TC_LED_COUNT; i++) {
+        word[i] = i < len ? buf[i] : ' ';
+    }
+    if(len == TC_LED_COUNT + 1) {
+        dot = (uint8_t) buf[TC_LED_COUNT];
+    }
+    return tux_set_led(word, dot);
+}
+
+int32_t tux_close(int32_t* inode) {
+    return TUX_OP_SUCCESS;
 }

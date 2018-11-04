@@ -587,6 +587,90 @@ int unified_fs_rtc_read()
 /* Checkpoint 5 tests */
 
 /* Extra feature tests */
+int unified_fs_tux_read() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t fd;
+	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "tux"))) return FAIL;
+
+	char buttons[8][6] = {"START", "A", "B", "C", "Up", "Down", "Left", "Right"};
+
+	uint8_t prev_buttons = 0;
+	uint8_t curr_buttons = 0;
+	uint8_t quit_count = 0;
+	printf("Press START 3 times to quit\n");
+	while(1) {
+		if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, &curr_buttons, sizeof(uint8_t))) return FAIL;
+		int i;
+		for(i = 0; i < 8; i++) {
+			if(!(prev_buttons & (1 << i)) && (curr_buttons & (1 << i))) {
+				printf("Press ");
+				printf(buttons[i]);
+				printf("\n");
+				if(i == 0) {
+					quit_count++;
+				} else {
+					quit_count = 0;
+				}
+			} else if((prev_buttons & (1 << i)) && !(curr_buttons & (1 << i))) {
+				printf("Release ");
+				printf(buttons[i]);
+				printf("\n");
+			}
+		}
+		prev_buttons = curr_buttons;
+		if(quit_count >= 3) break;
+	}
+
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	return PASS;
+}
+
+int unified_fs_tux_write() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t tux_fd;
+	if(UNIFIED_FS_FAIL == (tux_fd = unified_open(fd_array, "tux"))) return FAIL;
+	int32_t rtc_fd;
+	if(UNIFIED_FS_FAIL == (rtc_fd = unified_open(fd_array, "rtc"))) return FAIL;
+	uint16_t freq = 2;
+	if(UNIFIED_FS_FAIL == unified_write(fd_array, rtc_fd, &freq, sizeof(uint16_t))) return FAIL;
+
+	char seq[16][6] = {
+		"T",
+		"TE",
+		"TEA",
+		"TEAM",
+		{'T', 'E', 'A', 'M', 0x01},
+		{'T', 'E', 'A', 'M', 0x02},
+		{'T', 'E', 'A', 'M', 0x04},
+		{'T', 'E', 'A', 'M', 0x08},
+		"N",
+		"NU",
+		"NUL",
+		"NULL",
+		{'N', 'U', 'L', 'L', 0x01},
+		{'N', 'U', 'L', 'L', 0x02},
+		{'N', 'U', 'L', 'L', 0x04},
+		{'N', 'U', 'L', 'L', 0x08}
+	};
+
+	int i = 0;
+	while(i < 16 * 3) {
+		if(UNIFIED_FS_FAIL == unified_write(fd_array, tux_fd, seq[i % 16], strlen(seq[i % 16]))) return FAIL;
+		if(UNIFIED_FS_FAIL == unified_read(fd_array, rtc_fd, NULL, 0)) return FAIL;
+		i++;
+	}
+
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, tux_fd)) return FAIL;
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, rtc_fd)) return FAIL;
+	return PASS;
+}
+
 /* int sb16_play_music()
  * @output: PASS / FAIL
  * @description: Tests reading music from filesystem and playing it.
@@ -649,15 +733,19 @@ void launch_tests(){
 	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	// TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
-	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 
 	// Checkpoint 3
 	// TEST_OUTPUT("Unified FS File", unified_fs_read_file());
 	// TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
 	// TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
 	// TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
-	TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
-	TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
+	// TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
+	// TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
 	// Checkpoint 4
 	// Checkpoint 5
+
+	// Extra features
+	// TEST_OUTPUT("Tux Controller Read", unified_fs_tux_read());
+	TEST_OUTPUT("Tux Controller Write", unified_fs_tux_write());
+	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 }

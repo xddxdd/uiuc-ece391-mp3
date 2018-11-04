@@ -1,6 +1,7 @@
 #include "unified_fs.h"
 #include "ece391fs.h"
 #include "../devices/rtc.h"
+#include "../devices/tux.h"
 
 int32_t unified_init(fd_array_t* fd_array) {
     // Initialize array to prevent page fault
@@ -20,9 +21,11 @@ int32_t unified_open(fd_array_t* fd_array, const char* filename) {
     while(id < MAX_OPEN_FILES && fd_array[id].interface != NULL) id++;
     if(id >= MAX_OPEN_FILES) return UNIFIED_FS_FAIL;
 
-    // Try to open file in ECE391FS
     ece391fs_file_info_t finfo;
-    if(ECE391FS_CALL_SUCCESS == read_dentry_by_name((char*) filename, &finfo)) {
+    if(0 == strncmp("tux", filename, 4)) {
+        // Trying to open Tux Controller
+        fd_array[id].interface = &tux_if;
+    } else if(ECE391FS_CALL_SUCCESS == read_dentry_by_name((char*) filename, &finfo)) {
         // File exists in ECE391FS
         switch(finfo.type) {
             case ECE391FS_FILE_TYPE_FILE:
