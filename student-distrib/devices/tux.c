@@ -18,7 +18,7 @@ const unsigned char tc_initialization_sequence[TC_INITIALIZATION_SEQUENCE_LEN] =
 uint8_t tc_led_sequence[TC_LED_SEQUENCE_LEN] = {MTCP_LED_SET, 0x0F, 0, 0, 0, 0};
 
 // Variable used to hold state of buttons
-uint8_t tc_buttons = 0;
+volatile uint8_t tc_buttons = 0;
 
 /* tc_led_segments: segment information for Tux Controller LED,
  *      maps 0-9 & A-Z to LED segment packet.

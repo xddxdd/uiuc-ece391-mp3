@@ -9,7 +9,7 @@
 
 #include "../types.h"
 
-extern uint8_t tc_buttons;
+extern volatile uint8_t tc_buttons;
 
 int8_t tux_init();
 int8_t tux_set_led(char* word, uint8_t dot);
