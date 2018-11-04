@@ -6,6 +6,7 @@
 #include "devices/sb16.h"
 #include "devices/keyboard.h"
 #include "sys_calls.h"
+#include "fs/unified_fs.h"
 
 #define PASS 1
 #define FAIL 0
@@ -337,7 +338,7 @@ int ece391fs_list_dir() {
  *     174 is the exact file size of frame1.txt.
  *     If the file got modified, this test should be modified too.
  */
-int fs_read_existent_file() {
+int ece391fs_interface_read_existent_file() {
 	TEST_HEADER;
 	int32_t fd;
 	uint32_t offset = 0;
@@ -358,7 +359,7 @@ int fs_read_existent_file() {
  *     Uses generic filesystem functions instead of ECE391FS specific ones.
  *     The FS call should return -1 (Fail).
  */
-int fs_read_nonexistent_file() {
+int ece391fs_interface_read_nonexistent_file() {
 	TEST_HEADER;
 	int32_t fd = 0;
     if(ECE391FS_CALL_SUCCESS == file_open(&fd, "404.not.found")) return FAIL;
@@ -371,7 +372,7 @@ int fs_read_nonexistent_file() {
  * @description: test listing files in root folder.
  *     Uses generic filesystem functions instead of ECE391FS specific ones.
  */
-int fs_read_existent_dir() {
+int ece391fs_interface_read_existent_dir() {
 	TEST_HEADER;
 	int32_t fd = 0;
 	char buf[ECE391FS_MAX_FILENAME_LEN + 1];
@@ -399,7 +400,7 @@ int fs_read_existent_dir() {
  *     Uses generic filesystem functions instead of ECE391FS specific ones.
  *     The FS call should return -1 (Fail).
  */
-int fs_read_nonexistent_dir() {
+int ece391fs_interface_read_nonexistent_dir() {
 	TEST_HEADER;
 	int32_t fd = 0;
     if(ECE391FS_CALL_SUCCESS == dir_open(&fd, "404.not.found")) return FAIL;
@@ -471,6 +472,76 @@ int terminal_driver_test()
 
 
 /* Checkpoint 3 tests */
+int unified_fs_read_file() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t fd;
+	int i;
+	char buf[100];
+	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "frame1.txt"))) return FAIL;
+
+	if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, buf, 100)) return FAIL;
+	if(fd_array[fd].pos != 100) return FAIL;
+	for(i = 0; i < 100; i++) putc(buf[i]);
+
+	if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, buf, 100)) return FAIL;
+	if(fd_array[fd].pos != 174) return FAIL;
+	for(i = 0; i < 74; i++) putc(buf[i]);
+
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	if(NULL != fd_array[fd].interface) return FAIL;
+	return PASS;
+}
+
+int unified_fs_read_dir() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t fd;
+	int ret;
+	char buf[ECE391FS_MAX_FILENAME_LEN + 1];
+	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "."))) return FAIL;
+
+	while(1) {
+		ret = unified_read(fd_array, fd, buf, ECE391FS_MAX_FILENAME_LEN);
+		if(ret == 0) break;
+		if(ret > ECE391FS_MAX_FILENAME_LEN) return FAIL;
+		if(ret < 0) return FAIL;
+		buf[ret] = '\0';
+		printf(buf);
+		printf(", ");
+	}
+
+	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	if(NULL != fd_array[fd].interface) return FAIL;
+	return PASS;
+}
+
+int unified_fs_read_nonexistent() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	if(UNIFIED_FS_FAIL != unified_open(fd_array, "404.not.found")) return FAIL;
+	return PASS;
+}
+
+int unified_fs_invalid_fd() {
+	TEST_HEADER;
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
+
+	int32_t fd = 2;
+	char buf[100];
+	if(UNIFIED_FS_FAIL != unified_read(fd_array, fd, buf, 100)) return FAIL;
+	if(UNIFIED_FS_FAIL != unified_write(fd_array, fd, buf, 100)) return FAIL;
+	if(UNIFIED_FS_FAIL != unified_close(fd_array, fd)) return FAIL;
+	return PASS;
+}
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -530,15 +601,20 @@ void launch_tests(){
 	// TEST_OUTPUT("ECE391FS Toolong File", ece391fs_read_toolong_file());
 	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	// TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
-	// TEST_OUTPUT("Generic FS Existent File", fs_read_existent_file());
-	// TEST_OUTPUT("Generic FS Nonexistent File", fs_read_nonexistent_file());
-	// TEST_OUTPUT("Generic FS Existent Directory", fs_read_existent_dir());
-	// TEST_OUTPUT("Generic FS Nonexistent Directory", fs_read_nonexistent_dir());
+	// TEST_OUTPUT("ECE391FS Inteface Existent File", ece391fs_interface_read_existent_file());
+	// TEST_OUTPUT("ECE391FS Inteface Nonexistent File", ece391fs_interface_read_nonexistent_file());
+	// TEST_OUTPUT("ECE391FS Inteface Existent Directory", ece391fs_interface_read_existent_dir());
+	// TEST_OUTPUT("ECE391FS Inteface Nonexistent Directory", ece391fs_interface_read_nonexistent_dir());
 	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
-	TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
+	// TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
+
 	// Checkpoint 3
+	TEST_OUTPUT("Unified FS File", unified_fs_read_file());
+	TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
+	TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
+	TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
 	// Checkpoint 4
 	// Checkpoint 5
 }

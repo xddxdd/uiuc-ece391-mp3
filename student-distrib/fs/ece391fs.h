@@ -2,6 +2,7 @@
 #define _ECE391FS_H_
 
 #include "../lib.h"
+#include "unified_fs.h"
 
 #define ECE391FS_FILE_TYPE_RTC 0
 #define ECE391FS_FILE_TYPE_FOLDER 1
@@ -50,12 +51,17 @@ int32_t read_dir(uint32_t offset, char* buf, uint32_t length);
 void ece391fs_print_file_info(ece391fs_file_info_t* file_info);
 
 // Temporary functions for CP2
-int32_t file_open(int32_t* fd, char* filename);
-int32_t file_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
-int32_t file_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
-int32_t file_close(int32_t* fd);
-int32_t dir_open(int32_t* fd, char* filename);
-int32_t dir_read(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
-int32_t dir_write(int32_t* fd, uint32_t* offset, char* buf, uint32_t len);
-int32_t dir_close(int32_t* fd);
+int32_t file_open(int32_t* inode, char* filename);
+int32_t file_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len);
+int32_t file_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len);
+int32_t file_close(int32_t* inode);
+int32_t dir_open(int32_t* inode, char* filename);
+int32_t dir_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len);
+int32_t dir_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len);
+int32_t dir_close(int32_t* inode);
+
+// Unified FS definition
+extern unified_fs_interface_t ece391fs_file_if;
+extern unified_fs_interface_t ece391fs_dir_if;
+
 #endif
