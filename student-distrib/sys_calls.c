@@ -1,8 +1,86 @@
 #include "sys_calls.h"
 
+
 static uint32_t process_count = 0;
 
+/* PCB */
+
+/*
+ * A null function placeholder for stdin and stdout.
+ * INPUT:  none.
+ * OUTPUT: none.
+ * RETURN: SYSCALL_SUCCESS.
+ */
+int32_t null_func()
+{
+   return SYSCALL_SUCCESS;
+}
+
+/* File operations table.
+* The entries are functions for:
+* open, read, write, close,
+* respectively.
+*/
+/* File operations table for stdin. */
+int32_t (*stdin_table[FILE_OP_NUM])() = {null_func, terminal_read, null_func, null_func};
+
+/* File operations table for stdout. */
+int32_t (*stdout_table[FILE_OP_NUM])() = {null_func, null_func, terminal_write, null_func};
+
+/* File operations table for rtc. */
+int32_t (*rtc_table[FILE_OP_NUM])() = {rtc_open, rtc_read, rtc_write, rtc_close};
+
+/* File operations table for file. */
+int32_t (*file_table[FILE_OP_NUM])() = {file_open, file_read, file_write, file_close};
+
+/* File operations rable for directory. */
+int32_t (*dir_table[FILE_OP_NUM])() = {dir_open, dir_read, dir_write, dir_close};
+
+/* pcb_init - Added by jinghua3.
+ *
+ * Initialize the process control block
+ * for a process with process id = pid.
+ * INPUT:  int32_t pid which is the process id.
+ * OUTPUT: init pcb for process whose process id is pid.
+ * RETURN: A pointer to the initialized pcb.
+ */
+pcb_t* pcb_init(int32_t pid)
+{
+    int i, j;
+    pcb_t* pcb;
+    // Set the address of pcb at the top of the kernel stack.
+    pcb = get_pcb_ptr();
+    // Initialize all the fd_entries.
+    for (i=0; i<MAX_NUM_FD_ENTRY; i++)
+    {
+        for (j=0; j<FILE_OP_NUM; j++)
+        {
+            pcb->fd_entry[i].fileOpTable_ptr[j] = null_func;
+        }
+        pcb->fd_entry[i].inode = NOT_ASSIGNED;
+    		pcb->fd_entry[i].file_position = NOT_ASSIGNED;
+    		pcb->fd_entry[i].flags = FD_ENTRY_NOT_ASSIGNED;
+    }
+    // Initalize stdin.
+    for(i=0; i<FILE_OP_NUM; i++)
+    {
+		      pcb->fd_entry[STDIN_ENTRY].fileOpTable_ptr[i] = stdin_table[i];
+    }
+	  pcb->fd_entry[STDIN_ENTRY].flags = FD_ENTRY_ASSIGNED;
+    // Initialize stdout.
+    for(i=0; i<FILE_OP_NUM; i++)
+    {
+        pcb->fd_entry[STDOUT_ENTRY].fileOpTable_ptr[i] = stdout_table[i];
+    }
+	pcb->fd_entry[STDOUT_ENTRY].flags = FD_ENTRY_ASSIGNED;
+    pcb->current_pid = pid;
+    pcb->parent_pid = NOT_ASSIGNED;
+    pcb->esp = NOT_ASSIGNED;
+    return pcb;
+}
+
 // System calls for checkpoint 3.
+
 int32_t halt (uint8_t status){
     return SYSCALL_SUCCESS;
 }
@@ -46,7 +124,14 @@ int32_t execute (const uint8_t* command){
         return SYSCALL_FAIL;
     }
     /* Create PCB */
-
+    pcb_t* pcb = pcb_init(process_count);
+    pcb->parent_pid = process_count - 1;
+    uint32_t esp;
+    asm volatile (
+        "movl %%esp, %0"
+        :"=r" (esp)
+    );
+    pcb->esp = esp;
     /* Context Switch */
     printf("System call [execute]: start context switch\n");                    /* for testing */
     _execute_context_switch();
@@ -59,7 +144,7 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes){
 }
 
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
-
+    printf("lalala\n");
     return SYSCALL_SUCCESS;
 }
 
@@ -183,7 +268,7 @@ void _execute_paging ()
     // present
     page_directory[PD_index].pde_MB.present = 1;
     // read only
-    page_directory[PD_index].pde_MB.read_write = 0;
+    page_directory[PD_index].pde_MB.read_write = 1;
     // user level
     page_directory[PD_index].pde_MB.user_supervisor = 1;
     page_directory[PD_index].pde_MB.write_through = 0;
@@ -278,7 +363,6 @@ void _execute_context_switch ()
     // modify TSS:
     // ss0: kernel’s stack segment, esp0: process’s kernel-mode stack
     printf("_execute_context_switch(): preparing TSS for IRET\n");              /* for testing */
-    tss.ss0 = KERNEL_DS;
     tss.esp0 = user_kmode_stack;
     printf("_execute_context_switch(): preparing stack for IRET\n");            /* for testing */
     // 1. set up stack: (top) EIP, CS, EFLAGS, ESP, SS (bottom)
@@ -287,19 +371,16 @@ void _execute_context_switch ()
     asm volatile ("                \n\
             andl    $0x00FF, %%ebx \n\
             movw    %%bx, %%ds     \n\
-            movw    %%bx, %%es     \n\
-            movw    %%bx, %%fs     \n\
-            movw    %%bx, %%gs     \n\
             pushl   %%ebx          \n\
             pushl   %%edx          \n\
             pushfl                 \n\
             pushl   %%ecx          \n\
             pushl   %%eax          \n\
+            iret                   \n\
             "
             :
             : "a"(entry_point), "b"(USER_DS), "c"(USER_CS), "d"(USER_STACK_ADDR)
             : "cc"
     );
-    asm volatile ("iret");
     return;
 }

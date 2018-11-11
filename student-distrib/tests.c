@@ -552,7 +552,7 @@ void launch_tests(){
 	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 
 	// Checkpoint 3
-	TEST_OUTPUT("Syscall execute", syscall_execute_test());
+	
 	// Checkpoint 4
 	// Checkpoint 5
 }
