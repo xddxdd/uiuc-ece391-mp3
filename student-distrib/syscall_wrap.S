@@ -3,9 +3,6 @@
 .globl syscall_wrap
 
 syscall_wrap:
-    pushl %ecx
-    pushl %edx
-    pushl %ebx
     pushl %ebp
     pushl %esi
     pushl %edi
@@ -34,9 +31,6 @@ end_syscall:
     popl %edi
     popl %esi
     popl %ebp
-    popl %ebx
-    popl %edx
-    popl %ecx
 
     iret
 
