@@ -27,14 +27,16 @@ invalid_syscall:
     movl $-1, %eax
 
 end_syscall:
-    addl $12, %ebp
+    popl %ebx
+    popl %ecx
+    popl %edx
 
-    pushl %edi
-    pushl %esi
-    pushl %ebp
-    pushl %ebx
-    pushl %edx
-    pushl %ecx
+    popl %edi
+    popl %esi
+    popl %ebp
+    popl %ebx
+    popl %edx
+    popl %ecx
 
     iret
 
