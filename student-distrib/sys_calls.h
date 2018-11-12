@@ -1,7 +1,7 @@
 #ifndef _SYS_CALL_H
 #define _SYS_CALL_H
 
-#include "fs/ece391fs.h"
+#include "fs/unified_fs.h"
 #include "x86_desc.h"
 #include "lib.h"
 #include "paging.h"
@@ -37,15 +37,15 @@
                                                        // to get top of 8KB kernel stack
 
 // Entry of the file array in process control block.
-typedef struct file_descriptor_entry {
-    int32_t (*fileOpTable_ptr[FILE_OP_NUM])();         // pointer to file operations table
-    int32_t inode;
-    int32_t file_position;
-    int32_t flags;
-} fd_entry_t;
+// typedef struct file_descriptor_entry {
+//     int32_t (*fileOpTable_ptr[FILE_OP_NUM])();         // pointer to file operations table
+//     int32_t inode;
+//     int32_t file_position;
+//     int32_t flags;
+// } fd_entry_t;
 
 typedef struct process_control_block {
-    fd_entry_t fd_entry[MAX_NUM_FD_ENTRY];
+    fd_array_t fd_array[MAX_NUM_FD_ENTRY];
     uint32_t current_pid;                                // current process id;
     uint32_t parent_pid;                                // parent process id;
     uint32_t esp;                                       // save esp;
@@ -91,9 +91,9 @@ pcb_t* pcb_init(int32_t pid);
 
 // minor functions for execute()
 void _execute_parse (const uint8_t* command, uint8_t* filename);
-int32_t _execute_exe_check (int32_t* fd);
+int32_t _execute_exe_check (fd_array_t* fd_array, int32_t fd);
 void _execute_paging ();
-int32_t _execute_pgm_loader (int32_t* fd);
+int32_t _execute_pgm_loader (fd_array_t* fd_array, int32_t fd);
 void _execute_context_switch ();
 
 #endif

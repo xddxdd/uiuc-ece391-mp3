@@ -3,39 +3,6 @@
 
 static uint32_t process_count = 0;
 
-/* PCB */
-
-/*
- * A null function placeholder for stdin and stdout.
- * INPUT:  none.
- * OUTPUT: none.
- * RETURN: SYSCALL_SUCCESS.
- */
-int32_t null_func()
-{
-   return SYSCALL_SUCCESS;
-}
-
-/* File operations table.
-* The entries are functions for:
-* open, read, write, close,
-* respectively.
-*/
-/* File operations table for stdin. */
-int32_t (*stdin_table[FILE_OP_NUM])() = {null_func, terminal_read, null_func, null_func};
-
-/* File operations table for stdout. */
-int32_t (*stdout_table[FILE_OP_NUM])() = {null_func, null_func, terminal_write, null_func};
-
-/* File operations table for rtc. */
-int32_t (*rtc_table[FILE_OP_NUM])() = {rtc_open, rtc_read, rtc_write, rtc_close};
-
-/* File operations table for file. */
-int32_t (*file_table[FILE_OP_NUM])() = {file_open, file_read, file_write, file_close};
-
-/* File operations rable for directory. */
-int32_t (*dir_table[FILE_OP_NUM])() = {dir_open, dir_read, dir_write, dir_close};
-
 /* pcb_init - Added by jinghua3.
  *
  * Initialize the process control block
@@ -46,33 +13,11 @@ int32_t (*dir_table[FILE_OP_NUM])() = {dir_open, dir_read, dir_write, dir_close}
  */
 pcb_t* pcb_init(int32_t pid)
 {
-    int i, j;
-    pcb_t* pcb;
     // Set the address of pcb at the top of the kernel stack.
-    pcb = get_pcb_ptr();
+    pcb_t* pcb = get_pcb_ptr();
     // Initialize all the fd_entries.
-    for (i=0; i<MAX_NUM_FD_ENTRY; i++)
-    {
-        for (j=0; j<FILE_OP_NUM; j++)
-        {
-            pcb->fd_entry[i].fileOpTable_ptr[j] = null_func;
-        }
-        pcb->fd_entry[i].inode = NOT_ASSIGNED;
-    		pcb->fd_entry[i].file_position = NOT_ASSIGNED;
-    		pcb->fd_entry[i].flags = FD_ENTRY_NOT_ASSIGNED;
-    }
-    // Initalize stdin.
-    for(i=0; i<FILE_OP_NUM; i++)
-    {
-		      pcb->fd_entry[STDIN_ENTRY].fileOpTable_ptr[i] = stdin_table[i];
-    }
-	  pcb->fd_entry[STDIN_ENTRY].flags = FD_ENTRY_ASSIGNED;
-    // Initialize stdout.
-    for(i=0; i<FILE_OP_NUM; i++)
-    {
-        pcb->fd_entry[STDOUT_ENTRY].fileOpTable_ptr[i] = stdout_table[i];
-    }
-	pcb->fd_entry[STDOUT_ENTRY].flags = FD_ENTRY_ASSIGNED;
+    unified_init(pcb->fd_array);
+
     pcb->current_pid = pid;
     pcb->parent_pid = NOT_ASSIGNED;
     pcb->esp = NOT_ASSIGNED;
@@ -96,30 +41,34 @@ int32_t execute (const uint8_t* command){
     printf("Filename is %s\n", filename);                                       /* for testing */
     /* Executable check */
     printf("System call [execute]: start executable check\n");                  /* for testing */
+
+    // Temporary file descriptor array for reading program
+	fd_array_t fd_array[MAX_OPEN_FILES];
+	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return SYSCALL_FAIL;
+
     // check if the file exist
     int32_t fd;
-    if(ECE391FS_CALL_FAIL == file_open(&fd, (char*)filename))
+    if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, (char*)filename)))
     {
         printf("Error: system call [execute]: cannot open file %s\n", filename);
         return SYSCALL_FAIL;
     }
-    if (SYSCALL_SUCCESS != _execute_exe_check(&fd))
+    if (SYSCALL_SUCCESS != _execute_exe_check(fd_array, fd))
     {
         printf("Error: system call [execute]: %s is not executable\n", filename);
         return SYSCALL_FAIL;
     }
-    /* Pgaing */
+    /* Paging */
     printf("System call [execute]: start paging\n");                            /* for testing */
     _execute_paging();
     /* User-level program loader */
-    if (SYSCALL_SUCCESS != _execute_pgm_loader(&fd))
+    if (SYSCALL_SUCCESS != _execute_pgm_loader(fd_array, fd))
     {
         printf("Error: system call [execute]: cannot load file to memory\n");
         return SYSCALL_FAIL;
     }
     // close the file since it has been copied to memory
-    if(ECE391FS_CALL_FAIL == file_close(&fd))
-    {
+    if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) {
         printf("Error: system call [execute]: cannot close file %s\n", filename);
         return SYSCALL_FAIL;
     }
@@ -139,23 +88,23 @@ int32_t execute (const uint8_t* command){
 }
 
 int32_t read (int32_t fd, void* buf, int32_t nbytes){
-
-    return SYSCALL_SUCCESS;
+    pcb_t* pcb = get_pcb_ptr();
+    return unified_read(pcb->fd_array, fd, buf, nbytes);
 }
 
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
-    printf("lalala\n");
-    return SYSCALL_SUCCESS;
+    pcb_t* pcb = get_pcb_ptr();
+    return unified_write(pcb->fd_array, fd, buf, nbytes);
 }
 
 int32_t open (const uint8_t* filename){
-
-    return SYSCALL_SUCCESS;
+    pcb_t* pcb = get_pcb_ptr();
+    return unified_open(pcb->fd_array, (const char*) filename);
 }
 
 int32_t close (int32_t fd){
-
-    return SYSCALL_SUCCESS;
+    pcb_t* pcb = get_pcb_ptr();
+    return unified_close(pcb->fd_array, fd);
 }
 
 
@@ -218,21 +167,19 @@ void _execute_parse (const uint8_t* command, uint8_t* filename)
  * int32_t _execute_exe_check (int32_t* fd)
  *    @description: helper function called by sytstem call execute()
  *                  to check if the file is executable or not
- *    @input: fd - the input file descriptor
+ *    @input: fd_array - temporary file descriptor array for reading the program
+ *            fd - id of program file in fd_array
  *    @output: SYSCALL_FAIL if fail, and SYSCALL_SUCCESS if succeed
  */
-int32_t _execute_exe_check (int32_t* fd)
+int32_t _execute_exe_check (fd_array_t* fd_array, int32_t fd)
 {
     // read the header of the file
 	char buf[FILE_HEADER_LEN];
-    memset(buf, 0, FILE_HEADER_LEN);
-    uint32_t offset = 0;
-	if(ECE391FS_CALL_FAIL == file_read(fd, &offset, buf, FILE_HEADER_LEN))
-    {
+    if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, buf, FILE_HEADER_LEN)) {
         printf("_execute_exe_check(): file read fails\n");                       /* for testing */
         return SYSCALL_FAIL;
     }
-    if(offset != FILE_HEADER_LEN)
+    if(fd_array[fd].pos != FILE_HEADER_LEN)
     {
         printf("_execute_exe_check(): header length does not match\n");         /* for testing */
         return SYSCALL_FAIL;
@@ -306,34 +253,35 @@ void _execute_paging ()
  *    @output: SYSCALL_FAIL if fail, and SYSCALL_SUCCESS if succeed
  *    @side effect: modify the user memory
  */
-int32_t _execute_pgm_loader (int32_t* fd)
+int32_t _execute_pgm_loader (fd_array_t* fd_array, int32_t fd)
 {
     // loop variable
-    int32_t index;
+    // int32_t index;
     // read the content of the file
     // ------------ to be edited ------------
     int filelen = 0x2000;
-	char buf[filelen];
-    memset(buf, 0, filelen);
-    uint32_t offset = 0;
-	if(ECE391FS_CALL_FAIL == file_read(fd, &offset, buf, filelen))
-    {
+	// char buf[filelen];
+    // memset(buf, 0, filelen);
+    // uint32_t offset = 0;
+
+    fd_array[fd].pos = 0;
+    if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, (char*) USER_PROCESS_ADDR, filelen)) {
         printf("_execute_pgm_loader(): file read fails\n");                     /* for testing */
         return SYSCALL_FAIL;
     }
-    // get the user memory address (logical)
-    char* user_mem = (char *)USER_PROCESS_ADDR;
-    // copy the program file data into the memory for that program
-    for (index = 0; index < filelen; index++)
-    {
-        if (buf[index] == 0)
-        {
-            // printf("_execute_pgm_loader(): break at index %d\n", index);        /* for testing */
-            // break;
-        }
-        // else *(uint8_t *)(user_mem + index) = buf[index];
-        *(uint8_t *)(user_mem + index) = buf[index];
-    }
+    // // get the user memory address (logical)
+    // char* user_mem = (char *)USER_PROCESS_ADDR;
+    // // copy the program file data into the memory for that program
+    // for (index = 0; index < filelen; index++)
+    // {
+    //     if (buf[index] == 0)
+    //     {
+    //         // printf("_execute_pgm_loader(): break at index %d\n", index);        /* for testing */
+    //         // break;
+    //     }
+    //     // else *(uint8_t *)(user_mem + index) = buf[index];
+    //     *(uint8_t *)(user_mem + index) = buf[index];
+    // }
     printf("System call [execute]: finish _execute_pgm_loader()\n");            /* for testing */
     return SYSCALL_SUCCESS;
 }
