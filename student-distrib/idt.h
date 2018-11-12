@@ -4,6 +4,7 @@
 #include "exceptions.h"
 #include "interrupt_wrap.h"
 #include "x86_desc.h"
+#include "syscall_wrap.h"
 
 #ifndef ASM
     void idt_init();

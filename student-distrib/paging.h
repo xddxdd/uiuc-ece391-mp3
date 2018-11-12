@@ -11,7 +11,7 @@
 
 // Some constants
 // Table address offset
-#define TB_addr_offset    12
+#define TB_ADDR_OFFSET    12
 #define VIDEO_MEM_INDEX 184  // 0xB8000/(4*1024), VIDEO/4KB
 
 // Memory space for Sound Blaster 16. Takes 64KB space.

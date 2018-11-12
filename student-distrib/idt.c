@@ -14,7 +14,7 @@ void idt_init() {
         idt[i].reserved0 = 0;   // Read ISA Reference Manual for x86, Volume 3,
         idt[i].reserved1 = 1;   // 5.11 IDT Descriptors for why these "magic numbers"
         idt[i].reserved2 = 1;   // are set
-        idt[i].reserved3 = 1;
+        idt[i].reserved3 = (i >= 32) ? 0 : 1;
         idt[i].reserved4 = 0;
         idt[i].size = 1;        // All our handlers are 32 bit.
         idt[i].seg_selector = KERNEL_CS;    // All handlers run in kernel space.
@@ -49,4 +49,7 @@ void idt_init() {
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SERIAL1], interrupt_serial1_wrap);
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SERIAL2], interrupt_serial2_wrap);
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SB16], interrupt_sb16_wrap);
+
+    // system call
+    SET_IDT_ENTRY(idt[VECTOR_SYSTEM_CALL], syscall_wrap);
 }

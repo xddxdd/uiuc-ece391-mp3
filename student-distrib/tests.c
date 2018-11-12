@@ -475,6 +475,7 @@ int terminal_driver_test()
 }
 
 /* Checkpoint 3 tests */
+
 /* int unified_fs_read_file()
  * @output: PASS / FAIL
  * @description: Tests reading contents of a file using Unified FS interface.
@@ -632,6 +633,17 @@ int unified_fs_stdio() {
 	if(UNIFIED_FS_FAIL == unified_read(fd_array, 0, buf, 128)) return FAIL;
 	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, "Hello, ", 7)) return FAIL;
 	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, buf, 128)) return FAIL;
+	return PASS;
+}
+
+/* syscall_execute_test */
+int syscall_execute_test()
+{
+	TEST_HEADER;
+	// to be added
+	char* command = "testprint";
+	printf("command is %s\n", command);
+	execute ((uint8_t*)command);
 	return PASS;
 }
 

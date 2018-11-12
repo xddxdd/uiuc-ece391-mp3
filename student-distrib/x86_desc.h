@@ -134,8 +134,6 @@ extern uint32_t tss_size;
 extern seg_desc_t tss_desc_ptr;
 extern tss_t tss;
 
-// added by Zhenbang Wu
-
 // Page Directory Entry for 4 KB Page Table (goes into the PD)
 typedef union pde_4KB_t {
   uint32_t val;
@@ -201,8 +199,6 @@ typedef union pte_4KB_t {
 // Variables for Page Directory and Page Table, aligned on 4kB boundaries
 extern pde_t page_directory[NUM_PDE] __attribute__((aligned (PAGE_SIZE_4KB)));
 extern pte_4KB_t page_table[NUM_PTE] __attribute__((aligned (PAGE_SIZE_4KB)));
-
-// added by Zhenbang Wu
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim)                          \
