@@ -70,7 +70,7 @@ int32_t set_handler (int32_t signum, void* handler_address);
 int32_t sigreturn (void);
 
 // Helper functions for sytstem calls
-int32_t null_func();
+pcb_t* get_pcb_ptr();
 pcb_t* pcb_init(int32_t pid);
 
 // minor functions for execute()

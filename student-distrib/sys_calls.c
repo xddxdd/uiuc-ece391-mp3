@@ -3,6 +3,10 @@
 
 static uint32_t process_count = 0;
 
+pcb_t* get_pcb_ptr() {
+    return (pcb_t *)KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE;
+}
+
 /* pcb_init - Added by jinghua3.
  *
  * Initialize the process control block
@@ -14,8 +18,7 @@ static uint32_t process_count = 0;
 pcb_t* pcb_init(int32_t pid)
 {
     // Set the address of pcb at the top of the kernel stack.
-    pcb_t* pcb;
-    pcb = (pcb_t *)KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE;
+    pcb_t* pcb = get_pcb_ptr();
     // Initialize all the fd_entries.
     unified_init(pcb->fd_array);
 
