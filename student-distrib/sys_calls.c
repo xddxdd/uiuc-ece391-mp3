@@ -33,10 +33,6 @@ pcb_t* pcb_init(int32_t pid)
 
 int32_t halt (uint8_t status)
 {
-    if (process_count == 1)
-    {
-        execute ((uint8_t*)"shell");
-    }
     // extract current pcb
     pcb_t * pcb;
     pcb = (pcb_t *)(KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE);
@@ -47,18 +43,22 @@ int32_t halt (uint8_t status)
     _halt_paging(pcb->parent_pid);
     // decrease process_count
     process_count--;
-    // store status in eax
-    asm volatile ("         \n\
-        movl %%ecx, %%esp   \n\
-        movl %%edx, %%ebp   \n\
-        movl %%ebx, %%eax   \n\
-        leave               \n\
-        ret                 \n\
-        "
-        :
-        : "b" (status), "c" (pcb->esp), "d" (pcb->ebp)
-        : "eax", "ebp", "esp"
-    );
+    if (process_count == 0) {
+        execute ((uint8_t*)"shell");
+    } else {
+        // store status in eax
+        asm volatile ("         \n\
+            movl %%ecx, %%esp   \n\
+            movl %%edx, %%ebp   \n\
+            movl %%ebx, %%eax   \n\
+            leave               \n\
+            ret                 \n\
+            "
+            :
+            : "b" (status), "c" (pcb->esp), "d" (pcb->ebp)
+            : "eax", "ebp", "esp"
+        );
+    }
     return SYSCALL_SUCCESS;
 }
 
