@@ -7,7 +7,7 @@ pcb_t* get_pcb_ptr() {
     return (pcb_t *)(KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE);
 }
 
-/* pcb_init - Added by jinghua3.
+/* pcb_init
  *
  * Initialize the process control block
  * for a process with process id = pid.
@@ -31,6 +31,12 @@ pcb_t* pcb_init(int32_t pid)
 
 // System calls for checkpoint 3.
 
+/*
+ * int32_t halt (uint8_t status)
+ * system call halt
+ * INPUT: status - process status
+ * OUTPUT: none
+ */
 int32_t halt (uint8_t status)
 {
     // extract current pcb
@@ -62,6 +68,12 @@ int32_t halt (uint8_t status)
     return SYSCALL_SUCCESS;
 }
 
+/*
+ * int32_t execute (const uint8_t* command)
+ * system call execute
+ * INPUT: command - command for system call
+ * OUTPUT: SYSCALL_SUCCESS and SYSCALL_FAIL
+ */
 int32_t execute (const uint8_t* command)
 {
     /* Parsing */
@@ -130,21 +142,49 @@ int32_t execute (const uint8_t* command)
     return SYSCALL_SUCCESS;
 }
 
+/*
+ * int32_t read (int32_t fd, void* buf, int32_t nbytes)
+ * system call read
+ * INPUT: fd - fild descriptor
+ *        buf - buffer used to write to terminal
+ *        nbytes - number of bytes to write
+ * OUTPUT: SYSCALL_SUCCESS and SYSCALL_FAIL
+ */
 int32_t read (int32_t fd, void* buf, int32_t nbytes){
     pcb_t* pcb = get_pcb_ptr();
     return unified_read(pcb->fd_array, fd, buf, nbytes);
 }
 
+/*
+ * int32_t write (int32_t fd, void* buf, int32_t nbytes)
+ * system call write
+ * INPUT: fd - fild descriptor
+ *        buf - buffer used to write to terminal
+ *        nbytes - number of bytes to write
+ * OUTPUT: SYSCALL_SUCCESS and SYSCALL_FAIL
+ */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
     pcb_t* pcb = get_pcb_ptr();
     return unified_write(pcb->fd_array, fd, buf, nbytes);
 }
 
+/*
+ * int32_t open (const uint8_t* filename)
+ * system call open
+ * INPUT: filename - file name
+ * OUTPUT: SYSCALL_SUCCESS and SYSCALL_FAIL
+ */
 int32_t open (const uint8_t* filename){
     pcb_t* pcb = get_pcb_ptr();
     return unified_open(pcb->fd_array, (const char*) filename);
 }
 
+/*
+ * int32_t close (const uint8_t* filename)
+ * system call close
+ * INPUT: filename - file name
+ * OUTPUT: SYSCALL_SUCCESS and SYSCALL_FAIL
+ */
 int32_t close (int32_t fd){
     pcb_t* pcb = get_pcb_ptr();
     return unified_close(pcb->fd_array, fd);
