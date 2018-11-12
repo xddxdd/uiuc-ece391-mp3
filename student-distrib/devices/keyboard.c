@@ -164,6 +164,9 @@ int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
     int min_size;
     // enable keyboard buffer
     keyboard_buffer_enable = 1;
+
+    sti();  // Workaround for no interrupt after "execute" syscall
+            // TODO: find the real cause - yuhuixu2
     /* printf("keyboard_read starts\n"); */
     // wait for keyboard inputs
     while (keyboard_buffer_enable == 1) {}
