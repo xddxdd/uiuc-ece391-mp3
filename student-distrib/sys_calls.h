@@ -48,6 +48,7 @@ typedef struct process_control_block {
     fd_array_t fd_array[MAX_NUM_FD_ENTRY];
     uint32_t current_pid;                                // current process id;
     uint32_t parent_pid;                                // parent process id;
+    struct process_control_block * parent_pcb;
     uint32_t esp;                                       // save esp;
     // more entries to be added......
 } pcb_t;
@@ -69,23 +70,6 @@ int32_t set_handler (int32_t signum, void* handler_address);
 int32_t sigreturn (void);
 
 // Helper functions for sytstem calls
-/*  get_pcb_ptr - Added by jinghua3.
- * input: none.
- * output: none.
- * return value: pointer to the pcb struct.
- * side effects: none
- */
-static inline pcb_t* get_pcb_ptr()
-{
-    uint32_t pcb_ptr;
-    asm volatile (
-        "movl %%esp, %0"
-        :"=r" (pcb_ptr)
-    );
-    // Use the higher 19 bits to get top of 8KB kernel stack.
-    pcb_ptr &= KER_STACK_BITMASK;
-    return (pcb_t *) pcb_ptr;
-}
 int32_t null_func();
 pcb_t* pcb_init(int32_t pid);
 
@@ -95,5 +79,6 @@ int32_t _execute_exe_check (fd_array_t* fd_array, int32_t fd);
 void _execute_paging ();
 int32_t _execute_pgm_loader (fd_array_t* fd_array, int32_t fd);
 void _execute_context_switch ();
+void _halt_paging (int32_t pid);
 
 #endif
