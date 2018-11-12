@@ -65,15 +65,15 @@ int32_t halt (uint8_t status)
 int32_t execute (const uint8_t* command)
 {
     /* Parsing */
-    printf("System call [execute]: start parsing\n");                           /* for testing */
+    // printf("System call [execute]: start parsing\n");                           /* for testing */
     // initialize filename buffer
     uint8_t filename[ECE391FS_MAX_FILENAME_LEN];
     memset(filename, 0, ECE391FS_MAX_FILENAME_LEN);
     // get filename
     _execute_parse(command, filename);
-    printf("Filename is %s\n", filename);                                       /* for testing */
+    // printf("Filename is %s\n", filename);                                       /* for testing */
     /* Executable check */
-    printf("System call [execute]: start executable check\n");                  /* for testing */
+    // printf("System call [execute]: start executable check\n");                  /* for testing */
 
     // Temporary file descriptor array for reading program
 	fd_array_t fd_array[MAX_OPEN_FILES];
@@ -92,7 +92,7 @@ int32_t execute (const uint8_t* command)
         return SYSCALL_FAIL;
     }
     /* Paging */
-    printf("System call [execute]: start paging\n");                            /* for testing */
+    // printf("System call [execute]: start paging\n");                            /* for testing */
     _execute_paging();
     /* User-level program loader */
     if (SYSCALL_SUCCESS != _execute_pgm_loader(fd_array, fd))
@@ -125,7 +125,7 @@ int32_t execute (const uint8_t* command)
                       (pcb_t *)(KERNEL_STACK_BASE_ADDR -
                                (process_count - 1) * USER_KMODE_STACK_SIZE);
     /* Context Switch */
-    printf("System call [execute]: start context switch\n");                    /* for testing */
+    // printf("System call [execute]: start context switch\n");                    /* for testing */
     _execute_context_switch();
     return SYSCALL_SUCCESS;
 }
@@ -153,25 +153,21 @@ int32_t close (int32_t fd){
 
 // System calls for checkpoint 4.
 int32_t getargs (uint8_t* buf, int32_t nbytes){
-
-    return SYSCALL_SUCCESS;
+    return SYSCALL_FAIL;
 }
 
 int32_t vidmap (uint8_t** screen_start){
-
-    return SYSCALL_SUCCESS;
+    return SYSCALL_FAIL;
 }
 
 
 //Extra credit system calls.
 int32_t set_handler (int32_t signum, void* handler_address){
-
-    return SYSCALL_SUCCESS;
+    return SYSCALL_FAIL;
 }
 
 int32_t sigreturn (void){
-
-    return SYSCALL_SUCCESS;
+    return SYSCALL_FAIL;
 }
 
 
@@ -202,7 +198,7 @@ void _execute_parse (const uint8_t* command, uint8_t* filename)
         // read filename to the filename buffer
         else filename[index] = command[index];
     }
-    printf("finish _execute_parse()\n");                                        /* for testing */
+    // printf("finish _execute_parse()\n");                                        /* for testing */
     return;
 }
 
@@ -219,12 +215,12 @@ int32_t _execute_exe_check (fd_array_t* fd_array, int32_t fd)
     // read the header of the file
 	char buf[FILE_HEADER_LEN];
     if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, buf, FILE_HEADER_LEN)) {
-        printf("_execute_exe_check(): file read fails\n");                       /* for testing */
+        // printf("_execute_exe_check(): file read fails\n");                       /* for testing */
         return SYSCALL_FAIL;
     }
     if(fd_array[fd].pos != FILE_HEADER_LEN)
     {
-        printf("_execute_exe_check(): header length does not match\n");         /* for testing */
+        // printf("_execute_exe_check(): header length does not match\n");         /* for testing */
         return SYSCALL_FAIL;
     }
     // check if the file is executable
@@ -233,10 +229,10 @@ int32_t _execute_exe_check (fd_array_t* fd_array, int32_t fd)
         (buf[2] != FILE_EXE_HEADER_2) |
         (buf[3] != FILE_EXE_HEADER_3))
         {
-            printf("_execute_exe_check(): file not executable\n");              /* for testing */
+            // printf("_execute_exe_check(): file not executable\n");              /* for testing */
             return SYSCALL_FAIL;
         }
-    printf("System call [execute]: finish _execute_exe_check()\n");             /* for testing */
+    // printf("System call [execute]: finish _execute_exe_check()\n");             /* for testing */
     return SYSCALL_SUCCESS;
 }
 
@@ -254,7 +250,7 @@ void _execute_paging ()
 {
     // get the entry in page directory for the input process
     uint32_t PD_index = (uint32_t) USER_PROCESS_ADDR >> PD_ADDR_OFFSET;
-    printf("_execute_paging(): PD_index is %x\n", PD_index);                    /* for testing */
+    // printf("_execute_paging(): PD_index is %x\n", PD_index);                    /* for testing */
     // present
     page_directory[PD_index].pde_MB.present = 1;
     // read only
@@ -275,7 +271,7 @@ void _execute_paging ()
     page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + process_count;
     // increment the process_count
     process_count++;
-    printf("_execute_paging(): process count is %d\n", process_count);          /* for testing */
+    // printf("_execute_paging(): process count is %d\n", process_count);          /* for testing */
     // flush the TLB by writing to the page directory base register (CR3)
     // reference: https://wiki.osdev.org/TLB
     asm volatile ("              \n\
@@ -284,7 +280,7 @@ void _execute_paging ()
             "
             : : : "eax", "cc"
     );
-    printf("System call [execute]: finish _execute_paging()\n");                /* for testing */
+    // printf("System call [execute]: finish _execute_paging()\n");                /* for testing */
     return;
 }
 
@@ -309,23 +305,10 @@ int32_t _execute_pgm_loader (fd_array_t* fd_array, int32_t fd)
 
     fd_array[fd].pos = 0;
     if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, (char*) USER_PROCESS_ADDR, filelen)) {
-        printf("_execute_pgm_loader(): file read fails\n");                     /* for testing */
+        // printf("_execute_pgm_loader(): file read fails\n");                     /* for testing */
         return SYSCALL_FAIL;
     }
-    // // get the user memory address (logical)
-    // char* user_mem = (char *)USER_PROCESS_ADDR;
-    // // copy the program file data into the memory for that program
-    // for (index = 0; index < filelen; index++)
-    // {
-    //     if (buf[index] == 0)
-    //     {
-    //         // printf("_execute_pgm_loader(): break at index %d\n", index);        /* for testing */
-    //         // break;
-    //     }
-    //     // else *(uint8_t *)(user_mem + index) = buf[index];
-    //     *(uint8_t *)(user_mem + index) = buf[index];
-    // }
-    printf("System call [execute]: finish _execute_pgm_loader()\n");            /* for testing */
+    // printf("System call [execute]: finish _execute_pgm_loader()\n");            /* for testing */
     return SYSCALL_SUCCESS;
 }
 
@@ -346,16 +329,16 @@ void _execute_context_switch ()
     uint32_t entry_point = (*(uint32_t *)(user_mem + 24));
     uint32_t user_kmode_stack = KERNEL_STACK_BASE_ADDR -
                                 (process_count - 1) * USER_KMODE_STACK_SIZE - 0x4;
-    printf("_execute_context_switch(): user mem addr is %x\n", user_mem);       /* for testing */
-    printf("_execute_context_switch(): entry point is %x\n", entry_point);      /* for testing */
-    printf("_execute_context_switch(): user stack is at %x\n", USER_STACK_ADDR);/* for testing */
-    printf("_execute_context_switch(): user kmode stack is at %x\n",
-           user_kmode_stack);                                                   /* for testing */
+    // printf("_execute_context_switch(): user mem addr is %x\n", user_mem);       /* for testing */
+    // printf("_execute_context_switch(): entry point is %x\n", entry_point);      /* for testing */
+    // printf("_execute_context_switch(): user stack is at %x\n", USER_STACK_ADDR);/* for testing */
+    // printf("_execute_context_switch(): user kmode stack is at %x\n",
+    //        user_kmode_stack);                                                   /* for testing */
     // modify TSS:
     // ss0: kernel’s stack segment, esp0: process’s kernel-mode stack
-    printf("_execute_context_switch(): preparing TSS for IRET\n");              /* for testing */
+    // printf("_execute_context_switch(): preparing TSS for IRET\n");              /* for testing */
     tss.esp0 = user_kmode_stack;
-    printf("_execute_context_switch(): preparing stack for IRET\n");            /* for testing */
+    // printf("_execute_context_switch(): preparing stack for IRET\n");            /* for testing */
     // 1. set up stack: (top) EIP, CS, EFLAGS, ESP, SS (bottom)
     // 2. set DS to point to the correct entry in GDT for the user mode data segment
     // reference: https://www.felixcloutier.com/x86/IRET:IRETD.html
@@ -387,7 +370,7 @@ void _halt_paging (int32_t pid)
 {
     // get the entry in page directory for the input process
     uint32_t PD_index = (uint32_t) USER_PROCESS_ADDR >> PD_ADDR_OFFSET;
-    printf("_halt_paging(): PD_index is %x\n", PD_index);                       /* for testing */
+    // printf("_halt_paging(): PD_index is %x\n", PD_index);                       /* for testing */
     // present
     page_directory[PD_index].pde_MB.present = 1;
     // read only
@@ -414,6 +397,6 @@ void _halt_paging (int32_t pid)
             "
             : : : "eax", "cc"
     );
-    printf("System call [halt]: finish _halt_paging()\n");                      /* for testing */
+    // printf("System call [halt]: finish _halt_paging()\n");                      /* for testing */
     return;
 }
