@@ -50,6 +50,7 @@ typedef struct process_control_block {
     uint32_t parent_pid;                                // parent process id;
     struct process_control_block * parent_pcb;
     uint32_t esp;                                       // save esp;
+    uint32_t ebp;                                       // save ebp;
     // more entries to be added......
 } pcb_t;
 

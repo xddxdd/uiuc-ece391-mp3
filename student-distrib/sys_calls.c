@@ -4,7 +4,7 @@
 static uint32_t process_count = 0;
 
 pcb_t* get_pcb_ptr() {
-    return (pcb_t *)KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE;
+    return (pcb_t *)(KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE);
 }
 
 /* pcb_init - Added by jinghua3.
@@ -39,7 +39,7 @@ int32_t halt (uint8_t status)
     }
     // extract current pcb
     pcb_t * pcb;
-    pcb = (pcb_t *)KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE;
+    pcb = (pcb_t *)(KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE);
     // modify TSS:
     // ss0: kernel’s stack segment, esp0: process’s kernel-mode stack
     tss.esp0 = KERNEL_STACK_BASE_ADDR - (pcb->parent_pid - 1) * USER_KMODE_STACK_SIZE - 0x4;
@@ -48,14 +48,16 @@ int32_t halt (uint8_t status)
     // decrease process_count
     process_count--;
     // store status in eax
-    asm volatile ("       \n\
-        movl %%ecx, %%esp \n\
-        movl %%ebx, %%eax \n\
-        jmp halt_return   \n\
+    asm volatile ("         \n\
+        movl %%ecx, %%esp   \n\
+        movl %%edx, %%ebp   \n\
+        movl %%ebx, %%eax   \n\
+        leave               \n\
+        ret                 \n\
         "
         :
-        : "b" (status), "c" (pcb->esp)
-        : "eax", "esp"
+        : "b" (status), "c" (pcb->esp), "d" (pcb->ebp)
+        : "eax", "ebp", "esp"
     );
     return SYSCALL_SUCCESS;
 }
@@ -106,15 +108,22 @@ int32_t execute (const uint8_t* command)
     /* Create PCB */
     pcb_t* pcb = pcb_init(process_count);
     pcb->parent_pid = process_count - 1;
-    uint32_t esp;
+    uint32_t esp, ebp;
+    // save esp;
     asm volatile (
         "movl %%esp, %0"
         :"=r" (esp)
     );
     pcb->esp = esp;
+    // save ebp;
+    asm volatile (
+        "movl %%ebp, %0"
+        :"=r" (ebp)
+    );
+    pcb->ebp = ebp;
     pcb->parent_pcb = process_count <= 1 ? NULL :
-                      (pcb_t *)KERNEL_STACK_BASE_ADDR -
-                               (process_count - 1) * USER_KMODE_STACK_SIZE;
+                      (pcb_t *)(KERNEL_STACK_BASE_ADDR -
+                               (process_count - 1) * USER_KMODE_STACK_SIZE);
     /* Context Switch */
     printf("System call [execute]: start context switch\n");                    /* for testing */
     _execute_context_switch();
@@ -364,8 +373,6 @@ void _execute_context_switch ()
             : "a"(entry_point), "b"(USER_DS), "c"(USER_CS), "d"(USER_STACK_ADDR)
             : "cc"
     );
-    asm volatile ("halt_return:");
-    return;
 }
 
 /*
