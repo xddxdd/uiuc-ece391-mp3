@@ -47,9 +47,9 @@ int32_t (*dir_table[FILE_OP_NUM])() = {dir_open, dir_read, dir_write, dir_close}
 pcb_t* pcb_init(int32_t pid)
 {
     int i, j;
-    pcb_t* pcb;
     // Set the address of pcb at the top of the kernel stack.
-    pcb = get_pcb_ptr();
+    pcb_t * pcb;
+    pcb = (pcb_t *)KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE;
     // Initialize all the fd_entries.
     for (i=0; i<MAX_NUM_FD_ENTRY; i++)
     {
@@ -64,9 +64,9 @@ pcb_t* pcb_init(int32_t pid)
     // Initalize stdin.
     for(i=0; i<FILE_OP_NUM; i++)
     {
-		      pcb->fd_entry[STDIN_ENTRY].fileOpTable_ptr[i] = stdin_table[i];
+        pcb->fd_entry[STDIN_ENTRY].fileOpTable_ptr[i] = stdin_table[i];
     }
-	  pcb->fd_entry[STDIN_ENTRY].flags = FD_ENTRY_ASSIGNED;
+	pcb->fd_entry[STDIN_ENTRY].flags = FD_ENTRY_ASSIGNED;
     // Initialize stdout.
     for(i=0; i<FILE_OP_NUM; i++)
     {
@@ -75,17 +75,44 @@ pcb_t* pcb_init(int32_t pid)
 	pcb->fd_entry[STDOUT_ENTRY].flags = FD_ENTRY_ASSIGNED;
     pcb->current_pid = pid;
     pcb->parent_pid = NOT_ASSIGNED;
+    pcb->parent_pcb = NULL;
     pcb->esp = NOT_ASSIGNED;
     return pcb;
 }
 
 // System calls for checkpoint 3.
 
-int32_t halt (uint8_t status){
+int32_t halt (uint8_t status)
+{
+    if (process_count == 1)
+    {
+        execute ((uint8_t*)"shell");
+    }
+    // extract current pcb
+    pcb_t * pcb;
+    pcb = (pcb_t *)KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE;
+    // modify TSS:
+    // ss0: kernel’s stack segment, esp0: process’s kernel-mode stack
+    tss.esp0 = KERNEL_STACK_BASE_ADDR - (pcb->parent_pid - 1) * USER_KMODE_STACK_SIZE - 0x4;
+    // restore paging
+    _halt_paging(pcb->parent_pid);
+    // decrease process_count
+    process_count--;
+    // store status in eax
+    asm volatile ("       \n\
+        movl %%ecx, %%esp \n\
+        movl %%ebx, %%eax \n\
+        jmp halt_return   \n\
+        "
+        :
+        : "b" (status), "c" (pcb->esp)
+        : "eax", "esp"
+    );
     return SYSCALL_SUCCESS;
 }
 
-int32_t execute (const uint8_t* command){
+int32_t execute (const uint8_t* command)
+{
     /* Parsing */
     printf("System call [execute]: start parsing\n");                           /* for testing */
     // initialize filename buffer
@@ -132,6 +159,9 @@ int32_t execute (const uint8_t* command){
         :"=r" (esp)
     );
     pcb->esp = esp;
+    pcb->parent_pcb = process_count <= 1 ? NULL :
+                      (pcb_t *)KERNEL_STACK_BASE_ADDR -
+                               (process_count - 1) * USER_KMODE_STACK_SIZE;
     /* Context Switch */
     printf("System call [execute]: start context switch\n");                    /* for testing */
     _execute_context_switch();
@@ -251,7 +281,7 @@ int32_t _execute_exe_check (int32_t* fd)
 }
 
 /*
- * void _execute_paging (const uint8_t* filename)
+ * void _execute_paging ()
  *    @description: helper function called by sytstem call execute()
  *                  to set up a single 4 MB page directory that maps
  *                  virtual address 0x08000000 (128 MB) to the right physical
@@ -382,5 +412,49 @@ void _execute_context_switch ()
             : "a"(entry_point), "b"(USER_DS), "c"(USER_CS), "d"(USER_STACK_ADDR)
             : "cc"
     );
+    asm volatile ("halt_return:");
+    return;
+}
+
+/*
+ * void _halt_paging (int32_t pid)
+ *    @description: helper function called by sytstem call halt()
+ *                  to deconstruct process page
+ *    @input: pid - parent pid
+ *    @output: none
+ *    @side effect: flush the TLB
+ */
+void _halt_paging (int32_t pid)
+{
+    // get the entry in page directory for the input process
+    uint32_t PD_index = (uint32_t) USER_PROCESS_ADDR >> PD_ADDR_OFFSET;
+    printf("_halt_paging(): PD_index is %x\n", PD_index);                       /* for testing */
+    // present
+    page_directory[PD_index].pde_MB.present = 1;
+    // read only
+    page_directory[PD_index].pde_MB.read_write = 1;
+    // user level
+    page_directory[PD_index].pde_MB.user_supervisor = 1;
+    page_directory[PD_index].pde_MB.write_through = 0;
+    page_directory[PD_index].pde_MB.cache_disabled = 0;
+    page_directory[PD_index].pde_MB.accessed = 0;
+    page_directory[PD_index].pde_MB.dirty = 0;
+    // 4MB page
+    page_directory[PD_index].pde_MB.page_size = 1;
+    page_directory[PD_index].pde_MB.global = 0;
+    page_directory[PD_index].pde_MB.avail = 0;
+    page_directory[PD_index].pde_MB.pat = 0;
+    page_directory[PD_index].pde_MB.reserved = 0;
+    // physical address = PROCESS_PYSC_BASE_ADDR + pid
+    page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + (pid - 1);
+    // flush the TLB by writing to the page directory base register (CR3)
+    // reference: https://wiki.osdev.org/TLB
+    asm volatile ("              \n\
+  	        movl %%cr3, %%eax    \n\
+  	        movl %%eax, %%cr3    \n\
+            "
+            : : : "eax", "cc"
+    );
+    printf("System call [halt]: finish _halt_paging()\n");                      /* for testing */
     return;
 }
