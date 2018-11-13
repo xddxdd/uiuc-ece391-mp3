@@ -408,47 +408,29 @@ int ece391fs_interface_read_nonexistent_dir() {
 	return PASS;
 }
 
-/* int rtc_write_test()
+/* int rtc_read_write_test()
  * @output: PASS / FAIL
  * @description: Tests setting frequency of RTC.
- *     Test starts from 2 Hz, doubles frequency at each press of Enter key,
+ *     and reading from RTC to wait until the next tick.
+ *     Test starts from 2 Hz, doubles frequency every second,
  *     and ends after 1024 Hz.
  */
-int rtc_write_test()
+int rtc_read_write_test()
 {
 	TEST_HEADER;
-	// keyboard scancode
-	uint8_t curr_scancode = 0;
-	uint8_t prev_scancode = 0;
 	// new frequency set to the RTC
 	uint16_t freq = 2;
 	rtc_open(NULL, NULL);
-	while (freq <= 1024)
-	{
-		curr_scancode = inb(KEYBOARD_PORT);
-		if (curr_scancode == SCANCODE_ENTER && prev_scancode != curr_scancode)
-		{
-			freq *= 2;
-			rtc_write(NULL, NULL, (void*) &freq, sizeof(uint16_t));
+	while (freq <= 1024) {
+		int i;
+		for(i = 0; i < freq; i++) {
+			rtc_read(NULL, NULL, NULL, 0);
+			printf("%d ", freq);
 		}
-		prev_scancode = curr_scancode;
+		freq *= 2;
+		rtc_write(NULL, NULL, (void*) &freq, sizeof(uint16_t));
+		printf("\n");
 	}
-	rtc_close(NULL);
-	return PASS;
-}
-
-/* int rtc_read_test()
- * @output: PASS / FAIL
- * @description: Tests waiting for a RTC tick.
- */
-int rtc_read_test()
-{
-	TEST_HEADER;
-	// new frequency set to the RTC
-	rtc_open(NULL, NULL);
-	printf("Wait for tick...\n");
-	rtc_read(NULL, NULL, NULL, 0);
-	printf("\nHere it comes!\n");
 	rtc_close(NULL);
 	return PASS;
 }
@@ -563,13 +545,14 @@ int unified_fs_invalid_fd() {
 	return PASS;
 }
 
-/* unified_fs_rtc_write()
+/* unified_fs_rtc_read_write()
  * @output: PASS / FAIL
- * @description: Tests setting frequency of RTC with Unified FS interface.
- *     Test starts from 2 Hz, doubles frequency at each press of Enter key,
+ * @description: Tests setting frequency of RTC with Unified FS interface,
+ *     and reading from RTC to wait until the next tick.
+ *     Test starts from 2 Hz, doubles frequency every second,
  *     and ends after 1024 Hz.
  */
-int unified_fs_rtc_write() {
+int unified_fs_rtc_read_write() {
 	TEST_HEADER;
 	fd_array_t fd_array[MAX_OPEN_FILES];
 	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
@@ -577,44 +560,20 @@ int unified_fs_rtc_write() {
 	int32_t fd;
 	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "rtc"))) return FAIL;
 
-	// keyboard scancode
-	uint8_t curr_scancode = 0;
-	uint8_t prev_scancode = 0;
 	// new frequency set to the RTC
 	uint16_t freq = 2;
 	while (freq <= 1024)
 	{
-		curr_scancode = inb(KEYBOARD_PORT);
-		if (curr_scancode == SCANCODE_ENTER && prev_scancode != curr_scancode)
-		{
-			freq *= 2;
-			if(UNIFIED_FS_FAIL == unified_write(fd_array, fd, &freq, sizeof(uint16_t))) return FAIL;
+		int i;
+		for(i = 0; i < freq; i++) {
+			if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, NULL, 0)) return FAIL;
+			printf("%d ", freq);
 		}
-		prev_scancode = curr_scancode;
+		freq *= 2;
+		if(UNIFIED_FS_FAIL == unified_write(fd_array, fd, &freq, sizeof(uint16_t))) return FAIL;
+		printf("\n");
 	}
 	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd));
-	return PASS;
-}
-
-/* int unified_fs_rtc_read()
- * @output: PASS / FAIL
- * @description: Tests waiting for a RTC tick using Unified FS interface.
- */
-int unified_fs_rtc_read()
-{
-	TEST_HEADER;
-	fd_array_t fd_array[MAX_OPEN_FILES];
-	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return FAIL;
-
-	int32_t fd;
-	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "rtc"))) return FAIL;
-	uint16_t freq = 2;
-	if(UNIFIED_FS_FAIL == unified_write(fd_array, fd, &freq, sizeof(uint16_t))) return FAIL;
-
-	printf("Wait for tick...\n");
-	if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, NULL, 0)) return FAIL;
-	printf("\nHere it comes!\n");
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
 	return PASS;
 }
 
@@ -834,8 +793,7 @@ void launch_tests(){
 	// TEST_OUTPUT("ECE391FS Interface Nonexistent File", ece391fs_interface_read_nonexistent_file());
 	// TEST_OUTPUT("ECE391FS Interface Existent Directory", ece391fs_interface_read_existent_dir());
 	// TEST_OUTPUT("ECE391FS Interface Nonexistent Directory", ece391fs_interface_read_nonexistent_dir());
-	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
-	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
+	// TEST_OUTPUT("RTC Driver Read/Write Test", rtc_read_write_test());
 	// TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
 
 	// Checkpoint 3
@@ -843,8 +801,7 @@ void launch_tests(){
 	// TEST_OUTPUT("Unified FS Dir", unified_fs_read_dir());
 	// TEST_OUTPUT("Unified FS Nonexistent File", unified_fs_read_nonexistent());
 	// TEST_OUTPUT("Unified FS Invalid FD", unified_fs_invalid_fd());
-	// TEST_OUTPUT("Unified FS RTC Write", unified_fs_rtc_write());
-	// TEST_OUTPUT("Unified FS RTC Read", unified_fs_rtc_read());
+	// TEST_OUTPUT("Unified FS RTC Read/Write", unified_fs_rtc_read_write());
 	// TEST_OUTPUT("Unified FS STDIO", unified_fs_stdio());
 	// Checkpoint 4
 	// Checkpoint 5

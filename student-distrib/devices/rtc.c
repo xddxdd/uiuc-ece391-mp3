@@ -61,7 +61,7 @@ void rtc_set_freq(uint16_t freq) {
  */
 void rtc_interrupt() {
     //test_interrupts();
-    printf("%d ", rtc_freq);
+    // printf("%d ", rtc_freq);
     // set rtc_interrupt_occurred flag to 1
     rtc_interrupt_occurred = 1;
     // Read from RTC register C, so it can keep sending interrupts

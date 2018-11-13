@@ -9,10 +9,11 @@
 #include "devices/rtc.h"
 #include "devices/keyboard.h"
 
-#define SYSCALL_SUCCESS 1
-#define SYSCALL_FAIL    0
+#define SYSCALL_SUCCESS 0
+#define SYSCALL_FAIL    -1
 
 // some contants
+#define STRING_END              '\0'
 #define SPACE                   ' '
 #define FILE_HEADER_LEN         40                     // 40 Bytes
 #define FILE_EXE_HEADER_0       0x7F
@@ -35,6 +36,7 @@
 #define NOT_ASSIGNED            -1
 #define KER_STACK_BITMASK       0xFFFFE000             // Use the higher 19 bits
                                                        // to get top of 8KB kernel stack
+#define MAX_ARG_LENGTH          128
 
 // Entry of the file array in process control block.
 // typedef struct file_descriptor_entry {
@@ -46,11 +48,12 @@
 
 typedef struct process_control_block {
     fd_array_t fd_array[MAX_NUM_FD_ENTRY];
-    uint32_t current_pid;                                // current process id;
+    uint32_t current_pid;                               // current process id;
     uint32_t parent_pid;                                // parent process id;
     struct process_control_block * parent_pcb;
     uint32_t esp;                                       // save esp;
     uint32_t ebp;                                       // save ebp;
+    char arg[MAX_ARG_LENGTH];                           // argument to process
     // more entries to be added......
 } pcb_t;
 
@@ -75,7 +78,6 @@ pcb_t* get_pcb_ptr();
 pcb_t* pcb_init(int32_t pid);
 
 // minor functions for execute()
-void _execute_parse (const uint8_t* command, uint8_t* filename);
 int32_t _execute_exe_check (fd_array_t* fd_array, int32_t fd);
 void _execute_paging ();
 int32_t _execute_pgm_loader (fd_array_t* fd_array, int32_t fd);

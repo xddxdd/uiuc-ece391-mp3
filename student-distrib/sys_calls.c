@@ -3,6 +3,10 @@
 
 static uint32_t process_count = 0;
 
+/* pcb_t* get_pcb_ptr()
+ * @output: address of PCB of current process
+ * @description: finds the PCB of the current process.
+ */
 pcb_t* get_pcb_ptr() {
     return (pcb_t *)(KERNEL_STACK_BASE_ADDR - process_count * USER_KMODE_STACK_SIZE);
 }
@@ -81,9 +85,21 @@ int32_t execute (const uint8_t* command)
     // initialize filename buffer
     uint8_t filename[ECE391FS_MAX_FILENAME_LEN + 1];
     memset(filename, 0, ECE391FS_MAX_FILENAME_LEN + 1);
-    // get filename
-    _execute_parse(command, filename);
+    uint8_t argument[MAX_ARG_LENGTH];
+    memset(argument, 0, MAX_ARG_LENGTH);
+    // get filename and argument
+    int i = 0;
+    while(command[i] != STRING_END && command[i] != SPACE) i++;
+    memcpy(filename, command, i);
+    if(command[i] == SPACE) {
+        // command includes an argument
+        int j = i + 1;
+        while(command[j] != STRING_END) j++;
+        memcpy(argument, command + i + 1, j - i - 1);
+    }
+
     // printf("Filename is %s\n", filename);                                       /* for testing */
+    // printf("Argument is %s\n", argument);                                       /* for testing */
     /* Executable check */
     // printf("System call [execute]: start executable check\n");                  /* for testing */
 
@@ -133,6 +149,7 @@ int32_t execute (const uint8_t* command)
         :"=r" (ebp)
     );
     pcb->ebp = ebp;
+    memcpy(pcb->arg, argument, MAX_ARG_LENGTH);
     pcb->parent_pcb = process_count <= 1 ? NULL :
                       (pcb_t *)(KERNEL_STACK_BASE_ADDR -
                                (process_count - 1) * USER_KMODE_STACK_SIZE);
@@ -192,14 +209,27 @@ int32_t close (int32_t fd){
 
 
 // System calls for checkpoint 4.
+/*
+ * int32_t getargs (uint8_t* buf, int32_t nbytes)
+ * @input: buf - where the argument should be written to
+ *         nbytes - max length of argument
+ * @output: buf - written with argument to current process
+ *          ret val - SUCCESS / FAIL
+ * @description: system call to get argument of execute
+ *     of current process.
+ */
 int32_t getargs (uint8_t* buf, int32_t nbytes){
-    return SYSCALL_FAIL;
+    if(buf == NULL) return SYSCALL_FAIL;
+    pcb_t* pcb = get_pcb_ptr();
+    memset(buf, 0, nbytes);
+    memcpy(buf, pcb->arg, nbytes > MAX_ARG_LENGTH ? MAX_ARG_LENGTH : nbytes);
+    // printf("arg: %s\n", pcb->arg);
+    return SYSCALL_SUCCESS;
 }
 
 int32_t vidmap (uint8_t** screen_start){
     return SYSCALL_FAIL;
 }
-
 
 //Extra credit system calls.
 int32_t set_handler (int32_t signum, void* handler_address){
@@ -212,36 +242,6 @@ int32_t sigreturn (void){
 
 
 /* Helper functions for sytstem calls */
-/*
- * _execute_parse(const uint8_t* command, uint8_t* filename)
- *    @description: helper function called by sytstem call execute()
- *                  to parse the commands
- *    @input: command -  a space-separated sequence of words.
- *                       The first word is the file name of the program to be
- *                       executed, and the rest of the command—stripped of
- *                       leading spaces—should be provided to the new
- *                       program on request via the getargs system call
- *            filename - empry buffer used to hold the filename as a return
- *                       value. Its size should be no smaller than ECE391FS_MAX_FILENAME_LEN
- *    @output: filename - as described above
- *    @note: need to add support for arguments parsing
- */
-void _execute_parse (const uint8_t* command, uint8_t* filename)
-{
-    // loop variable
-    int index;
-    // parsing
-    for (index = 0; index < ECE391FS_MAX_FILENAME_LEN; index++)
-    {
-        // end of filename
-        if (command[index] == SPACE) break;
-        // read filename to the filename buffer
-        else filename[index] = command[index];
-    }
-    // printf("finish _execute_parse()\n");                                        /* for testing */
-    return;
-}
-
 /*
  * int32_t _execute_exe_check (int32_t* fd)
  *    @description: helper function called by sytstem call execute()
