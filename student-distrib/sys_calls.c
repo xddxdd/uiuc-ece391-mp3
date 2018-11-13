@@ -79,8 +79,8 @@ int32_t execute (const uint8_t* command)
     /* Parsing */
     // printf("System call [execute]: start parsing\n");                           /* for testing */
     // initialize filename buffer
-    uint8_t filename[ECE391FS_MAX_FILENAME_LEN];
-    memset(filename, 0, ECE391FS_MAX_FILENAME_LEN);
+    uint8_t filename[ECE391FS_MAX_FILENAME_LEN + 1];
+    memset(filename, 0, ECE391FS_MAX_FILENAME_LEN + 1);
     // get filename
     _execute_parse(command, filename);
     // printf("Filename is %s\n", filename);                                       /* for testing */

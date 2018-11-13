@@ -830,10 +830,10 @@ void launch_tests(){
 	// TEST_OUTPUT("ECE391FS Toolong File", ece391fs_read_toolong_file());
 	// TEST_OUTPUT("ECE391FS Large File", ece391fs_large_file());
 	// TEST_OUTPUT("ECE391FS List Directory", ece391fs_list_dir());
-	// TEST_OUTPUT("ECE391FS Inteface Existent File", ece391fs_interface_read_existent_file());
-	// TEST_OUTPUT("ECE391FS Inteface Nonexistent File", ece391fs_interface_read_nonexistent_file());
-	// TEST_OUTPUT("ECE391FS Inteface Existent Directory", ece391fs_interface_read_existent_dir());
-	// TEST_OUTPUT("ECE391FS Inteface Nonexistent Directory", ece391fs_interface_read_nonexistent_dir());
+	// TEST_OUTPUT("ECE391FS Interface Existent File", ece391fs_interface_read_existent_file());
+	// TEST_OUTPUT("ECE391FS Interface Nonexistent File", ece391fs_interface_read_nonexistent_file());
+	// TEST_OUTPUT("ECE391FS Interface Existent Directory", ece391fs_interface_read_existent_dir());
+	// TEST_OUTPUT("ECE391FS Interface Nonexistent Directory", ece391fs_interface_read_nonexistent_dir());
 	// TEST_OUTPUT("RTC Driver Write Test", rtc_write_test());
 	// TEST_OUTPUT("RTC Driver Read Test", rtc_read_test());
 	// TEST_OUTPUT("Terminal Driver Write Test", terminal_driver_test());
