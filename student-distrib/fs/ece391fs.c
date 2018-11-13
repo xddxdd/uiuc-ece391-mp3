@@ -79,7 +79,8 @@ int32_t read_dentry_by_name(const char* fname, ece391fs_file_info_t* file_info) 
     int i;
     for(i = 0; i < ECE391FS_MAX_FILE_COUNT; i++) {
         ece391fs_file_info_t* f = &(fs_bootblk->file[i]);
-        if(0 == strncmp(fname, f->name, strlen(fname))) {
+        if(strlen(fname) == strlen(f->name)
+            && 0 == strncmp(fname, f->name, strlen(fname))) {
             // This is the file we're looking for
             *file_info = *f;
             return ECE391FS_CALL_SUCCESS;
