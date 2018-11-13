@@ -53,7 +53,7 @@ typedef struct process_control_block {
     struct process_control_block * parent_pcb;
     uint32_t esp;                                       // save esp;
     uint32_t ebp;                                       // save ebp;
-    char arg[MAX_ARG_LENGTH];                           // argument to process
+    char arg[MAX_ARG_LENGTH + 1];                       // argument to process
     // more entries to be added......
 } pcb_t;
 

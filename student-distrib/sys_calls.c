@@ -85,8 +85,8 @@ int32_t execute (const uint8_t* command)
     // initialize filename buffer
     uint8_t filename[ECE391FS_MAX_FILENAME_LEN + 1];
     memset(filename, 0, ECE391FS_MAX_FILENAME_LEN + 1);
-    uint8_t argument[MAX_ARG_LENGTH];
-    memset(argument, 0, MAX_ARG_LENGTH);
+    uint8_t argument[MAX_ARG_LENGTH + 1];
+    memset(argument, 0, MAX_ARG_LENGTH + 1);
     // get filename and argument
     int i = 0;
     while(command[i] != STRING_END && command[i] != SPACE) i++;
@@ -149,7 +149,7 @@ int32_t execute (const uint8_t* command)
         :"=r" (ebp)
     );
     pcb->ebp = ebp;
-    memcpy(pcb->arg, argument, MAX_ARG_LENGTH);
+    memcpy(pcb->arg, argument, MAX_ARG_LENGTH + 1);
     pcb->parent_pcb = process_count <= 1 ? NULL :
                       (pcb_t *)(KERNEL_STACK_BASE_ADDR -
                                (process_count - 1) * USER_KMODE_STACK_SIZE);
@@ -216,11 +216,13 @@ int32_t close (int32_t fd){
  * @output: buf - written with argument to current process
  *          ret val - SUCCESS / FAIL
  * @description: system call to get argument of execute
- *     of current process.
+ *     of current process. If the buf is too small, the call will fail;
+ *     otherwise, argument is copied into buf.
  */
 int32_t getargs (uint8_t* buf, int32_t nbytes){
     if(buf == NULL) return SYSCALL_FAIL;
     pcb_t* pcb = get_pcb_ptr();
+    if(strlen(pcb->arg) > nbytes) return SYSCALL_FAIL;
     memset(buf, 0, nbytes);
     memcpy(buf, pcb->arg, nbytes > MAX_ARG_LENGTH ? MAX_ARG_LENGTH : nbytes);
     // printf("arg: %s\n", pcb->arg);
