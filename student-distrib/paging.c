@@ -13,14 +13,14 @@ void init_paging()
 {
   // loop variable
   int index;
-  // initialize Page Dable
+  // initialize Page Table
   for (index = 0; index < NUM_PTE; index++)
   {
     // initially, clear all flags
     page_table[index].present
-        = (index == VIDEO_MEM_INDEX
-            || (index >= SB16_MEM_BEGIN && index < SB16_MEM_END))
-            ? 1 : 0;  //modified by jinghua3.
+        = ((index == VIDEO_MEM_INDEX) ||
+           (index >= SB16_MEM_BEGIN && index < SB16_MEM_END))
+            ? 1 : 0;
     page_table[index].read_write = 0;
     page_table[index].user_supervisor = 0;
     page_table[index].write_through = 0;
@@ -28,11 +28,15 @@ void init_paging()
     page_table[index].accessed = 0;
     page_table[index].dirty = 0;
     page_table[index].pat = 0;
+    // ?? Is it a good idea to change global to 1 for video mem?
+    // "This flag is provided to prevent frequently used pages
+    // (such as pages that contain kernel or other operating system or
+    // executive code) from being flushed from the TLB." (P93, Manual)
     page_table[index].global = 0;
     page_table[index].avail = 0;
     page_table[index].PB_addr = index;
   }
-  // initialize the first 4MB memory
+  // initialize the first 4MB memory (4kB page, where video memory is)
   page_directory[0].pde_KB.present = 1;
   page_directory[0].pde_KB.read_write = 0;
   page_directory[0].pde_KB.user_supervisor = 0;
@@ -43,11 +47,11 @@ void init_paging()
   page_directory[0].pde_KB.page_size = 0;
   page_directory[0].pde_KB.global = 0;
   page_directory[0].pde_KB.avail = 0;
-  page_directory[0].pde_KB.PTB_addr = (unsigned int) page_table >> TB_addr_offset;
+  page_directory[0].pde_KB.PTB_addr = (unsigned int) page_table >> TB_ADDR_OFFSET;
 
-  // initialize the first 4MB-8MB memory
+  // initialize the first 4MB-8MB memory (4MB page, KERNEL)
   page_directory[1].pde_MB.present = 1;
-  page_directory[1].pde_MB.read_write = 1;
+  page_directory[1].pde_MB.read_write = 0;
   page_directory[1].pde_MB.user_supervisor = 0;
   page_directory[1].pde_MB.write_through = 0;
   page_directory[1].pde_MB.cache_disabled = 0;
@@ -78,6 +82,8 @@ void init_paging()
     page_directory[index].pde_MB.PB_addr = index;
   }
 
+
+  // note: there might be some problems
   asm (
 	"movl $page_directory, %%eax      ;"
 	"andl $0xFFFFFC00, %%eax          ;"
@@ -86,7 +92,7 @@ void init_paging()
 	"orl $0x00000010, %%eax           ;"
 	"movl %%eax, %%cr4                ;"
 	"movl %%cr0, %%eax                ;"
-	"orl $0x80000000, %%eax 	        ;"
+	"orl $0x80000000, %%eax 	      ;"
 	"movl %%eax, %%cr0                 "
 	: : : "eax", "cc" );
 

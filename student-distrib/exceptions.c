@@ -1,6 +1,6 @@
 #include "exceptions.h"
 #include "devices/vga_text.h"
-#include "data/aqua.h"
+// #include "data/aqua.h"
 
 // Handlers for exceptions, simple prints out a string.
 // Read ISA Reference Manual, Vol 3, 5.14 for what these exceptions are.
@@ -34,19 +34,22 @@ EXCEPTION_HANDLER(exception_simd_fpe, "SIMD Floating Point Exception");
  * @description: the function to handle all the different exceptions.
  */
 void exception_handler_real(char* message) {
-    int x, y;
+    // int x, y;
 
     cli();  // Disable interruption
 
     // Print the big 00P5 and exception message
+    /*
     printf("+---+ +---+ +---+ +---+\n");
     printf("|   | |   | |   | |    \n");
     printf("| . | | . | +---+ +---+\n");
     printf("|   | |   | |         |\n");
     printf("+---+ +---+ +     +---+\n");
+    */
     printf("The following exception happened:\n");
     printf(message);
 
+    /*
     // Draw aqua on the bottom right of the screen
     for(y = 0; y < AQUA_HEIGHT; y++) {
         for(x = 0; x < AQUA_WIDTH; x++) {
@@ -68,6 +71,7 @@ void exception_handler_real(char* message) {
             }
         }
     }
+    */
 
     // Infinite loop
     asm volatile (".1: hlt; jmp .1;");

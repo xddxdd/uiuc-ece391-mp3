@@ -17,6 +17,7 @@
 #include "devices/speaker.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
+#include "sys_calls.h"
 
 #define RUN_TESTS
 
@@ -178,7 +179,7 @@ void entry(unsigned long magic, unsigned long addr) {
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-
+	execute ((uint8_t*)"shell");
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }

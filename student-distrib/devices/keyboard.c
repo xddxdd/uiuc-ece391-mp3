@@ -54,27 +54,26 @@ void keyboard_interrupt() {
 
     is_special_key = update_special_key_stat(scancode_idx);
     if (is_special_key == 1){
-      // send End Of Interrupt
-      send_eoi(KEYBOARD_IRQ);
-      return;
+        // send End Of Interrupt
+        send_eoi(KEYBOARD_IRQ);
+        return;
     }
 
     if(ctrl_pressed==1){
-      key = scancode[scancode_idx][0];
-      if(key == 'l'){
-        // Ctrl+L or Ctrl+l received, clear screen and put cursor at the top.
-        clear();
-        // clear the keyboard buffer.
-        keyboard_buffer_top = 0;
-      }
+        key = scancode[scancode_idx][0];
+        if(key == 'l'){
+            // Ctrl+L or Ctrl+l received, clear screen and put cursor at the top.
+            clear();
+            // clear the keyboard buffer.
+            keyboard_buffer_top = 0;
+        }
 
-      // send End Of Interrupt
-      send_eoi(KEYBOARD_IRQ);
-      return;
+        // send End Of Interrupt
+        send_eoi(KEYBOARD_IRQ);
+        return;
     }
     // echo the keyboard input to the screen
-    if(scancode_idx < SCANCODE_TABLE_SIZE)
-    {
+    if(scancode_idx < SCANCODE_TABLE_SIZE) {
         // Caps check, modified by jinghua3.
         if(((capslock) != (shift_pressed)) && is_alphabet(scancode_idx)){
           key = scancode[scancode_idx][1];
@@ -86,44 +85,48 @@ void keyboard_interrupt() {
           key = scancode[scancode_idx][0];
         }
 
-        cli();
-        keyboard_echo(key);
-        sti();
         // if keyboard buffer is enable
-        if (keyboard_buffer_enable == 1)
-        {
-          if (key == BACKSPACE)
-          {
-            keyboard_buffer_top = (keyboard_buffer_top - 1) < 0 ? 0 :  keyboard_buffer_top - 1;\
-          }
-          else if (key == '\n')
-          {
-            // put newline character
-            keyboard_buffer[keyboard_buffer_top] = '\n';
-            // increment keyboard_buffer_top
-            keyboard_buffer_top++;
-            // disable keyboard buffer
-            keyboard_buffer_enable = 0;
-          }
-          else if (keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE)
-          {
+        if (keyboard_buffer_enable == 1) {
+            if (key == BACKSPACE) {
+                if(keyboard_buffer_top > 0) {
+                    keyboard_buffer_top--;
+                    cli();
+                    keyboard_echo(key);
+                    sti();
+                }
+            } else if (key == '\n') {
+                cli();
+                keyboard_echo(key);
+                sti();
+                // put newline character
+                keyboard_buffer[keyboard_buffer_top] = '\n';
+                // increment keyboard_buffer_top
+                keyboard_buffer_top++;
+                // disable keyboard buffer
+                keyboard_buffer_enable = 0;
+            } else if (keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE) {
+                cli();
+                keyboard_echo('\n');
+                sti();
+                // put newline character
+                keyboard_buffer[keyboard_buffer_top] = '\n';
+                // increment keyboard_buffer_top
+                keyboard_buffer_top++;
+                // disable keyboard buffer
+                keyboard_buffer_enable = 0;
+            } else {
+                cli();
+                keyboard_echo(key);
+                sti();
+                // record current key
+                keyboard_buffer[keyboard_buffer_top] = key;
+                // increment keyboard_buffer_top
+                keyboard_buffer_top++;
+            }
+        } else {
             cli();
-            keyboard_echo('\n');
+            keyboard_echo(key);
             sti();
-            // put newline character
-            keyboard_buffer[keyboard_buffer_top] = '\n';
-            // increment keyboard_buffer_top
-            keyboard_buffer_top++;
-            // disable keyboard buffer
-            keyboard_buffer_enable = 0;
-          }
-          else
-          {
-            // record current key
-            keyboard_buffer[keyboard_buffer_top] = key;
-            // increment keyboard_buffer_top
-            keyboard_buffer_top++;
-          }
         }
     }
     // send End Of Interrupt
@@ -164,6 +167,7 @@ int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
     int min_size;
     // enable keyboard buffer
     keyboard_buffer_enable = 1;
+
     /* printf("keyboard_read starts\n"); */
     // wait for keyboard inputs
     while (keyboard_buffer_enable == 1) {}
