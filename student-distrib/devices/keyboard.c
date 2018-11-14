@@ -75,7 +75,7 @@ void keyboard_interrupt() {
             // Ctrl+C received, kill current process
             sti();  // Restore interrupt, usually done in asm wrapper,
                     // but done manually here as we don't return to it anymore
-            halt(255);
+            halt(255);  // 255 is return code, indicate that process exited abnormally
         }
         return;
     }
