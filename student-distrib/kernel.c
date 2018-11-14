@@ -17,7 +17,7 @@
 #include "devices/speaker.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
-#include "sys_calls.h"
+#include "interrupts/sys_calls.h"
 
 #define RUN_TESTS
 

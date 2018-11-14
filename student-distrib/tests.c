@@ -5,7 +5,7 @@
 #include "fs/ece391fs.h"
 #include "devices/sb16.h"
 #include "devices/keyboard.h"
-#include "sys_calls.h"
+#include "interrupts/sys_calls.h"
 #include "fs/unified_fs.h"
 
 #define PASS 1
