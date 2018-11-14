@@ -38,13 +38,19 @@ int32_t unified_init(fd_array_t* fd_array) {
  *   Otherwise it depends on file type in ECE391FS, file/folder/RTC.
  */
 int32_t unified_open(fd_array_t* fd_array, const char* filename) {
+    if(NULL == fd_array) return UNIFIED_FS_FAIL;
+
     // Try to allocate index in file descriptor array
     int fd = 0;
     while(fd < MAX_OPEN_FILES && fd_array[fd].interface != NULL) fd++;
     if(fd >= MAX_OPEN_FILES) return UNIFIED_FS_FAIL;
 
     ece391fs_file_info_t finfo;
-    if(0 == strncmp("tux", filename, 4)) {
+    if(NULL == filename) {
+        return UNIFIED_FS_FAIL;
+    } else if(0 == strlen(filename)) {
+        return UNIFIED_FS_FAIL;
+    } else if(0 == strncmp("tux", filename, 4)) {
         // Trying to open Tux Controller
         fd_array[fd].interface = &tux_if;
     } else if(0 == strncmp("stdin", filename, 6)) {
@@ -86,6 +92,7 @@ int32_t unified_open(fd_array_t* fd_array, const char* filename) {
  * @description: Unified read function, calls corresponding FS function to do the actual reading.
  */
 int32_t unified_read(fd_array_t* fd_array, int32_t fd, void* buf, int32_t nbytes) {
+    if(NULL == fd_array) return UNIFIED_FS_FAIL;
     if(fd < 0 || fd >= MAX_OPEN_FILES) return UNIFIED_FS_FAIL;
     if(fd_array[fd].interface == NULL) return UNIFIED_FS_FAIL;
     if(NULL == fd_array[fd].interface->read) return UNIFIED_FS_FAIL;
@@ -102,6 +109,7 @@ int32_t unified_read(fd_array_t* fd_array, int32_t fd, void* buf, int32_t nbytes
  * @description: Unified write function, calls corresponding FS function to do the actual writing.
  */
 int32_t unified_write(fd_array_t* fd_array, int32_t fd, const void* buf, int32_t nbytes) {
+    if(NULL == fd_array) return UNIFIED_FS_FAIL;
     if(fd < 0 || fd >= MAX_OPEN_FILES) return UNIFIED_FS_FAIL;
     if(fd_array[fd].interface == NULL) return UNIFIED_FS_FAIL;
     if(NULL == fd_array[fd].interface->write) return UNIFIED_FS_FAIL;
@@ -115,6 +123,7 @@ int32_t unified_write(fd_array_t* fd_array, int32_t fd, const void* buf, int32_t
  * @description: Closes a file.
  */
 int32_t unified_close(fd_array_t* fd_array, int32_t fd) {
+    if(NULL == fd_array) return UNIFIED_FS_FAIL;
     if(fd < 0 || fd >= MAX_OPEN_FILES) return UNIFIED_FS_FAIL;
     if(fd_array[fd].interface == NULL) return UNIFIED_FS_FAIL;
     if(NULL == fd_array[fd].interface->close) return UNIFIED_FS_FAIL;

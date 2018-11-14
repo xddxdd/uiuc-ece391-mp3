@@ -6,7 +6,7 @@ unified_fs_interface_t terminal_stdin_if = {
     .open = terminal_open,
     .read = terminal_read,
     .write = NULL,
-    .close = terminal_close
+    .close = NULL
 };
 
 // Unified FS interface definition for STDOUT.
@@ -14,7 +14,7 @@ unified_fs_interface_t terminal_stdout_if = {
     .open = terminal_open,
     .read = NULL,
     .write = terminal_write,
-    .close = terminal_close
+    .close = NULL
 };
 
 // keyboard buffer, one addition place for newline character
