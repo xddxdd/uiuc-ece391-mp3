@@ -5,9 +5,9 @@
 #ifndef _PAGING_H
 #define _PAGING_H
 
-#include "types.h"
+#include "lib/types.h"
 #include "x86_desc.h"
-#include "lib.h"
+#include "lib/lib.h"
 
 // Some constants
 // Table address offset

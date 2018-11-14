@@ -4,9 +4,9 @@
 
 #include "multiboot.h"
 #include "x86_desc.h"
-#include "lib.h"
+#include "lib/lib.h"
 #include "devices/i8259.h"
-#include "debug.h"
+#include "lib/debug.h"
 #include "tests.h"
 
 #include "devices/keyboard.h"

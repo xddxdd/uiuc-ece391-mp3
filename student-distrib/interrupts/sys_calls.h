@@ -3,7 +3,7 @@
 
 #include "../fs/unified_fs.h"
 #include "../x86_desc.h"
-#include "../lib.h"
+#include "../lib/lib.h"
 #include "../paging.h"
 #include "../fs/ece391fs.h"
 #include "../devices/rtc.h"

@@ -6,7 +6,7 @@
 #ifndef _X86_DESC_H
 #define _X86_DESC_H
 
-#include "types.h"
+#include "lib/types.h"
 
 /* Segment selector values */
 #define KERNEL_CS   0x0010
