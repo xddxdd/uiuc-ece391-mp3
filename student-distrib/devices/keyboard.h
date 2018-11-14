@@ -5,6 +5,7 @@
 #include "i8259.h"
 #include "vga_text.h"
 #include "../fs/unified_fs.h"
+#include "../sys_calls.h"
 
 #define KEYBOARD_IRQ 1
 #define KEYBOARD_PORT 0x60

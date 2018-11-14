@@ -70,6 +70,13 @@ void keyboard_interrupt() {
 
         // send End Of Interrupt
         send_eoi(KEYBOARD_IRQ);
+
+        if(key == 'c') {
+            // Ctrl+C received, kill current process
+            sti();  // Restore interrupt, usually done in asm wrapper,
+                    // but done manually here as we don't return to it anymore
+            halt(255);
+        }
         return;
     }
     // echo the keyboard input to the screen
