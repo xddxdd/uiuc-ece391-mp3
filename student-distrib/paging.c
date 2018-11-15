@@ -18,7 +18,7 @@ void init_paging()
   {
     // initially, clear all flags
     page_table[0][index].present
-        = ((index == VIDEO_MEM_INDEX + 1)
+        = ((index == VIDEO_MEM_INDEX)
            || (index >= SB16_MEM_BEGIN && index < SB16_MEM_END)
            || (index >= QEMU_VGA_MEM_BEGIN && index < QEMU_VGA_MEM_END))
             ? 1 : 0;

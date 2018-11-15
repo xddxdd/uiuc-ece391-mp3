@@ -1,7 +1,7 @@
 #ifndef _VGA_FONTS_H_
 #define _VGA_FONTS_H_
 
-#include "../types.h"
+#include "../lib/types.h"
 
 #define FONT_WIDTH 12
 #define FONT_HEIGHT 24

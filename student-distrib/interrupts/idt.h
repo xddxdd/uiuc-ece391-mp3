@@ -1,7 +1,7 @@
 #ifndef _IDT_H_
 #define _IDT_H_
 
-#include "exceptions.h"
+#include "exception_wrap.h"
 #include "interrupt_wrap.h"
 #include "../x86_desc.h"
 #include "syscall_wrap.h"

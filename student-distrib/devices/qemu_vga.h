@@ -1,7 +1,7 @@
 #ifndef _QEMU_VGA_H_
 #define _QEMU_VGA_H_
 
-#include "../lib.h"
+#include "../lib/lib.h"
 
 #define QEMU_VGA_PORT_INDEX 0x01ce
 #define QEMU_VGA_PORT_DATA 0x01cf

@@ -12,7 +12,10 @@
 // Some constants
 // Table address offset
 #define TB_ADDR_OFFSET    12
-#define VIDEO_MEM_INDEX   0xB8000 / (4 * 1024)
+#define VIDEO_MEM_INDEX   0xB8      // 0xB8000 >> 12
+
+// Alternate memory position to store video info
+#define VIDEO_ALT_MEM_INDEX 0xB9    // 0xB9000 >> 12
 
 // Memory space for Sound Blaster 16. Takes 64KB space.
 #define SB16_MEM_BEGIN 0x10 // 0x10000 >> 12

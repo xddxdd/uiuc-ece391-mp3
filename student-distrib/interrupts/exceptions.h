@@ -4,33 +4,28 @@
 #ifndef ASM
     #include "../lib/lib.h"
 
-    void exception_handler_real(char* message);
+    typedef struct {
+        uint32_t eip;
+        uint32_t cs;
+        uint32_t eflags;
+        uint32_t esp;
+        uint32_t ss;
+    } iret_t;
 
-    #define EXCEPTION_HEADER(name, message) \
-        void name();
+    typedef struct {
+        uint32_t edi;
+        uint32_t esi;
+        uint32_t ebp;
+        uint32_t esp;
+        uint32_t ebx;
+        uint32_t edx;
+        uint32_t ecx;
+        uint32_t eax;
+    } pushal_t;
 
-    #define EXCEPTION_HANDLER(name, message) \
-        void name() { exception_handler_real(message); }
+    void exception_handler_real(uint32_t id, pushal_t pushal, uint32_t err_code, iret_t iret);
 
-    EXCEPTION_HEADER(exception_divide_by_zero, "Divide by 0");
-    EXCEPTION_HEADER(exception_debug, "Debug");
-    EXCEPTION_HEADER(exception_nmi_interrupt, "NMI Interrupt");
-    EXCEPTION_HEADER(exception_breakpoint, "Breakpoint reached");
-    EXCEPTION_HEADER(exception_overflow, "Overflow");
-    EXCEPTION_HEADER(exception_bounds_range_exceeded, "Bounds range exceeded");
-    EXCEPTION_HEADER(exception_invalid_opcode, "Invalid Opcode");
-    EXCEPTION_HEADER(exception_device_not_available, "Device unavailable");
-    EXCEPTION_HEADER(exception_double_fault, "Double fault");
-    EXCEPTION_HEADER(exception_coprocessor_segment_overrun, "Coprocessor segment overrun");
-    EXCEPTION_HEADER(exception_invalid_tss, "Invalid TSS");
-    EXCEPTION_HEADER(exception_segment_not_present, "Segment not present");
-    EXCEPTION_HEADER(exception_stack_segment_fault, "Stack segment fault");
-    EXCEPTION_HEADER(exception_general_protection_fault, "General protection fault");
-    EXCEPTION_HEADER(exception_page_fault, "Page fault");
-    EXCEPTION_HEADER(exception_x87_fpu_error, "X87 FPU Error");
-    EXCEPTION_HEADER(exception_alignment_check, "Alignment check");
-    EXCEPTION_HEADER(exception_machine_check, "Machine check");
-    EXCEPTION_HEADER(exception_simd_fpe, "SIMD Floating Point Exception");
+    #define ERR_PAGE_FAULT 0x0e
 #endif
 
 #endif
