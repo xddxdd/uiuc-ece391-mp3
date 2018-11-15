@@ -16,13 +16,12 @@
 #define KERNEL_TSS  0x0030
 #define KERNEL_LDT  0x0038
 
-// added by Zhenbang Wu
 // Some constants
 // Number of Page Directory pd_entries
-#define NUM_PDE       1024
-#define NUM_PTE       1024
-#define PAGE_SIZE_4KB 0x1000
-// added by Zhenbang Wu
+#define NUM_PDE                 1024
+#define NUM_PTE                 1024
+#define PAGE_SIZE_4KB           0x1000
+#define MAX_PROGRAMS_NUM        8
 
 /* Size of the task state segment (TSS) */
 #define TSS_SIZE    104
@@ -198,7 +197,7 @@ typedef union pte_4KB_t {
 
 // Variables for Page Directory and Page Table, aligned on 4kB boundaries
 extern pde_t page_directory[NUM_PDE] __attribute__((aligned (PAGE_SIZE_4KB)));
-extern pte_4KB_t page_table[NUM_PTE] __attribute__((aligned (PAGE_SIZE_4KB)));
+extern pte_4KB_t page_table[MAX_PROGRAMS_NUM + 1][NUM_PTE] __attribute__((aligned (PAGE_SIZE_4KB)));
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim)                          \

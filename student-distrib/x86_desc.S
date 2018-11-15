@@ -133,7 +133,7 @@ page_directory_bottom:
 page_table:
 _page_table:
 
-	.rept 1024
+	.rept 1024 * 9
 	.long 0x0
 	.endr
 
