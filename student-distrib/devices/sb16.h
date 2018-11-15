@@ -1,7 +1,7 @@
 #ifndef _SB16_H_
 #define _SB16_H_
 
-#include "../lib.h"
+#include "../lib/lib.h"
 
 #define SB16_BUF_ADDR 0x10000
 #define SB16_BUF_MID 0x18000

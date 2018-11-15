@@ -1,7 +1,7 @@
 #ifndef _VGA_TEXT_H_
 #define _VGA_TEXT_H_
 
-#include "../types.h"
+#include "../lib/types.h"
 
 #define VIDEO         0xB8000
 #define SCREEN_WIDTH  80

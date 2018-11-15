@@ -1,7 +1,7 @@
 #ifndef _SPEAKER_H_
 #define _SPEAKER_H_
 
-#include "../lib.h"
+#include "../lib/lib.h"
 #include "../data/note-freq.h"
 
 #define PIT_FREQUENCY 1193180

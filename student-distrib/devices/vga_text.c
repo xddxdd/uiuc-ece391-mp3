@@ -1,5 +1,5 @@
 #include "vga_text.h"
-#include "../lib.h"
+#include "../lib/lib.h"
 
 /* void vga_text_set_color(uint8_t x, uint8_t y, uint8_t foreground, uint8_t background)
  * @input: x, y - coordinate of character whose color to be changed.

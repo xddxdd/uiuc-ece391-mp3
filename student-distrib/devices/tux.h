@@ -7,7 +7,7 @@
 #define TC_SERIAL_PORT COM1
 #define TC_SERIAL_BAUDRATE 9600
 
-#include "../types.h"
+#include "../lib/types.h"
 #include "../fs/unified_fs.h"
 
 extern volatile uint8_t tc_buttons;

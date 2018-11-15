@@ -1,7 +1,7 @@
 #ifndef _RTC_H_
 #define _RTC_H_
 
-#include "../lib.h"
+#include "../lib/lib.h"
 #include "i8259.h"
 #include "../fs/unified_fs.h"
 

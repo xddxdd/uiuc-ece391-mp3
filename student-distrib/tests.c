@@ -1,11 +1,11 @@
 #include "tests.h"
 #include "x86_desc.h"
-#include "lib.h"
+#include "lib/lib.h"
 #include "devices/rtc.h"	// Added by jinghua3.
 #include "fs/ece391fs.h"
 #include "devices/sb16.h"
 #include "devices/keyboard.h"
-#include "sys_calls.h"
+#include "interrupts/sys_calls.h"
 #include "fs/unified_fs.h"
 
 #define PASS 1

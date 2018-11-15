@@ -1,7 +1,7 @@
 #ifndef _NOTE_FREQ_H_
 #define _NOTE_FREQ_H_
 
-#include "../types.h"
+#include "../lib/types.h"
 
 typedef enum {
     TUNE_C = 0,
