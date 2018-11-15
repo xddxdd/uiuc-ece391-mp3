@@ -9,8 +9,9 @@
 #include "../devices/rtc.h"
 #include "../devices/keyboard.h"
 
-#define SYSCALL_SUCCESS 0
-#define SYSCALL_FAIL    -1
+#define SYSCALL_SUCCESS         0
+#define SYSCALL_FAIL            -1
+#define SYSCALL_ABONORANL       10                     // any value except -1, 0, 256
 
 // some contants
 #define STRING_END              '\0'
@@ -34,9 +35,12 @@
 #define FD_ENTRY_ASSIGNED       1
 #define FD_ENTRY_NOT_ASSIGNED   0
 #define NOT_ASSIGNED            -1
-#define KER_STACK_BITMASK       0xFFFFE000             // Use the higher 19 bits
-                                                       // to get top of 8KB kernel stack
+ // Use the higher 19 bits to get top of 8KB kernel stack
+#define KER_STACK_BITMASK       0xFFFFE000
 #define MAX_ARG_LENGTH          128
+#define MAX_PROGRAMS_NUM        8
+// 128 MB + 4 MB + 0xB8000 (VIDEO)
+#define USER_VIDEO              0x08000000 + 0x400000 + 0xB8000
 
 // Entry of the file array in process control block.
 // typedef struct file_descriptor_entry {

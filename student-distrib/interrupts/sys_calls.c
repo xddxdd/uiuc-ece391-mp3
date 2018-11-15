@@ -1,6 +1,5 @@
 #include "sys_calls.h"
 
-
 static uint32_t process_count = 0;
 
 /* pcb_t* get_pcb_ptr()
@@ -80,6 +79,11 @@ int32_t halt (uint8_t status)
  */
 int32_t execute (const uint8_t* command)
 {
+    // close the file since it has been copied to memory
+    if(process_count >= MAX_PROGRAMS_NUM) {
+        printf("Error: system call [execute]: reach maximum programs number\n");
+        return SYSCALL_ABONORANL;
+    }
     /* Parsing */
     // printf("System call [execute]: start parsing\n");                           /* for testing */
     // initialize filename buffer
@@ -104,8 +108,8 @@ int32_t execute (const uint8_t* command)
     // printf("System call [execute]: start executable check\n");                  /* for testing */
 
     // Temporary file descriptor array for reading program
-	fd_array_t fd_array[MAX_OPEN_FILES];
-	if(UNIFIED_FS_FAIL == unified_init(fd_array)) return SYSCALL_FAIL;
+	  fd_array_t fd_array[MAX_OPEN_FILES];
+	  if(UNIFIED_FS_FAIL == unified_init(fd_array)) return SYSCALL_FAIL;
 
     // check if the file exist
     int32_t fd;
@@ -197,7 +201,7 @@ int32_t open (const uint8_t* filename){
 }
 
 /*
- * int32_t close (const uint8_t* filename)
+ * int32_t close (int32_t fd)
  * system call close
  * INPUT: filename - file name
  * OUTPUT: SYSCALL_SUCCESS and SYSCALL_FAIL
@@ -229,8 +233,62 @@ int32_t getargs (uint8_t* buf, int32_t nbytes){
     return SYSCALL_SUCCESS;
 }
 
-int32_t vidmap (uint8_t** screen_start){
-    return SYSCALL_FAIL;
+/*
+ * int32_t vidmap (uint8_t** screen_start)
+ * @input: none
+ * @output: screen_start - double pointer used to hold the video memory address
+ *                        for user programs
+ *          ret val -  video memory address for user programs
+ * @description: system call to maps the text-mode video memory into
+ *               user space at a pre-set virtual address
+ */
+int32_t vidmap (uint8_t** screen_start)
+{
+    // loop variable
+    int index;
+    // initialize Page Table for video memory
+    for (index = 0; index < NUM_PTE; index++)
+    {
+      // only enable video memory
+      page_table[process_count][index].present
+          = index == VIDEO_MEM_INDEX ? 1 : 0;
+      page_table[process_count][index].read_write = 1;
+      page_table[process_count][index].user_supervisor = 1;
+      page_table[process_count][index].write_through = 0;
+      page_table[process_count][index].cache_disabled = 0;
+      page_table[process_count][index].accessed = 0;
+      page_table[process_count][index].dirty = 0;
+      page_table[process_count][index].pat = 0;
+      page_table[process_count][index].global = 0;
+      page_table[process_count][index].avail = 0;
+      page_table[process_count][index].PB_addr = index;
+    }
+    // get the entry in page directory for video memory
+    uint32_t PD_index = (uint32_t) USER_PROCESS_ADDR >> PD_ADDR_OFFSET;
+    PD_index++;
+    // initialize the video memory
+    page_directory[PD_index].pde_KB.present = 1;
+    page_directory[PD_index].pde_KB.read_write = 1;
+    page_directory[PD_index].pde_KB.user_supervisor = 1;
+    page_directory[PD_index].pde_KB.write_through = 0;
+    page_directory[PD_index].pde_KB.cache_disabled = 0;
+    page_directory[PD_index].pde_KB.accessed = 0;
+    page_directory[PD_index].pde_KB.reserved = 0;
+    page_directory[PD_index].pde_KB.page_size = 0;
+    page_directory[PD_index].pde_KB.global = 0;
+    page_directory[PD_index].pde_KB.avail = 0;
+    page_directory[PD_index].pde_KB.PTB_addr = (unsigned int) page_table[process_count] >> TB_ADDR_OFFSET;
+    // flush the TLB by writing to the page directory base register (CR3)
+    // reference: https://wiki.osdev.org/TLB
+    asm volatile ("          \n\
+        movl %%cr3, %%eax    \n\
+        movl %%eax, %%cr3    \n\
+        "
+        : : : "eax", "cc"
+    );
+    // set screen_start
+    *screen_start = (uint8_t *) USER_VIDEO;
+    return (int32_t) USER_VIDEO;
 }
 
 //Extra credit system calls.
@@ -311,16 +369,18 @@ void _execute_paging ()
     page_directory[PD_index].pde_MB.reserved = 0;
     // physical address = PROCESS_PYSC_BASE_ADDR + process_count
     page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + process_count;
+    // close video memory
+    page_directory[PD_index + 1].pde_KB.present = 1;
     // increment the process_count
     process_count++;
     // printf("_execute_paging(): process count is %d\n", process_count);          /* for testing */
     // flush the TLB by writing to the page directory base register (CR3)
     // reference: https://wiki.osdev.org/TLB
-    asm volatile ("              \n\
-  	        movl %%cr3, %%eax    \n\
-  	        movl %%eax, %%cr3    \n\
-            "
-            : : : "eax", "cc"
+    asm volatile ("          \n\
+        movl %%cr3, %%eax    \n\
+        movl %%eax, %%cr3    \n\
+        "
+        : : : "eax", "cc"
     );
     // printf("System call [execute]: finish _execute_paging()\n");                /* for testing */
     return;
@@ -384,19 +444,19 @@ void _execute_context_switch ()
     // 1. set up stack: (top) EIP, CS, EFLAGS, ESP, SS (bottom)
     // 2. set DS to point to the correct entry in GDT for the user mode data segment
     // reference: https://www.felixcloutier.com/x86/IRET:IRETD.html
-    asm volatile ("                \n\
-            andl    $0x00FF, %%ebx \n\
-            movw    %%bx, %%ds     \n\
-            pushl   %%ebx          \n\
-            pushl   %%edx          \n\
-            pushfl                 \n\
-            pushl   %%ecx          \n\
-            pushl   %%eax          \n\
-            iret                   \n\
-            "
-            :
-            : "a"(entry_point), "b"(USER_DS), "c"(USER_CS), "d"(USER_STACK_ADDR)
-            : "cc"
+    asm volatile ("            \n\
+        andl    $0x00FF, %%ebx \n\
+        movw    %%bx, %%ds     \n\
+        pushl   %%ebx          \n\
+        pushl   %%edx          \n\
+        pushfl                 \n\
+        pushl   %%ecx          \n\
+        pushl   %%eax          \n\
+        iret                   \n\
+        "
+        :
+        : "a"(entry_point), "b"(USER_DS), "c"(USER_CS), "d"(USER_STACK_ADDR)
+        : "cc"
     );
 }
 
@@ -433,11 +493,11 @@ void _halt_paging (int32_t pid)
     page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + (pid - 1);
     // flush the TLB by writing to the page directory base register (CR3)
     // reference: https://wiki.osdev.org/TLB
-    asm volatile ("              \n\
-  	        movl %%cr3, %%eax    \n\
-  	        movl %%eax, %%cr3    \n\
-            "
-            : : : "eax", "cc"
+    asm volatile ("          \n\
+        movl %%cr3, %%eax    \n\
+        movl %%eax, %%cr3    \n\
+        "
+        : : : "eax", "cc"
     );
     // printf("System call [halt]: finish _halt_paging()\n");                      /* for testing */
     return;
