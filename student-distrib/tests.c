@@ -809,5 +809,5 @@ void launch_tests(){
 	// Extra features
 	// TEST_OUTPUT("Tux Controller Read", unified_fs_tux_read());
 	// TEST_OUTPUT("Tux Controller Write", unified_fs_tux_write());
-	// TEST_OUTPUT("SB16 Play Music", sb16_play_music());
+	TEST_OUTPUT("SB16 Play Music", sb16_play_music());
 }

@@ -18,6 +18,10 @@
 #define SB16_MEM_BEGIN 0x10 // 0x10000 >> 12
 #define SB16_MEM_END 0x20   // 0x20000 >> 12
 
+// Memory space for QEMU VGA device, Takes 64KB space.
+#define QEMU_VGA_MEM_BEGIN 0xa0
+#define QEMU_VGA_MEM_END 0xb0
+
 // function used to initial paging
 void init_paging();
 

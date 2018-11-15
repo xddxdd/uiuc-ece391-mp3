@@ -15,6 +15,7 @@
 #include "devices/tux.h"
 #include "devices/sb16.h"
 #include "devices/speaker.h"
+#include "devices/qemu_vga.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
 #include "sys_calls.h"
@@ -171,15 +172,14 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    //rtc_set_freq(2);    // Set frequency after initialization,
-                        // because it includes CLI and STI
+    qemu_vga_init();
 
-#ifdef RUN_TESTS
-    /* Run tests */
-    launch_tests();
-#endif
-    /* Execute the first program ("shell") ... */
-	execute ((uint8_t*)"shell");
+// #ifdef RUN_TESTS
+//     /* Run tests */
+//     launch_tests();
+// #endif
+//     /* Execute the first program ("shell") ... */
+// 	execute ((uint8_t*)"shell");
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }
