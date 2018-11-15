@@ -244,6 +244,9 @@ int32_t getargs (uint8_t* buf, int32_t nbytes){
  */
 int32_t vidmap (uint8_t** screen_start)
 {
+    if(NULL == screen_start) return SYSCALL_FAIL;
+    if(((uint32_t) screen_start >> PD_ADDR_OFFSET)
+        != ((uint32_t) USER_PROCESS_ADDR >> PD_ADDR_OFFSET)) return SYSCALL_FAIL;
     // loop variable
     int index;
     // initialize Page Table for video memory
@@ -288,7 +291,7 @@ int32_t vidmap (uint8_t** screen_start)
     );
     // set screen_start
     *screen_start = (uint8_t *) USER_VIDEO;
-    return (int32_t) USER_VIDEO;
+    return SYSCALL_SUCCESS;
 }
 
 //Extra credit system calls.
