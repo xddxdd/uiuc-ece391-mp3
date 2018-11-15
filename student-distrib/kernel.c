@@ -4,9 +4,9 @@
 
 #include "multiboot.h"
 #include "x86_desc.h"
-#include "lib.h"
+#include "lib/lib.h"
 #include "devices/i8259.h"
-#include "debug.h"
+#include "lib/debug.h"
 #include "tests.h"
 
 #include "devices/keyboard.h"
@@ -18,7 +18,7 @@
 #include "devices/qemu_vga.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
-#include "sys_calls.h"
+#include "interrupts/sys_calls.h"
 
 #define RUN_TESTS
 

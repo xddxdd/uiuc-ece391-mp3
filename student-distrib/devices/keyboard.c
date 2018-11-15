@@ -6,7 +6,7 @@ unified_fs_interface_t terminal_stdin_if = {
     .open = terminal_open,
     .read = terminal_read,
     .write = NULL,
-    .close = terminal_close
+    .close = NULL
 };
 
 // Unified FS interface definition for STDOUT.
@@ -14,7 +14,7 @@ unified_fs_interface_t terminal_stdout_if = {
     .open = terminal_open,
     .read = NULL,
     .write = terminal_write,
-    .close = terminal_close
+    .close = NULL
 };
 
 // keyboard buffer, one addition place for newline character
@@ -70,6 +70,13 @@ void keyboard_interrupt() {
 
         // send End Of Interrupt
         send_eoi(KEYBOARD_IRQ);
+
+        if(key == 'c') {
+            // Ctrl+C received, kill current process
+            sti();  // Restore interrupt, usually done in asm wrapper,
+                    // but done manually here as we don't return to it anymore
+            halt(255);  // 255 is return code, indicate that process exited abnormally
+        }
         return;
     }
     // echo the keyboard input to the screen

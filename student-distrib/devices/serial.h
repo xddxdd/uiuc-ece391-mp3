@@ -1,7 +1,7 @@
 #ifndef _SERIAL_H_
 #define _SERIAL_H_
 
-#include "../lib.h"
+#include "../lib/lib.h"
 
 #define COM1 0
 #define COM2 1

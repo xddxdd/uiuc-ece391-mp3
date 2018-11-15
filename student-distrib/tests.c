@@ -1,11 +1,11 @@
 #include "tests.h"
 #include "x86_desc.h"
-#include "lib.h"
+#include "lib/lib.h"
 #include "devices/rtc.h"	// Added by jinghua3.
 #include "fs/ece391fs.h"
 #include "devices/sb16.h"
 #include "devices/keyboard.h"
-#include "sys_calls.h"
+#include "interrupts/sys_calls.h"
 #include "fs/unified_fs.h"
 
 #define PASS 1
@@ -170,7 +170,7 @@ int paging_struct_test(){
 		return FAIL;
 	}
 	// test some page table entries in the first page table, just randomly choose indices 1,20,1000.
-	if(page_table[1].present!=1 || page_table[20].present!=1 || page_table[1000].present!=1){
+	if(page_table[0][1].present!=1 || page_table[0][20].present!=1 || page_table[0][1000].present!=1){
 		printf("\n page table entries are not all present. \n");
 		return FAIL;
 	}

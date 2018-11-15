@@ -123,7 +123,7 @@ int32_t rtc_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
 int32_t rtc_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
 {
   // invalid input
-  if(len != sizeof(uint16_t)) return -1;
+  //if(len != sizeof(uint16_t)) return -1;  // Removed, otherwise fish won't work
   if(buf == NULL) return -1;
   // change the frequency of RTC
   rtc_set_freq(*(uint16_t *)buf);

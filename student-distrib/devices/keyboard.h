@@ -1,10 +1,11 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "../lib.h"
+#include "../lib/lib.h"
 #include "i8259.h"
 #include "vga_text.h"
 #include "../fs/unified_fs.h"
+#include "../interrupts/sys_calls.h"
 
 #define KEYBOARD_IRQ 1
 #define KEYBOARD_PORT 0x60

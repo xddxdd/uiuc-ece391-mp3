@@ -17,25 +17,21 @@ void init_paging()
   for (index = 0; index < NUM_PTE; index++)
   {
     // initially, clear all flags
-    page_table[index].present
+    page_table[0][index].present
         = ((index == VIDEO_MEM_INDEX + 1)
            || (index >= SB16_MEM_BEGIN && index < SB16_MEM_END)
            || (index >= QEMU_VGA_MEM_BEGIN && index < QEMU_VGA_MEM_END))
             ? 1 : 0;
-    page_table[index].read_write = 0;
-    page_table[index].user_supervisor = 0;
-    page_table[index].write_through = 0;
-    page_table[index].cache_disabled = 0;
-    page_table[index].accessed = 0;
-    page_table[index].dirty = 0;
-    page_table[index].pat = 0;
-    // ?? Is it a good idea to change global to 1 for video mem?
-    // "This flag is provided to prevent frequently used pages
-    // (such as pages that contain kernel or other operating system or
-    // executive code) from being flushed from the TLB." (P93, Manual)
-    page_table[index].global = 0;
-    page_table[index].avail = 0;
-    page_table[index].PB_addr = index;
+    page_table[0][index].read_write = 0;
+    page_table[0][index].user_supervisor = 0;
+    page_table[0][index].write_through = 0;
+    page_table[0][index].cache_disabled = 0;
+    page_table[0][index].accessed = 0;
+    page_table[0][index].dirty = 0;
+    page_table[0][index].pat = 0;
+    page_table[0][index].global = 0;
+    page_table[0][index].avail = 0;
+    page_table[0][index].PB_addr = index;
   }
   // initialize the first 4MB memory (4kB page, where video memory is)
   page_directory[0].pde_KB.present = 1;
@@ -48,7 +44,7 @@ void init_paging()
   page_directory[0].pde_KB.page_size = 0;
   page_directory[0].pde_KB.global = 0;
   page_directory[0].pde_KB.avail = 0;
-  page_directory[0].pde_KB.PTB_addr = (unsigned int) page_table >> TB_ADDR_OFFSET;
+  page_directory[0].pde_KB.PTB_addr = (unsigned int) page_table[0] >> TB_ADDR_OFFSET;
 
   // initialize the first 4MB-8MB memory (4MB page, KERNEL)
   page_directory[1].pde_MB.present = 1;

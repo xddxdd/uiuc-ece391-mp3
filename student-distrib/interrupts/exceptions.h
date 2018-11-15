@@ -2,7 +2,7 @@
 #define _EXCEPTIONS_H_
 
 #ifndef ASM
-    #include "lib.h"
+    #include "../lib/lib.h"
 
     void exception_handler_real(char* message);
 

@@ -6,7 +6,7 @@
 #ifndef _I8259_H
 #define _I8259_H
 
-#include "../types.h"
+#include "../lib/types.h"
 
 /* Ports that each PIC sits on */
 #define MASTER_8259_CMD     0x20
