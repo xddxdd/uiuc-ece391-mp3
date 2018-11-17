@@ -172,7 +172,7 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    qemu_vga_init();
+    // qemu_vga_init();
 
 #ifdef RUN_TESTS
     /* Run tests */
