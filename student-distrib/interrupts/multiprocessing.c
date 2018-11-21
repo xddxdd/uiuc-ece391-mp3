@@ -170,13 +170,13 @@ void process_switch_paging(int32_t pid) {
     page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + pid;
 
     // Direct video mem R/W to main display / alt display based on terminal ids
-    // if(active_terminal_id == displayed_terminal_id) {
-    //     page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
-    //     page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
-    // } else {
-    //     page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
-    //     page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
-    // }
+    if(active_terminal_id == displayed_terminal_id) {
+        page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
+        page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
+    } else {
+        page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
+        page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
+    }
 
     page_table_usermap[VIDEO_MEM_INDEX].present = process->vidmap;
 
@@ -230,23 +230,63 @@ void process_switch_context(int32_t pid) {
     );
 }
 
+void terminal_switch_active(uint32_t tid) {
+    if(tid < 0 || tid >= TERMINAL_COUNT) return;
+
+    process_save_state();
+    terminals[active_terminal_id].active_process = active_process_id;
+
+    active_terminal_id = tid;
+    active_process_id = terminals[tid].active_process;
+    if(active_process_id == -1) {
+        process_create("shell");
+    } else {
+        printf("act %d\n", active_process_id);
+        process_t* process = process_get_pcb(active_process_id);
+        if(NULL == process) return;
+
+        asm volatile ("         \n\
+            movl %%ecx, %%esp   \n\
+            movl %%edx, %%ebp   \n\
+            leave               \n\
+            ret                 \n\
+            "
+            :
+            : "c" (process->esp), "d" (process->ebp)
+            : "ebp", "esp"
+        );
+    }
+}
+
 void terminal_switch_display(uint32_t tid) {
+    if(tid < 0 || tid >= TERMINAL_COUNT) return;
+
     char* addr;
 
     // Copy current terminal content to an alternate location
     addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
-    memcpy(addr, (char*) VIDEO, TERMINAL_ALT_SIZE);
+    memcpy(addr, (char*) TERMINAL_DIRECT_ADDR, TERMINAL_ALT_SIZE);
     terminals[displayed_terminal_id].screen_x = screen_x;
     terminals[displayed_terminal_id].screen_y = screen_y;
+    terminals[displayed_terminal_id].keyboard_buffer_top = keyboard_buffer_top;
+    terminals[displayed_terminal_id].keyboard_buffer_enable = keyboard_buffer_enable;
+    memcpy(terminals[displayed_terminal_id].keyboard_buffer, keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
 
     // Switch displayed terminal id
-    displayed_terminal_id = tid;
     process_switch_paging(active_process_id);
+    displayed_terminal_id = tid;
 
     // Copy target terminal content to current display
     addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
-    memcpy((char*) VIDEO, addr, TERMINAL_ALT_SIZE);
+    memcpy((char*) TERMINAL_DIRECT_ADDR, addr, TERMINAL_ALT_SIZE);
     screen_x = terminals[displayed_terminal_id].screen_x;
     screen_y = terminals[displayed_terminal_id].screen_y;
+    keyboard_buffer_top = terminals[displayed_terminal_id].keyboard_buffer_top;
+    keyboard_buffer_enable = terminals[displayed_terminal_id].keyboard_buffer_enable;
+    memcpy(keyboard_buffer, terminals[displayed_terminal_id].keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
+
+    // Set cursor position
     vga_text_set_cursor_pos(screen_x, screen_y);
+
+    terminal_switch_active(tid);
 }

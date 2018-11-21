@@ -19,6 +19,7 @@ void init_paging()
         // initially, clear all flags
         page_table[index].present
             = ((index == VIDEO_MEM_INDEX) ||
+                (index == VIDEO_MEM_DIRECT_INDEX) ||
                 (index >= VIDEO_MEM_ALT_START && index < VIDEO_MEM_ALT_END) ||
                 (index >= SB16_MEM_BEGIN && index < SB16_MEM_END))
                 ? 1 : 0;
@@ -31,7 +32,9 @@ void init_paging()
         page_table[index].pat = 0;
         page_table[index].global = 0;
         page_table[index].avail = 0;
-        page_table[index].PB_addr = index;
+        // Redirect VIDEO_MEM_DIRECT_INDEX to VIDEO_MEM_INDEX,
+        // to ensure there is always way to directly access video mem without handling multi terminal
+        page_table[index].PB_addr = (index == VIDEO_MEM_DIRECT_INDEX) ? VIDEO_MEM_INDEX : index;
     }
     // initialize Page Table for User memory mapping
     for (index = 0; index < NUM_PTE; index++)

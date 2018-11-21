@@ -7,6 +7,7 @@
 #include "../lib/lib.h"
 #include "../devices/vga_text.h"
 #include "../fs/unified_fs.h"
+#include "../devices/keyboard.h"
 
 #define STRING_END              '\0'
 #define SPACE                   ' '
@@ -58,6 +59,9 @@ typedef struct {
     uint32_t active_process;
     int screen_x;
     int screen_y;
+    uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
+    int keyboard_buffer_top;
+    int keyboard_buffer_enable;
 } terminal_t;
 
 extern int32_t displayed_terminal_id;
@@ -67,6 +71,7 @@ extern int32_t active_process_id;
 #define TERMINAL_COUNT 3
 #define PROCESS_COUNT 8
 
+#define TERMINAL_DIRECT_ADDR 0xb7000
 #define TERMINAL_ALT_START 0xb9000
 #define TERMINAL_ALT_SIZE 0x1000
 
@@ -80,6 +85,7 @@ void process_save_state();
 void process_switch_paging(int32_t pid);
 void process_switch_context(int32_t pid);
 
+void terminal_switch_active(uint32_t tid);
 void terminal_switch_display(uint32_t tid);
 
 #endif

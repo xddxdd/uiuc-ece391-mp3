@@ -12,7 +12,8 @@
 // Some constants
 // Table address offset
 #define TB_ADDR_OFFSET    12
-#define VIDEO_MEM_INDEX   0xb8 // 0xb8000 >> 12
+#define VIDEO_MEM_INDEX   0xb8      // 0xb8000 >> 12
+#define VIDEO_MEM_DIRECT_INDEX 0xb7 // Index used to directly access video mem
 
 // Alternate video memory locations for multiple terminals.
 #define VIDEO_MEM_ALT_START 0xb9

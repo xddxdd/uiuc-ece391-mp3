@@ -19,13 +19,13 @@ unified_fs_interface_t terminal_stdout_if = {
 };
 
 // keyboard buffer, one addition place for newline character
-static uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
+uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
 // next available index in (i.e. top of) the keyboard buffer
 // (default: 0 -- empty)
-static int keyboard_buffer_top = 0;
+int keyboard_buffer_top = 0;
 // flag variable used to indicate whether writting to the keyborad buffer
 // is enable or not (default: 0 -- disable)
-static volatile int keyboard_buffer_enable = 0;
+volatile int keyboard_buffer_enable = 0;
 
 // Keyboard flags, tracking whether shift, ctrl, capslock are pressed or not.
 // Added by jinghua3.
@@ -82,6 +82,8 @@ void keyboard_interrupt() {
         return;
     }
     if(alt_pressed == 1) {
+        send_eoi(KEYBOARD_IRQ);
+        sti();
         if(scancode_idx == SCANCODE_F1) {
             terminal_switch_display(0);
         } else if(scancode_idx == SCANCODE_F2) {
@@ -89,7 +91,6 @@ void keyboard_interrupt() {
         } else if(scancode_idx == SCANCODE_F3) {
             terminal_switch_display(2);
         }
-        send_eoi(KEYBOARD_IRQ);
         return;
     }
     // echo the keyboard input to the screen
@@ -164,6 +165,7 @@ int32_t terminal_open(int32_t* inode, char* filename)
     keyboard_buffer_top = 0;
     // disable keyboard buffer
     keyboard_buffer_enable = 0;
+
     return 0;
 }
 

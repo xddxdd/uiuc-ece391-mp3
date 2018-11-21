@@ -2,10 +2,6 @@
 #define _KEYBOARD_H_
 
 #include "../lib/lib.h"
-#include "i8259.h"
-#include "vga_text.h"
-#include "../fs/unified_fs.h"
-#include "../interrupts/sys_calls.h"
 
 #define KEYBOARD_IRQ 1
 #define KEYBOARD_PORT 0x60
@@ -28,6 +24,15 @@
 #define SCANCODE_F1         0x3B
 #define SCANCODE_F2         0x3C
 #define SCANCODE_F3         0x3D
+
+extern uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
+extern int keyboard_buffer_top;
+extern volatile int keyboard_buffer_enable;
+
+#include "i8259.h"
+#include "vga_text.h"
+#include "../fs/unified_fs.h"
+#include "../interrupts/sys_calls.h"
 
 void keyboard_init();
 void keyboard_interrupt();
