@@ -56,6 +56,8 @@ typedef process_t pcb_t;
 
 typedef struct {
     uint32_t active_process;
+    int screen_x;
+    int screen_y;
 } terminal_t;
 
 extern int32_t displayed_terminal_id;
@@ -65,8 +67,8 @@ extern int32_t active_process_id;
 #define TERMINAL_COUNT 3
 #define PROCESS_COUNT 8
 
-#define TERMINAL_ALT_START = 0xb9000
-#define TERMINAL_ALT_SIZE = 0x1000
+#define TERMINAL_ALT_START 0xb9000
+#define TERMINAL_ALT_SIZE 0x1000
 
 process_t* process_get_active_pcb();
 process_t* process_get_pcb(int32_t pid);
@@ -77,5 +79,7 @@ int32_t process_halt(uint8_t status);
 void process_save_state();
 void process_switch_paging(int32_t pid);
 void process_switch_context(int32_t pid);
+
+void terminal_switch_display(uint32_t tid);
 
 #endif

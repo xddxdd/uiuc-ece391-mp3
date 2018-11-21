@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "../interrupts/multiprocessing.h"
 #include "../data/keyboard-scancode.h"
 
 // Unified FS interface definition for STDIN.
@@ -82,11 +83,11 @@ void keyboard_interrupt() {
     }
     if(alt_pressed == 1) {
         if(scancode_idx == SCANCODE_F1) {
-            printf("Switch 1");
+            terminal_switch_display(0);
         } else if(scancode_idx == SCANCODE_F2) {
-            printf("Switch 2");
+            terminal_switch_display(1);
         } else if(scancode_idx == SCANCODE_F3) {
-            printf("Switch 3");
+            terminal_switch_display(2);
         }
         send_eoi(KEYBOARD_IRQ);
         return;

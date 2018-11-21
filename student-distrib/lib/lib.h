@@ -12,6 +12,9 @@
 #define PASS 0
 #define FAIL -1
 
+extern int screen_x;
+extern int screen_y;
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 void roll_up();

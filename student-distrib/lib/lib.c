@@ -10,8 +10,8 @@
 #define BACKSPACE   0x8
 #define NULL_CHAR   0
 
-static int screen_x;
-static int screen_y;
+int screen_x = 0;
+int screen_y = 0;
 static char* video_mem = (char *)VIDEO;
 
 /* void clear(void);

@@ -25,6 +25,8 @@ void process_init() {
     }
     for(i = 0; i < TERMINAL_COUNT; i++) {
         terminals[i].active_process = -1;
+        terminals[i].screen_x = 0;
+        terminals[i].screen_y = 0;
     }
 }
 
@@ -168,13 +170,13 @@ void process_switch_paging(int32_t pid) {
     page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + pid;
 
     // Direct video mem R/W to main display / alt display based on terminal ids
-    if(active_terminal_id == displayed_terminal_id) {
-        page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
-        page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
-    } else {
-        page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
-        page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
-    }
+    // if(active_terminal_id == displayed_terminal_id) {
+    //     page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
+    //     page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
+    // } else {
+    //     page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
+    //     page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
+    // }
 
     page_table_usermap[VIDEO_MEM_INDEX].present = process->vidmap;
 
@@ -228,6 +230,23 @@ void process_switch_context(int32_t pid) {
     );
 }
 
-/*void terminal_switch_display(uint32_t tid) {
+void terminal_switch_display(uint32_t tid) {
+    char* addr;
 
-}*/
+    // Copy current terminal content to an alternate location
+    addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
+    memcpy(addr, (char*) VIDEO, TERMINAL_ALT_SIZE);
+    terminals[displayed_terminal_id].screen_x = screen_x;
+    terminals[displayed_terminal_id].screen_y = screen_y;
+
+    // Switch displayed terminal id
+    displayed_terminal_id = tid;
+    process_switch_paging(active_process_id);
+
+    // Copy target terminal content to current display
+    addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
+    memcpy((char*) VIDEO, addr, TERMINAL_ALT_SIZE);
+    screen_x = terminals[displayed_terminal_id].screen_x;
+    screen_y = terminals[displayed_terminal_id].screen_y;
+    vga_text_set_cursor_pos(screen_x, screen_y);
+}
