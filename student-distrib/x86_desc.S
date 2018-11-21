@@ -14,7 +14,7 @@
 
 .globl gdt_desc_ptr # Make GDT pointer available to boot.S
 
-.globl page_directory, page_table
+.globl page_directory, page_table, page_table_usermap
 
 .align 4
 
@@ -133,8 +133,19 @@ page_directory_bottom:
 page_table:
 _page_table:
 
-	.rept 1024 * 9
+	.rept 1024
 	.long 0x0
 	.endr
 
 page_table_bottom:
+
+#Page Table for user memory mapping
+.align 0x1000
+page_table_usermap:
+_page_table_usermap:
+
+	.rept 1024
+	.long 0x0
+	.endr
+
+page_table_usermap_bottom:

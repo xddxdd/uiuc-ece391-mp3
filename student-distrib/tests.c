@@ -8,15 +8,13 @@
 #include "interrupts/sys_calls.h"
 #include "fs/unified_fs.h"
 
-#define PASS 1
-#define FAIL 0
 #define SCANCODE_ENTER 0x1C
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
 #define TEST_OUTPUT(name, result)	\
-	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL");
+	printf("[TEST %s] Result = %s\n", name, (result == PASS) ? "PASS" : "FAIL");
 
 static inline void assertion_failure(){
 	/* Use exception #15 for assertions, otherwise
@@ -170,7 +168,7 @@ int paging_struct_test(){
 		return FAIL;
 	}
 	// test some page table entries in the first page table, just randomly choose indices 1,20,1000.
-	if(page_table[0][1].present!=1 || page_table[0][20].present!=1 || page_table[0][1000].present!=1){
+	if(page_table[1].present!=1 || page_table[20].present!=1 || page_table[1000].present!=1){
 		printf("\n page table entries are not all present. \n");
 		return FAIL;
 	}
@@ -450,7 +448,6 @@ int terminal_driver_test()
 	read_retval = terminal_read(NULL, NULL, buf, 128);
 	printf("Hello, ");
 	write_retval = terminal_write(NULL, NULL, buf, 128);
-	terminal_close(NULL);
 	printf("Read %d characters from terminal, and write %d characters to terminal.\n",
 	       read_retval, write_retval);
 	return PASS;

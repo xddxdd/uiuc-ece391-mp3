@@ -30,6 +30,7 @@ static volatile int keyboard_buffer_enable = 0;
 // Added by jinghua3.
 uint8_t shift_pressed = 0;
 uint8_t ctrl_pressed = 0;
+uint8_t alt_pressed = 0;
 uint8_t capslock_pressed = 0;
 uint8_t capslock = 0;
 
@@ -77,6 +78,17 @@ void keyboard_interrupt() {
                     // but done manually here as we don't return to it anymore
             halt(255);  // 255 is return code, indicate that process exited abnormally
         }
+        return;
+    }
+    if(alt_pressed == 1) {
+        if(scancode_idx == SCANCODE_F1) {
+            printf("Switch 1");
+        } else if(scancode_idx == SCANCODE_F2) {
+            printf("Switch 2");
+        } else if(scancode_idx == SCANCODE_F3) {
+            printf("Switch 3");
+        }
+        send_eoi(KEYBOARD_IRQ);
         return;
     }
     // echo the keyboard input to the screen
@@ -219,20 +231,6 @@ int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32
     return index;
 }
 
-/* int32_t terminal_close(int32_t* inode)
- * @input: all ignored
- * @output: ret val - SUCCESS
- * @description: close terminal.
- */
-int32_t terminal_close(int32_t* inode)
-{
-    // clear the buffer
-    keyboard_buffer_top = 0;
-    // disable keyboard buffer
-    keyboard_buffer_enable = 0;
-    return 0;
-}
-
 /* update_special_key_stat - Added by jinghua3.
  *
  * update the status: (pressed/not pressed) of Shift, Ctrl, Capslock
@@ -267,10 +265,16 @@ int update_special_key_stat(uint8_t keyboard_input){
       shift_pressed = 0;
       return 1;
 
+    case LEFT_ALT_PRESS:
+      alt_pressed = 1;
+      return 1;
+    case LEFT_ALT_RELEASE:
+      alt_pressed = 0;
+      return 1;
+
     case LEFT_CTRL_PRESS:
       ctrl_pressed = 1;
       return 1;
-
     case LEFT_CTRL_RELEASE:
       ctrl_pressed = 0;
       return 1;

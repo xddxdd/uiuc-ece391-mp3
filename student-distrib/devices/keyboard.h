@@ -20,8 +20,14 @@
 #define RIGHT_SHIFT_PRESS   0x36
 #define LEFT_SHIFT_RELEASE  0xAA
 #define RIGHT_SHIFT_RELEASE 0xB6
+#define LEFT_ALT_PRESS      0x38
+#define LEFT_ALT_RELEASE    0xB8
 #define LEFT_CTRL_PRESS     0x1D
 #define LEFT_CTRL_RELEASE   0x9D
+
+#define SCANCODE_F1         0x3B
+#define SCANCODE_F2         0x3C
+#define SCANCODE_F3         0x3D
 
 void keyboard_init();
 void keyboard_interrupt();
@@ -33,7 +39,6 @@ int is_alphabet(uint8_t scancode);
 int32_t terminal_open(int32_t* inode, char* filename);
 int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len);
 int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len);
-int32_t terminal_close(int32_t* inode);
 
 extern unified_fs_interface_t terminal_stdin_if;
 extern unified_fs_interface_t terminal_stdout_if;
