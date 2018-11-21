@@ -14,6 +14,14 @@ int screen_x = 0;
 int screen_y = 0;
 static char* video_mem = (char *)VIDEO;
 
+/* void infinite_loop()
+ * @description: an environment-friendly infinite loop.
+ *     puts the processor into infinite sleep.
+ */
+void infinite_loop() {
+    asm volatile (".1: hlt; jmp .1;");
+}
+
 /* void clear(void);
  * Inputs: void
  * Return Value: none

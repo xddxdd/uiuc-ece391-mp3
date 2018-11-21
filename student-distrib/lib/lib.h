@@ -15,6 +15,7 @@
 extern int screen_x;
 extern int screen_y;
 
+void infinite_loop();
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 void roll_up();

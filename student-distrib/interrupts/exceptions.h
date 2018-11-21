@@ -25,7 +25,12 @@
 
     void exception_handler_real(uint32_t id, pushal_t pushal, uint32_t err_code, iret_t iret);
 
-    #define ERR_PAGE_FAULT 0x0e
 #endif
+
+#define EXCEPTION_INVALID_TSS 0x0a
+#define EXCEPTION_SEGMENT_NOT_PRESENT 0x0b
+#define EXCEPTION_STACK_SEGMENT_FAULT 0x0c
+#define EXCEPTION_GENERAL_PROTECTION_FAULT 0x0d
+#define EXCEPTION_PAGE_FAULT 0x0e
 
 #endif
