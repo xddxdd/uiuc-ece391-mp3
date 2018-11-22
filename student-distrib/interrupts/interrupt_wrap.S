@@ -24,3 +24,4 @@ INTERRUPT_WRAP(interrupt_keyboard_wrap, keyboard_interrupt);
 INTERRUPT_WRAP(interrupt_serial1_wrap, serial1_interrupt);
 INTERRUPT_WRAP(interrupt_serial2_wrap, serial2_interrupt);
 INTERRUPT_WRAP(interrupt_sb16_wrap, sb16_interrupt);
+INTERRUPT_WRAP(interrupt_pit_wrap, pit_interrupt);

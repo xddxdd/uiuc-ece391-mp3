@@ -49,6 +49,7 @@ void idt_init() {
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SERIAL1], interrupt_serial1_wrap);
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SERIAL2], interrupt_serial2_wrap);
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SB16], interrupt_sb16_wrap);
+    SET_IDT_ENTRY(idt[VECTOR_DEVICE_PIT], interrupt_pit_wrap);
 
     // system call
     SET_IDT_ENTRY(idt[VECTOR_SYSTEM_CALL], syscall_wrap);
