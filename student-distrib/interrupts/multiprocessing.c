@@ -88,6 +88,7 @@ int32_t process_create(const char* command) {
     process->esp = USER_STACK_ADDR;
     process->ebp = USER_STACK_ADDR;
     process->terminal = active_terminal_id;
+    terminals[active_terminal_id].active_process = pid;
     process->vidmap = 0;
     memcpy(process->arg, argument, MAX_ARG_LENGTH + 1);
 
@@ -112,6 +113,7 @@ int32_t process_halt(uint8_t status) {
         // This process is shell, need to be restarted
         process->present = 0;
         active_process_id = -1;
+        terminals[active_terminal_id].active_process = -1;
         process_create("shell");
     } else {
         int32_t parent = process->parent_pid;
@@ -121,6 +123,7 @@ int32_t process_halt(uint8_t status) {
         process = process_get_pcb(parent);
         if(NULL == process) return FAIL;
         active_process_id = parent;
+        terminals[active_terminal_id].active_process = parent;
         asm volatile ("         \n\
             movl %%ecx, %%esp   \n\
             movl %%edx, %%ebp   \n\
@@ -136,7 +139,7 @@ int32_t process_halt(uint8_t status) {
     return SUCCESS;
 }
 
-void process_save_state() {
+inline void process_save_state() {
     process_t* process = process_get_pcb(active_process_id);
     if(NULL == process) return;
 
@@ -247,14 +250,12 @@ void terminal_switch_active(uint32_t tid) {
 
         printf("restore %d, esp %x, ebp %x\n", active_process_id, process->esp, process->ebp);
         asm volatile ("         \n\
-            movl %%ecx, %%esp   \n\
-            movl %%edx, %%ebp   \n\
-            leave               \n\
-            ret                 \n\
+            movl %0, %%esp      \n\
+            movl %1, %%ebp      \n\
             "
             :
-            : "c" (process->esp), "d" (process->ebp)
-            : "ebp", "esp"
+            : "r" (process->esp), "r" (process->ebp)
+            : "memory"
         );
     }
 }
@@ -262,29 +263,29 @@ void terminal_switch_active(uint32_t tid) {
 void terminal_switch_display(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
 
-    // char* addr;
+    char* addr;
 
     // Copy current terminal content to an alternate location
-    // addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
-    // memcpy(addr, (char*) TERMINAL_DIRECT_ADDR, TERMINAL_ALT_SIZE);
-    // terminals[displayed_terminal_id].screen_x = screen_x;
-    // terminals[displayed_terminal_id].screen_y = screen_y;
-    // terminals[displayed_terminal_id].keyboard_buffer_top = keyboard_buffer_top;
-    // terminals[displayed_terminal_id].keyboard_buffer_enable = keyboard_buffer_enable;
-    // memcpy(terminals[displayed_terminal_id].keyboard_buffer, keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
+    addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
+    memcpy(addr, (char*) TERMINAL_DIRECT_ADDR, TERMINAL_ALT_SIZE);
+    terminals[displayed_terminal_id].screen_x = screen_x;
+    terminals[displayed_terminal_id].screen_y = screen_y;
+    terminals[displayed_terminal_id].keyboard_buffer_top = keyboard_buffer_top;
+    terminals[displayed_terminal_id].keyboard_buffer_enable = keyboard_buffer_enable;
+    memcpy(terminals[displayed_terminal_id].keyboard_buffer, keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
 
     // Switch displayed terminal id
     process_switch_paging(active_process_id);
     displayed_terminal_id = tid;
 
     // Copy target terminal content to current display
-    // addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
-    // memcpy((char*) TERMINAL_DIRECT_ADDR, addr, TERMINAL_ALT_SIZE);
-    // screen_x = terminals[displayed_terminal_id].screen_x;
-    // screen_y = terminals[displayed_terminal_id].screen_y;
-    // keyboard_buffer_top = terminals[displayed_terminal_id].keyboard_buffer_top;
-    // keyboard_buffer_enable = terminals[displayed_terminal_id].keyboard_buffer_enable;
-    // memcpy(keyboard_buffer, terminals[displayed_terminal_id].keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
+    addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
+    memcpy((char*) TERMINAL_DIRECT_ADDR, addr, TERMINAL_ALT_SIZE);
+    screen_x = terminals[displayed_terminal_id].screen_x;
+    screen_y = terminals[displayed_terminal_id].screen_y;
+    keyboard_buffer_top = terminals[displayed_terminal_id].keyboard_buffer_top;
+    keyboard_buffer_enable = terminals[displayed_terminal_id].keyboard_buffer_enable;
+    memcpy(keyboard_buffer, terminals[displayed_terminal_id].keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
 
     // Set cursor position
     vga_text_set_cursor_pos(screen_x, screen_y);
