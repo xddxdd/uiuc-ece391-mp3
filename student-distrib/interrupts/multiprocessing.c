@@ -72,8 +72,8 @@ int32_t process_create(const char* command) {
     // Check if file is a program
     char buf[FILE_HEADER_LEN];
     if(FAIL == (fd = unified_open(fd_array, (char*) filename))) return FAIL;
-    if(FAIL == unified_read(fd_array, fd, buf, PROGRAM_HEADER_LEN + PROGRAM_HEADER_OFFSET)) return FAIL;
-    if(fd_array[fd].pos != PROGRAM_HEADER_LEN + PROGRAM_HEADER_OFFSET) return FAIL;
+    if(FAIL == unified_read(fd_array, fd, buf, PROGRAM_HEADER_LEN)) return FAIL;
+    if(fd_array[fd].pos != PROGRAM_HEADER_LEN) return FAIL;
     if(0 != strncmp((char*) buf, program_header, PROGRAM_HEADER_LEN)) return FAIL;
     if(FAIL == unified_close(fd_array, fd)) return FAIL;
 
@@ -99,7 +99,13 @@ int32_t process_create(const char* command) {
     if(FAIL == unified_close(fd_array, fd)) return FAIL;
     process->eip = (*(uint32_t*) (USER_PROCESS_ADDR + 24));
 
-    process_save_state();
+    process_t* ori_process = process_get_pcb(active_process_id);
+    if(NULL != ori_process) {
+        asm volatile("movl %%esp, %0":"=r" (ori_process->esp));
+        asm volatile("movl %%ebp, %0":"=r" (ori_process->ebp));
+        // printf("saved %d, esp %x, ebp %x\n", active_process_id, ori_process->esp, ori_process->ebp);
+    }
+
     process_switch_context(pid);
     return SUCCESS;
 }
@@ -137,15 +143,6 @@ int32_t process_halt(uint8_t status) {
         );
     }
     return SUCCESS;
-}
-
-inline void process_save_state() {
-    process_t* process = process_get_pcb(active_process_id);
-    if(NULL == process) return;
-
-    asm volatile("movl %%esp, %0":"=r" (process->esp));
-    asm volatile("movl %%ebp, %0":"=r" (process->ebp));
-    printf("saved %d, esp %x, ebp %x\n", active_process_id, process->esp, process->ebp);
 }
 
 void process_switch_paging(int32_t pid) {
@@ -233,8 +230,14 @@ void process_switch_context(int32_t pid) {
 void terminal_switch_active(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
 
+    process_t* process = process_get_pcb(active_process_id);
+    if(NULL != process) {
+        asm volatile("movl %%esp, %0":"=r" (process->esp));
+        asm volatile("movl %%ebp, %0":"=r" (process->ebp));
+        // printf("saved %d, esp %x, ebp %x\n", active_process_id, process->esp, process->ebp);
+    }
+
     cli();
-    process_save_state();
     terminals[active_terminal_id].active_process = active_process_id;
 
     active_terminal_id = tid;
@@ -248,7 +251,7 @@ void terminal_switch_active(uint32_t tid) {
         process_t* process = process_get_pcb(active_process_id);
         if(NULL == process) return;
 
-        printf("restore %d, esp %x, ebp %x\n", active_process_id, process->esp, process->ebp);
+        // printf("restore %d, esp %x, ebp %x\n", active_process_id, process->esp, process->ebp);
         asm volatile ("         \n\
             movl %0, %%esp      \n\
             movl %1, %%ebp      \n\

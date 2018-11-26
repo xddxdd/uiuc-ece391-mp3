@@ -81,7 +81,6 @@ void process_init();
 int32_t process_allocate();
 int32_t process_create(const char* command);
 int32_t process_halt(uint8_t status);
-inline void process_save_state();
 void process_switch_paging(int32_t pid);
 void process_switch_context(int32_t pid);
 
