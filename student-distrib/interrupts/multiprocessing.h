@@ -56,7 +56,7 @@ typedef struct process_control_block {
 typedef process_t pcb_t;
 
 typedef struct {
-    uint32_t active_process;
+    int32_t active_process;
     int screen_x;
     int screen_y;
     uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
@@ -64,16 +64,17 @@ typedef struct {
     int keyboard_buffer_enable;
 } terminal_t;
 
-extern int32_t displayed_terminal_id;
-extern int32_t active_terminal_id;
-extern int32_t active_process_id;
-
 #define TERMINAL_COUNT 3
 #define PROCESS_COUNT 8
 
 #define TERMINAL_DIRECT_ADDR 0xb7000
 #define TERMINAL_ALT_START 0xb9000
 #define TERMINAL_ALT_SIZE 0x1000
+
+extern terminal_t terminals[TERMINAL_COUNT];
+extern int32_t displayed_terminal_id;
+extern int32_t active_terminal_id;
+extern int32_t active_process_id;
 
 process_t* process_get_active_pcb();
 process_t* process_get_pcb(int32_t pid);

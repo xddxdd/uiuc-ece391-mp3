@@ -15,6 +15,7 @@
 #include "devices/tux.h"
 #include "devices/sb16.h"
 #include "devices/speaker.h"
+#include "devices/pit.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
 #include "interrupts/sys_calls.h"
@@ -155,17 +156,19 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+    // Only keyboard intialization is needed here, all other devices are auto initialized
+    // when being used
     keyboard_init();
-    //rtc_init();
-    //serial_init(COM1);
-    //tux_init();
-    //sb16_init();
-    //speaker_init();
+    // rtc_init();
+    // serial_init(COM1);
+    // tux_init();
+    // sb16_init();
+    // speaker_init();
 
-    // initial memory
     init_paging();
-
-    process_init();
+    process_init(); // Initialize multiprocessing structures
+    pit_init();     // PIT initializes after multiprocessing, as it does process switching
+                    // otherwise system will triple fault
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

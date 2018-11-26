@@ -1,4 +1,5 @@
 #include "vga_text.h"
+#include "../interrupts/multiprocessing.h"
 #include "../lib/lib.h"
 
 /* void vga_text_set_color(uint8_t x, uint8_t y, uint8_t foreground, uint8_t background)
@@ -30,6 +31,7 @@ void vga_text_set_character(uint8_t x, uint8_t y, uint8_t ch) {
  * @description: disable the blinking cursor.
  */
 void vga_text_disable_cursor() {
+    if(active_terminal_id != displayed_terminal_id) return;
     cli();
     // Read the value set at VGA's cursor start register,
     // by first sending an index and then reading the data port
@@ -48,6 +50,7 @@ void vga_text_disable_cursor() {
  * @description: enable the blinking cursor.
  */
 void vga_text_enable_cursor() {
+    if(active_terminal_id != displayed_terminal_id) return;
     cli();
     // Read the value set at VGA's cursor start register,
     // by first sending an index and then reading the data port
@@ -66,6 +69,7 @@ void vga_text_enable_cursor() {
  * @description: set the position of the blinking cursor.
  */
 void vga_text_set_cursor_pos(uint8_t x, uint8_t y) {
+    if(active_terminal_id != displayed_terminal_id) return;
     cli();
     // Calculate the character position on VGA plane, row major order
     uint16_t char_pos = (y * SCREEN_WIDTH + x) % (SCREEN_WIDTH * SCREEN_HEIGHT);

@@ -11,7 +11,10 @@ void pit_init() {
 }
 
 void pit_interrupt() {
-    int32_t new_terminal = (active_terminal_id + 1) % TERMINAL_COUNT;
-    terminal_switch_active(new_terminal);
     send_eoi(PIT_IRQ);
+    int32_t new_terminal = (active_terminal_id + 1) % TERMINAL_COUNT;
+    // while(-1 == terminals[new_terminal].active_process) {
+    //     new_terminal = (new_terminal + 1) % TERMINAL_COUNT;
+    // }
+    terminal_switch_active(new_terminal);
 }

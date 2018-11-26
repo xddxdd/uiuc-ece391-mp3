@@ -172,13 +172,13 @@ void process_switch_paging(int32_t pid) {
     page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + pid;
 
     // Direct video mem R/W to main display / alt display based on terminal ids
-    // if(active_terminal_id == displayed_terminal_id) {
-    //     page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
-    //     page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
-    // } else {
-    //     page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
-    //     page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
-    // }
+    if(active_terminal_id == displayed_terminal_id) {
+        page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
+        page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
+    } else {
+        page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
+        page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
+    }
 
     page_table_usermap[VIDEO_MEM_INDEX].present = process->vidmap;
 
@@ -242,8 +242,8 @@ void terminal_switch_active(uint32_t tid) {
 
     active_terminal_id = tid;
     active_process_id = terminals[tid].active_process;
-    sti();
     if(active_process_id == -1) {
+        sti();
         process_create("shell");
     } else {
         tss.esp0 = KERNEL_STACK_BASE_ADDR - active_process_id * USER_KMODE_STACK_SIZE - 0x4;
@@ -260,11 +260,14 @@ void terminal_switch_active(uint32_t tid) {
             : "r" (process->esp), "r" (process->ebp)
             : "memory"
         );
+        sti();
     }
 }
 
 void terminal_switch_display(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
+
+    cli();  // Begin critical section
 
     char* addr;
 
@@ -290,8 +293,10 @@ void terminal_switch_display(uint32_t tid) {
     keyboard_buffer_enable = terminals[displayed_terminal_id].keyboard_buffer_enable;
     memcpy(keyboard_buffer, terminals[displayed_terminal_id].keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
 
+    sti();  // End critical section
+
     // Set cursor position
     vga_text_set_cursor_pos(screen_x, screen_y);
 
-    terminal_switch_active(tid);
+    // terminal_switch_active(tid);
 }
