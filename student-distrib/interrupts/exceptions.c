@@ -74,5 +74,7 @@ void exception_handler_real(char* message) {
     */
 
     // Infinite loop
-    asm volatile (".1: hlt; jmp .1;");
+    // asm volatile (".1: hlt; jmp .1;");
+
+    halt(255);
 }
