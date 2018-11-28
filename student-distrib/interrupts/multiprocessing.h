@@ -61,7 +61,7 @@ typedef struct {
     int screen_y;
     uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
     int keyboard_buffer_top;
-    int keyboard_buffer_enable;
+    volatile int keyboard_buffer_enable;
 } terminal_t;
 
 #define TERMINAL_COUNT 3

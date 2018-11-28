@@ -1,4 +1,5 @@
 #include "multiprocessing.h"
+#include "../devices/keyboard.h"
 
 char program_header[PROGRAM_HEADER_LEN] = {0x7f, 0x45, 0x4c, 0x46};
 
@@ -27,6 +28,7 @@ void process_init() {
         terminals[i].active_process = -1;
         terminals[i].screen_x = 0;
         terminals[i].screen_y = 0;
+        memset((void*) (TERMINAL_ALT_START + TERMINAL_ALT_SIZE * i), 0, TERMINAL_ALT_SIZE);
     }
 }
 
@@ -262,6 +264,10 @@ void terminal_switch_active(uint32_t tid) {
         );
         sti();
     }
+    if(ctrl_c_pending && (active_terminal_id == displayed_terminal_id)) {
+        ctrl_c_pending = 0;
+        halt(255);
+    }
 }
 
 void terminal_switch_display(uint32_t tid) {
@@ -274,11 +280,11 @@ void terminal_switch_display(uint32_t tid) {
     // Copy current terminal content to an alternate location
     addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
     memcpy(addr, (char*) TERMINAL_DIRECT_ADDR, TERMINAL_ALT_SIZE);
-    terminals[displayed_terminal_id].screen_x = screen_x;
-    terminals[displayed_terminal_id].screen_y = screen_y;
-    terminals[displayed_terminal_id].keyboard_buffer_top = keyboard_buffer_top;
-    terminals[displayed_terminal_id].keyboard_buffer_enable = keyboard_buffer_enable;
-    memcpy(terminals[displayed_terminal_id].keyboard_buffer, keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
+    // terminals[displayed_terminal_id].screen_x = screen_x;
+    // terminals[displayed_terminal_id].screen_y = screen_y;
+    // terminals[displayed_terminal_id].keyboard_buffer_top = keyboard_buffer_top;
+    // terminals[displayed_terminal_id].keyboard_buffer_enable = keyboard_buffer_enable;
+    // memcpy(terminals[displayed_terminal_id].keyboard_buffer, keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
 
     // Switch displayed terminal id
     process_switch_paging(active_process_id);
@@ -287,11 +293,11 @@ void terminal_switch_display(uint32_t tid) {
     // Copy target terminal content to current display
     addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
     memcpy((char*) TERMINAL_DIRECT_ADDR, addr, TERMINAL_ALT_SIZE);
-    screen_x = terminals[displayed_terminal_id].screen_x;
-    screen_y = terminals[displayed_terminal_id].screen_y;
-    keyboard_buffer_top = terminals[displayed_terminal_id].keyboard_buffer_top;
-    keyboard_buffer_enable = terminals[displayed_terminal_id].keyboard_buffer_enable;
-    memcpy(keyboard_buffer, terminals[displayed_terminal_id].keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
+    // screen_x = terminals[displayed_terminal_id].screen_x;
+    // screen_y = terminals[displayed_terminal_id].screen_y;
+    // keyboard_buffer_top = terminals[displayed_terminal_id].keyboard_buffer_top;
+    // keyboard_buffer_enable = terminals[displayed_terminal_id].keyboard_buffer_enable;
+    // memcpy(keyboard_buffer, terminals[displayed_terminal_id].keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
 
     sti();  // End critical section
 

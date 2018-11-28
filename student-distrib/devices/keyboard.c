@@ -18,15 +18,6 @@ unified_fs_interface_t terminal_stdout_if = {
     .close = NULL
 };
 
-// keyboard buffer, one addition place for newline character
-uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
-// next available index in (i.e. top of) the keyboard buffer
-// (default: 0 -- empty)
-int keyboard_buffer_top = 0;
-// flag variable used to indicate whether writting to the keyborad buffer
-// is enable or not (default: 0 -- disable)
-volatile int keyboard_buffer_enable = 0;
-
 // Keyboard flags, tracking whether shift, ctrl, capslock are pressed or not.
 // Added by jinghua3.
 uint8_t shift_pressed = 0;
@@ -34,6 +25,8 @@ uint8_t ctrl_pressed = 0;
 uint8_t alt_pressed = 0;
 uint8_t capslock_pressed = 0;
 uint8_t capslock = 0;
+
+uint8_t ctrl_c_pending = 0;
 
 /* void keyboard_init()
  * @effects: Make the system ready to receive keyboard interrupts
@@ -50,6 +43,8 @@ void keyboard_init() {
  * @description: Handle keyboard interrupt
  */
 void keyboard_interrupt() {
+    terminal_switch_active(displayed_terminal_id);
+
     uint8_t scancode_idx = inb(KEYBOARD_PORT);
     char key;
     int is_special_key;
@@ -67,17 +62,21 @@ void keyboard_interrupt() {
             // Ctrl+L or Ctrl+l received, clear screen and put cursor at the top.
             clear();
             // clear the keyboard buffer.
-            keyboard_buffer_top = 0;
+            terminals[displayed_terminal_id].keyboard_buffer_top = 0;
         }
 
         // send End Of Interrupt
         send_eoi(KEYBOARD_IRQ);
 
         if(key == 'c') {
-            // Ctrl+C received, kill current process
-            sti();  // Restore interrupt, usually done in asm wrapper,
-                    // but done manually here as we don't return to it anymore
-            halt(255);  // 255 is return code, indicate that process exited abnormally
+            // Ctrl+C received, schedule killing current process
+            if(displayed_terminal_id == active_terminal_id) {
+                sti();  // Restore interrupt, usually done in asm wrapper,
+                        // but done manually here as we don't return to it anymore
+                halt(255);  // 255 is return code, indicate that process exited abnormally
+            } else {
+                ctrl_c_pending = 1;
+            }
         }
         return;
     }
@@ -107,10 +106,10 @@ void keyboard_interrupt() {
         }
 
         // if keyboard buffer is enable
-        if (keyboard_buffer_enable == 1) {
+        if (terminals[displayed_terminal_id].keyboard_buffer_enable == 1) {
             if (key == BACKSPACE) {
-                if(keyboard_buffer_top > 0) {
-                    keyboard_buffer_top--;
+                if(terminals[displayed_terminal_id].keyboard_buffer_top > 0) {
+                    terminals[displayed_terminal_id].keyboard_buffer_top--;
                     cli();
                     keyboard_echo(key);
                     sti();
@@ -120,29 +119,29 @@ void keyboard_interrupt() {
                 keyboard_echo(key);
                 sti();
                 // put newline character
-                keyboard_buffer[keyboard_buffer_top] = '\n';
+                terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = '\n';
                 // increment keyboard_buffer_top
-                keyboard_buffer_top++;
+                terminals[displayed_terminal_id].keyboard_buffer_top++;
                 // disable keyboard buffer
-                keyboard_buffer_enable = 0;
-            } else if (keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE) {
+                terminals[displayed_terminal_id].keyboard_buffer_enable = 0;
+            } else if (terminals[displayed_terminal_id].keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE) {
                 cli();
                 keyboard_echo('\n');
                 sti();
                 // put newline character
-                keyboard_buffer[keyboard_buffer_top] = '\n';
+                terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = '\n';
                 // increment keyboard_buffer_top
-                keyboard_buffer_top++;
+                terminals[displayed_terminal_id].keyboard_buffer_top++;
                 // disable keyboard buffer
-                keyboard_buffer_enable = 0;
+                terminals[displayed_terminal_id].keyboard_buffer_enable = 0;
             } else {
                 cli();
                 keyboard_echo(key);
                 sti();
                 // record current key
-                keyboard_buffer[keyboard_buffer_top] = key;
+                terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = key;
                 // increment keyboard_buffer_top
-                keyboard_buffer_top++;
+                terminals[displayed_terminal_id].keyboard_buffer_top++;
             }
         } else {
             cli();
@@ -162,9 +161,9 @@ void keyboard_interrupt() {
 int32_t terminal_open(int32_t* inode, char* filename)
 {
     // clear the buffer
-    keyboard_buffer_top = 0;
+    terminals[active_terminal_id].keyboard_buffer_top = 0;
     // disable keyboard buffer
-    keyboard_buffer_enable = 0;
+    terminals[active_terminal_id].keyboard_buffer_enable = 0;
 
     return 0;
 }
@@ -188,25 +187,26 @@ int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
     // return value
     int min_size;
     // enable keyboard buffer
-    keyboard_buffer_enable = 1;
+    terminals[active_terminal_id].keyboard_buffer_enable = 1;
 
     /* printf("keyboard_read starts\n"); */
     // wait for keyboard inputs
-    while (keyboard_buffer_enable == 1) {}
+    while (terminals[active_terminal_id].keyboard_buffer_enable == 1) {}
     /* printf("keyboard_read ends\n"); */
     for (index = 0; index < len; index++)
     {
-        if (index < keyboard_buffer_top)
+        if (index < terminals[active_terminal_id].keyboard_buffer_top)
         {
-            *(uint8_t *)(buf + index) = keyboard_buffer[index];
+            *(uint8_t *)(buf + index) = terminals[active_terminal_id].keyboard_buffer[index];
         }
         else
         {
             *(uint8_t *)(buf + index) = 0;
         }
     }
-    min_size = keyboard_buffer_top < len ? keyboard_buffer_top : len;
-    keyboard_buffer_top = 0;
+    min_size = terminals[active_terminal_id].keyboard_buffer_top < len
+             ? terminals[active_terminal_id].keyboard_buffer_top : len;
+    terminals[active_terminal_id].keyboard_buffer_top = 0;
     return min_size;
 }
 

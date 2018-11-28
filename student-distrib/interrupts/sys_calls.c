@@ -9,7 +9,10 @@
  */
 int32_t halt (uint8_t status)
 {
-    return process_halt(status);
+    cli();
+    int32_t ret = process_halt(status);
+    sti();
+    return ret;
 }
 
 /*
@@ -20,7 +23,10 @@ int32_t halt (uint8_t status)
  */
 int32_t execute (const uint8_t* command)
 {
-    return process_create((const char*) command);
+    cli();
+    int32_t ret = process_create((const char*) command);
+    sti();
+    return ret;
 }
 
 /*

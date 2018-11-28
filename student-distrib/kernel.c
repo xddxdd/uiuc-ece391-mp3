@@ -185,6 +185,7 @@ void entry(unsigned long magic, unsigned long addr) {
     // launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
+    clear();
     terminal_switch_active(0);
     /* Spin (nicely, so we don't chew up cycles) */
     infinite_loop();

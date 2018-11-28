@@ -25,14 +25,12 @@
 #define SCANCODE_F2         0x3C
 #define SCANCODE_F3         0x3D
 
-extern uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
-extern int keyboard_buffer_top;
-extern volatile int keyboard_buffer_enable;
-
 #include "i8259.h"
 #include "vga_text.h"
 #include "../fs/unified_fs.h"
 #include "../interrupts/sys_calls.h"
+
+extern uint8_t ctrl_c_pending;
 
 void keyboard_init();
 void keyboard_interrupt();

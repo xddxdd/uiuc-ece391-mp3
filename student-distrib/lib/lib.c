@@ -286,14 +286,14 @@ void keyboard_echo(uint8_t c)
                 screen_y = 0;
             }
         }
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
     }
     // default
     else
     {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         // If the line is filled up
         if(screen_x >= NUM_COLS)

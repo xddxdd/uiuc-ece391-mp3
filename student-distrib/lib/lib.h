@@ -12,6 +12,8 @@
 #define PASS 0
 #define FAIL -1
 
+#define TERMINAL_DIRECT_ADDR 0xb7000
+
 extern int screen_x;
 extern int screen_y;
 
