@@ -79,6 +79,7 @@ int32_t halt (uint8_t status)
  */
 int32_t execute (const uint8_t* command)
 {
+    if(NULL == command) return SYSCALL_FAIL;
     // close the file since it has been copied to memory
     if(process_count >= MAX_PROGRAMS_NUM) {
         printf("Error: system call [execute]: reach maximum programs number\n");

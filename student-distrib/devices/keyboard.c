@@ -213,7 +213,7 @@ int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32
     // all data in the buffer are displayed to the screen
     for (index = 0; index < len; index++)
     {
-        if (*(uint8_t *)(buf + index) == 0) break;
+        // if (*(uint8_t *)(buf + index) == 0) break;
         putc(*(uint8_t *)(buf +index));
     }
     return index;
