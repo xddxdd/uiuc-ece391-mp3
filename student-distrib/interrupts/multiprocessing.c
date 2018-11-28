@@ -292,7 +292,10 @@ void terminal_switch_display(uint32_t tid) {
     memcpy((char*) TERMINAL_DIRECT_ADDR, addr, TERMINAL_ALT_SIZE);
 
     // Set cursor position
+    int32_t tmp = active_terminal_id;
+    active_terminal_id = displayed_terminal_id;
     vga_text_set_cursor_pos(terminals[displayed_terminal_id].screen_x, terminals[displayed_terminal_id].screen_y);
+    active_terminal_id = tmp;
 
     sti();  // End critical section
 }

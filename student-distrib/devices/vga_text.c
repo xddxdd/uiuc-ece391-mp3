@@ -32,7 +32,7 @@ void vga_text_set_character(uint8_t x, uint8_t y, uint8_t ch) {
  */
 void vga_text_disable_cursor() {
     if(active_terminal_id != displayed_terminal_id) return;
-    cli();
+    // cli();
     // Read the value set at VGA's cursor start register,
     // by first sending an index and then reading the data port
     outb(VGA_REG_CURSOR_START, VGA_PORT_INDEX);
@@ -42,7 +42,7 @@ void vga_text_disable_cursor() {
     // the VGA text mode cursor is disabled
     outb(VGA_REG_CURSOR_START, VGA_PORT_INDEX);
     outb(0x20 | data, VGA_PORT_DATA);
-    sti();
+    // sti();
 }
 
 /* void vga_text_enable_cursor()
@@ -51,7 +51,7 @@ void vga_text_disable_cursor() {
  */
 void vga_text_enable_cursor() {
     if(active_terminal_id != displayed_terminal_id) return;
-    cli();
+    // cli();
     // Read the value set at VGA's cursor start register,
     // by first sending an index and then reading the data port
     outb(VGA_REG_CURSOR_START, VGA_PORT_INDEX);
@@ -61,7 +61,7 @@ void vga_text_enable_cursor() {
     // the VGA text mode cursor is enabled
     outb(VGA_REG_CURSOR_START, VGA_PORT_INDEX);
     outb(0xdf & data, VGA_PORT_DATA);
-    sti();
+    // sti();
 }
 
 /* void vga_text_set_cursor_pos(uint8_t x, uint8_t y)
@@ -70,7 +70,7 @@ void vga_text_enable_cursor() {
  */
 void vga_text_set_cursor_pos(uint8_t x, uint8_t y) {
     if(active_terminal_id != displayed_terminal_id) return;
-    cli();
+    // cli();
     // Calculate the character position on VGA plane, row major order
     uint16_t char_pos = (y * SCREEN_WIDTH + x) % (SCREEN_WIDTH * SCREEN_HEIGHT);
     // Replace the value of VGA Cursor Location High Register with high 8 bits
@@ -81,5 +81,5 @@ void vga_text_set_cursor_pos(uint8_t x, uint8_t y) {
     // of the calculated position
     outb(VGA_REG_CURSOR_LOCATION_LOW, VGA_PORT_INDEX);
     outb((uint8_t) char_pos, VGA_PORT_DATA);
-    sti();
+    // sti();
 }
