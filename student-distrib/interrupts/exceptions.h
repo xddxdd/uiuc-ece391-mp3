@@ -3,6 +3,7 @@
 
 #ifndef ASM
     #include "../lib/lib.h"
+    #include "sys_calls.h"
 
     void exception_handler_real(char* message);
 
