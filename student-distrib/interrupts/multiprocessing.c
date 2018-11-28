@@ -28,6 +28,9 @@ void process_init() {
         terminals[i].active_process = -1;
         terminals[i].screen_x = 0;
         terminals[i].screen_y = 0;
+        terminals[i].keyboard_buffer_top = 0;
+        terminals[i].keyboard_buffer_enable = 0;
+        memset(terminals[i].keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE + 1);
         memset((void*) (TERMINAL_ALT_START + TERMINAL_ALT_SIZE * i), 0, TERMINAL_ALT_SIZE);
     }
 }
@@ -280,29 +283,17 @@ void terminal_switch_display(uint32_t tid) {
     // Copy current terminal content to an alternate location
     addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
     memcpy(addr, (char*) TERMINAL_DIRECT_ADDR, TERMINAL_ALT_SIZE);
-    // terminals[displayed_terminal_id].screen_x = screen_x;
-    // terminals[displayed_terminal_id].screen_y = screen_y;
-    // terminals[displayed_terminal_id].keyboard_buffer_top = keyboard_buffer_top;
-    // terminals[displayed_terminal_id].keyboard_buffer_enable = keyboard_buffer_enable;
-    // memcpy(terminals[displayed_terminal_id].keyboard_buffer, keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
 
     // Switch displayed terminal id
-    process_switch_paging(active_process_id);
     displayed_terminal_id = tid;
+    process_switch_paging(active_process_id);
 
     // Copy target terminal content to current display
     addr = (char*) (TERMINAL_ALT_START + (displayed_terminal_id << TB_ADDR_OFFSET));
     memcpy((char*) TERMINAL_DIRECT_ADDR, addr, TERMINAL_ALT_SIZE);
-    // screen_x = terminals[displayed_terminal_id].screen_x;
-    // screen_y = terminals[displayed_terminal_id].screen_y;
-    // keyboard_buffer_top = terminals[displayed_terminal_id].keyboard_buffer_top;
-    // keyboard_buffer_enable = terminals[displayed_terminal_id].keyboard_buffer_enable;
-    // memcpy(keyboard_buffer, terminals[displayed_terminal_id].keyboard_buffer, KEYBOARD_BUFFER_SIZE + 1);
-
-    sti();  // End critical section
 
     // Set cursor position
-    vga_text_set_cursor_pos(screen_x, screen_y);
+    vga_text_set_cursor_pos(terminals[displayed_terminal_id].screen_x, terminals[displayed_terminal_id].screen_y);
 
-    // terminal_switch_active(tid);
+    sti();  // End critical section
 }

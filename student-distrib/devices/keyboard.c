@@ -60,7 +60,7 @@ void keyboard_interrupt() {
         key = scancode[scancode_idx][0];
         if(key == 'l'){
             // Ctrl+L or Ctrl+l received, clear screen and put cursor at the top.
-            clear();
+            keyboard_clear();
             // clear the keyboard buffer.
             terminals[displayed_terminal_id].keyboard_buffer_top = 0;
         }

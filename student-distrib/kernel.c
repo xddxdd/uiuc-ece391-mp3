@@ -166,15 +166,15 @@ void entry(unsigned long magic, unsigned long addr) {
     // speaker_init();
 
     init_paging();
-    process_init(); // Initialize multiprocessing structures
-    pit_init();     // PIT initializes after multiprocessing, as it does process switching
-                    // otherwise system will triple fault
+    process_init();     // Initialize multiprocessing structures
+    keyboard_clear();   // Clear boot message
+    pit_init();         // PIT initializes after multiprocessing, as it does process switching
+                        // otherwise system will triple fault
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    printf("Enabling Interrupts\n");
     sti();
 
     //rtc_set_freq(2);    // Set frequency after initialization,
@@ -184,8 +184,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Run tests */
     // launch_tests();
 #endif
-    /* Execute the first program ("shell") ... */
-    clear();
+    // Switch to the first terminal
     terminal_switch_active(0);
     /* Spin (nicely, so we don't chew up cycles) */
     infinite_loop();

@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "../interrupts/multiprocessing.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -10,8 +11,6 @@
 #define BACKSPACE   0x8
 #define NULL_CHAR   0
 
-int screen_x = 0;
-int screen_y = 0;
 static char* video_mem = (char *)VIDEO;
 
 /* void infinite_loop()
@@ -32,9 +31,31 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-    screen_x = 0;
-    screen_y = 0;
-    vga_text_set_cursor_pos(screen_x, screen_y);
+    terminals[active_terminal_id].screen_x = 0;
+    terminals[active_terminal_id].screen_y = 0;
+    vga_text_set_cursor_pos(0, 0);
+}
+
+/* void keyboard_clear(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Force clear current video memory, used in keyboard interrupt */
+void keyboard_clear(void) {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(TERMINAL_DIRECT_ADDR + (i << 1)) = ' ';
+        *(uint8_t *)(TERMINAL_DIRECT_ADDR + (i << 1) + 1) = ATTRIB;
+    }
+    // We're in keyboard interrupt context, we're directly operating on the screen
+    // and we don't mind which terminal is active, only which is displayed
+    terminals[displayed_terminal_id].screen_x = 0;
+    terminals[displayed_terminal_id].screen_y = 0;
+
+    // Temporarily mask active terminal id to make set_cursor_pos work
+    int active_tid = active_terminal_id;
+    active_terminal_id = displayed_terminal_id;
+    vga_text_set_cursor_pos(0, 0);
+    active_terminal_id = active_tid;
 }
 
 /* void clear_row(uint32_t row)
@@ -196,35 +217,36 @@ int32_t puts(int8_t* s) {
 void putc(uint8_t c)
 {
     // if reach the right bottom of the screen
-    if (NUM_COLS * screen_y + screen_x >= NUM_COLS * NUM_ROWS)
+    if (NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x
+        >= NUM_COLS * NUM_ROWS)
     {
         roll_up();
     }
 
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        if (screen_y >= NUM_ROWS)
+        terminals[active_terminal_id].screen_y++;
+        if (terminals[active_terminal_id].screen_y >= NUM_ROWS)
         {
           roll_up();
         }
-        clear_row(screen_y);    // Clear the new line for better display
-        screen_x = 0;
+        clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
+        terminals[active_terminal_id].screen_x = 0;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        if(screen_x >= NUM_COLS) {  // If the line is filled up
-            screen_x = 0;
-            screen_y++;
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
+        terminals[active_terminal_id].screen_x++;
+        if(terminals[active_terminal_id].screen_x >= NUM_COLS) {  // If the line is filled up
+            terminals[active_terminal_id].screen_x = 0;
+            terminals[active_terminal_id].screen_y++;
             // if reach the right bottom of the screen
-            if (screen_y >= NUM_ROWS)
+            if (terminals[active_terminal_id].screen_y >= NUM_ROWS)
             {
                 roll_up();
             }
-            clear_row(screen_y);    // Clear the new line for better display
+            clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
         }
     }
-    vga_text_set_cursor_pos(screen_x, screen_y);
+    vga_text_set_cursor_pos(terminals[active_terminal_id].screen_x, terminals[active_terminal_id].screen_y);
 }
 
 /* void roll_up();
@@ -239,8 +261,8 @@ void roll_up()
         *(uint8_t *)(video_mem + (index << 1)) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1));
         *(uint8_t *)(video_mem + (index << 1) + 1) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1) + 1);
     }
-    screen_x = 0;
-    screen_y = NUM_ROWS - 1;
+    terminals[active_terminal_id].screen_x = 0;
+    terminals[active_terminal_id].screen_y = NUM_ROWS - 1;
     clear_row(NUM_ROWS - 1);
 }
 
@@ -254,61 +276,75 @@ void keyboard_echo(uint8_t c)
     {
         return;
     }
+    // Temporarily enable direct access to video memory, ignoring which terminal is displayed
+    video_mem = (char*) TERMINAL_DIRECT_ADDR;
+
+    // We're in keyboard interrupt context, we're directly operating on the screen
+    // and we don't mind which terminal is active, only which is displayed
+    // Therefore we're using displayed_terminal_id instead of active_terminal_id
+
     // if reach the right bottom of the screen
-    if (NUM_COLS * screen_y + screen_x >= NUM_COLS * NUM_ROWS)
+    if (NUM_COLS * terminals[displayed_terminal_id].screen_y + terminals[displayed_terminal_id].screen_x >= NUM_COLS * NUM_ROWS)
     {
         roll_up();
     }
     // new line
     if(c == '\n' || c == '\r') {
-        screen_y++;
+        terminals[displayed_terminal_id].screen_y++;
         // if reach the right bottom of the screen
-        if (screen_y >= NUM_ROWS)
+        if (terminals[displayed_terminal_id].screen_y >= NUM_ROWS)
         {
             roll_up();
         }
-        clear_row(screen_y);    // Clear the new line for better display
-        screen_x = 0;
+        clear_row(terminals[displayed_terminal_id].screen_y);    // Clear the new line for better display
+        terminals[displayed_terminal_id].screen_x = 0;
     }
     // backspace
     else if (c == BACKSPACE)
     {
-        screen_x--;
+        terminals[displayed_terminal_id].screen_x--;
         // If the line is filled up
-        if(screen_x < 0)
+        if(terminals[displayed_terminal_id].screen_x < 0)
         {
-            clear_row(screen_y);
-            screen_x = NUM_COLS - 1;
-            screen_y -= 1;
-            if(screen_y < 0)
+            clear_row(terminals[displayed_terminal_id].screen_y);
+            terminals[displayed_terminal_id].screen_x = NUM_COLS - 1;
+            terminals[displayed_terminal_id].screen_y -= 1;
+            if(terminals[displayed_terminal_id].screen_y < 0)
             {
-                screen_x = 0;
-                screen_y = 0;
+                terminals[displayed_terminal_id].screen_x = 0;
+                terminals[displayed_terminal_id].screen_y = 0;
             }
         }
-        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[displayed_terminal_id].screen_y + terminals[displayed_terminal_id].screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[displayed_terminal_id].screen_y + terminals[displayed_terminal_id].screen_x) << 1) + 1) = ATTRIB;
     }
     // default
     else
     {
-        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(TERMINAL_DIRECT_ADDR + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[displayed_terminal_id].screen_y + terminals[displayed_terminal_id].screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[displayed_terminal_id].screen_y + terminals[displayed_terminal_id].screen_x) << 1) + 1) = ATTRIB;
+        terminals[displayed_terminal_id].screen_x++;
         // If the line is filled up
-        if(screen_x >= NUM_COLS)
+        if(terminals[displayed_terminal_id].screen_x >= NUM_COLS)
         {
-            screen_x = 0;
-            screen_y++;
+            terminals[displayed_terminal_id].screen_x = 0;
+            terminals[displayed_terminal_id].screen_y++;
             // if reach the right bottom of the screen
-            if (screen_y >= NUM_ROWS)
+            if (terminals[displayed_terminal_id].screen_y >= NUM_ROWS)
             {
                 roll_up();
             }
-            clear_row(screen_y);    // Clear the new line for better display
+            clear_row(terminals[displayed_terminal_id].screen_y);    // Clear the new line for better display
         }
     }
-    vga_text_set_cursor_pos(screen_x, screen_y);
+    // Re-enable terminal separation
+    video_mem = (char*) VIDEO;
+
+    // Temporarily mask active terminal id to make set_cursor_pos work
+    int active_tid = active_terminal_id;
+    active_terminal_id = displayed_terminal_id;
+    vga_text_set_cursor_pos(terminals[displayed_terminal_id].screen_x, terminals[displayed_terminal_id].screen_y);
+    active_terminal_id = active_tid;
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

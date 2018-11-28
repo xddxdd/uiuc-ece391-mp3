@@ -14,9 +14,6 @@
 
 #define TERMINAL_DIRECT_ADDR 0xb7000
 
-extern int screen_x;
-extern int screen_y;
-
 void infinite_loop();
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
@@ -27,6 +24,7 @@ int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
 void clear(void);
+void keyboard_clear(void);
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);
