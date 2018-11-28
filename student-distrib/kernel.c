@@ -169,6 +169,14 @@ void entry(unsigned long magic, unsigned long addr) {
     process_init();     // Initialize multiprocessing structures
     rtc_init();         // Initialize RTC virtualization
     keyboard_clear();   // Clear boot message
+
+#ifdef RUN_TESTS
+    /* Run tests */
+    sti();
+    launch_tests();
+    cli();
+#endif
+
     pit_init();         // PIT initializes after multiprocessing, as it does process switching
                         // otherwise system will triple fault
 
@@ -181,10 +189,6 @@ void entry(unsigned long magic, unsigned long addr) {
     //rtc_set_freq(2);    // Set frequency after initialization,
                         // because it includes CLI and STI
 
-#ifdef RUN_TESTS
-    /* Run tests */
-    // launch_tests();
-#endif
     // Switch to the first terminal
     terminal_switch_active(0);
     /* Spin (nicely, so we don't chew up cycles) */
