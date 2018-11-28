@@ -3,6 +3,7 @@
 
 #ifndef ASM
     #include "../lib/lib.h"
+    #include "sys_calls.h"
 
     typedef struct {
         uint32_t eip;

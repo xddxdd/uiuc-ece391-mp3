@@ -22,7 +22,7 @@ unified_fs_interface_t rtc_if = {
  *               The formula is (16 - log_2(freq)), where 2 <= freq <= 1024.
  *               Read more at https://wiki.osdev.org/RTC
  */
-uint8_t rtc_freq_to_config(uint16_t freq) {
+uint8_t rtc_freq_to_config(uint32_t freq) {
     switch(freq) {
         case 1024: return 0x06; // All calculated with retval = (16 - log_2(freq)),
         case 512:  return 0x07; // as stated above.
@@ -44,7 +44,7 @@ uint8_t rtc_freq_to_config(uint16_t freq) {
  * @effects: RTC set to desired frequency.
  * @description: As stated above. Read more at https://wiki.osdev.org/RTC
  */
-void rtc_set_freq(uint16_t freq) {
+void rtc_set_freq(uint32_t freq) {
     uint8_t new_freq = rtc_freq_to_config(freq);    // Convert freq to RTC command
     uint8_t old_freq;
     cli();  // Enter critical section
@@ -126,7 +126,7 @@ int32_t rtc_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t le
   //if(len != sizeof(uint16_t)) return -1;  // Removed, otherwise fish won't work
   if(buf == NULL) return -1;
   // change the frequency of RTC
-  rtc_set_freq(*(uint16_t *)buf);
+  rtc_set_freq(*(uint32_t *)buf);
   // quit critical section
   return 0;
 }

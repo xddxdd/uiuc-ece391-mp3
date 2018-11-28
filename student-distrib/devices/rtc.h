@@ -17,8 +17,8 @@
 #define RTC_REG_B 0x8B
 #define RTC_REG_C 0x8C
 
-uint8_t rtc_freq_to_config(uint16_t freq);
-void rtc_set_freq(uint16_t freq);
+uint8_t rtc_freq_to_config(uint32_t freq);
+void rtc_set_freq(uint32_t freq);
 void rtc_interrupt();
 
 // RTC Driver

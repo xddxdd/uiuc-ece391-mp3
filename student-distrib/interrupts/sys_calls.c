@@ -86,6 +86,7 @@ int32_t close (int32_t fd){
 int32_t getargs (uint8_t* buf, int32_t nbytes){
     if(buf == NULL) return FAIL;
     pcb_t* pcb = process_get_active_pcb();
+    if(pcb->arg[0] == 0) return FAIL;
     if(strlen(pcb->arg) > nbytes) return FAIL;
     memset(buf, 0, nbytes);
     memcpy(buf, pcb->arg, nbytes > MAX_ARG_LENGTH ? MAX_ARG_LENGTH : nbytes);

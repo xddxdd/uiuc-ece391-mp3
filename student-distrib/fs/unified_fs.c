@@ -39,6 +39,7 @@ int32_t unified_init(fd_array_t* fd_array) {
  */
 int32_t unified_open(fd_array_t* fd_array, const char* filename) {
     if(NULL == fd_array) return UNIFIED_FS_FAIL;
+    if(NULL == filename) return UNIFIED_FS_FAIL;
 
     // Try to allocate index in file descriptor array
     int fd = 0;
