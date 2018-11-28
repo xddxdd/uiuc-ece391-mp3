@@ -272,10 +272,7 @@ void roll_up()
  *  Function: Output a character to the console (only used by keyboard driver) */
 void keyboard_echo(uint8_t c)
 {
-    if (c == NULL_CHAR)
-    {
-        return;
-    }
+    if (c == NULL_CHAR) return;
     // Temporarily enable direct access to video memory, ignoring which terminal is displayed
     video_mem = (char*) TERMINAL_DIRECT_ADDR;
 
@@ -286,7 +283,11 @@ void keyboard_echo(uint8_t c)
     // if reach the right bottom of the screen
     if (NUM_COLS * terminals[displayed_terminal_id].screen_y + terminals[displayed_terminal_id].screen_x >= NUM_COLS * NUM_ROWS)
     {
+        // Temporarily mask active terminal id to make set_cursor_pos work
+        int active_tid = active_terminal_id;
+        active_terminal_id = displayed_terminal_id;
         roll_up();
+        active_terminal_id = active_tid;
     }
     // new line
     if(c == '\n' || c == '\r') {
@@ -294,7 +295,11 @@ void keyboard_echo(uint8_t c)
         // if reach the right bottom of the screen
         if (terminals[displayed_terminal_id].screen_y >= NUM_ROWS)
         {
+            // Temporarily mask active terminal id to make set_cursor_pos work
+            int active_tid = active_terminal_id;
+            active_terminal_id = displayed_terminal_id;
             roll_up();
+            active_terminal_id = active_tid;
         }
         clear_row(terminals[displayed_terminal_id].screen_y);    // Clear the new line for better display
         terminals[displayed_terminal_id].screen_x = 0;
@@ -332,7 +337,11 @@ void keyboard_echo(uint8_t c)
             // if reach the right bottom of the screen
             if (terminals[displayed_terminal_id].screen_y >= NUM_ROWS)
             {
+                // Temporarily mask active terminal id to make set_cursor_pos work
+                int active_tid = active_terminal_id;
+                active_terminal_id = displayed_terminal_id;
                 roll_up();
+                active_terminal_id = active_tid;
             }
             clear_row(terminals[displayed_terminal_id].screen_y);    // Clear the new line for better display
         }

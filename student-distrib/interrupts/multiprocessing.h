@@ -71,7 +71,7 @@ typedef struct {
 #define TERMINAL_ALT_START 0xb9000
 #define TERMINAL_ALT_SIZE 0x1000
 
-extern terminal_t terminals[TERMINAL_COUNT];
+extern volatile terminal_t terminals[TERMINAL_COUNT];
 extern int32_t displayed_terminal_id;
 extern int32_t active_terminal_id;
 extern int32_t active_process_id;

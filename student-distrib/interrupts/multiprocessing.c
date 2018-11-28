@@ -3,7 +3,7 @@
 
 char program_header[PROGRAM_HEADER_LEN] = {0x7f, 0x45, 0x4c, 0x46};
 
-terminal_t terminals[TERMINAL_COUNT];
+volatile terminal_t terminals[TERMINAL_COUNT];
 
 int32_t displayed_terminal_id = 0;
 int32_t active_terminal_id = 0;
@@ -69,26 +69,25 @@ int32_t process_create(const char* command) {
         memcpy(argument, command + i + 1, j - i - 1);
     }
 
-    // Temporary file descriptor array for reading program files
-	fd_array_t fd_array[MAX_OPEN_FILES];
-	if(FAIL == unified_init(fd_array)) return FAIL;
-    int32_t fd;
-
-    // Check if file is a program
-    char buf[FILE_HEADER_LEN];
-    if(FAIL == (fd = unified_open(fd_array, (char*) filename))) return FAIL;
-    if(FAIL == unified_read(fd_array, fd, buf, PROGRAM_HEADER_LEN)) return FAIL;
-    if(fd_array[fd].pos != PROGRAM_HEADER_LEN) return FAIL;
-    if(0 != strncmp((char*) buf, program_header, PROGRAM_HEADER_LEN)) return FAIL;
-    if(FAIL == unified_close(fd_array, fd)) return FAIL;
-
     // Try to allocate PID for new process
     int32_t pid = process_allocate();
     if(-1 == pid) return FAIL;
+    process_t* process = process_get_pcb(pid);
+    if(FAIL == unified_init(process->fd_array)) return FAIL;
+
+    // Check if file is a program
+    char buf[FILE_HEADER_LEN];
+    int32_t fd;
+    if((FAIL == (fd = unified_open(process->fd_array, (char*) filename)))
+        || (FAIL == unified_read(process->fd_array, fd, buf, PROGRAM_HEADER_LEN))
+        || (process->fd_array[fd].pos != PROGRAM_HEADER_LEN)
+        || (0 != strncmp((char*) buf, program_header, PROGRAM_HEADER_LEN))
+        || (FAIL == unified_close(process->fd_array, fd))) {
+        process->present = 0;
+        return FAIL;
+    }
 
     // Create process structure
-    process_t* process = process_get_pcb(pid);
-    unified_init(process->fd_array);
     process->parent_pid = active_process_id;
     process->esp = USER_STACK_ADDR;
     process->ebp = USER_STACK_ADDR;
@@ -99,9 +98,9 @@ int32_t process_create(const char* command) {
 
     // Change paging configuration, load program
     process_switch_paging(pid);
-    if(FAIL == (fd = unified_open(fd_array, (char*) filename))) return FAIL;
-    if(FAIL == unified_read(fd_array, fd, (char*) USER_PROCESS_ADDR, PROGRAM_MAX_LEN)) return FAIL;
-    if(FAIL == unified_close(fd_array, fd)) return FAIL;
+    if(FAIL == (fd = unified_open(process->fd_array, (char*) filename))) return FAIL;
+    if(FAIL == unified_read(process->fd_array, fd, (char*) USER_PROCESS_ADDR, PROGRAM_MAX_LEN)) return FAIL;
+    if(FAIL == unified_close(process->fd_array, fd)) return FAIL;
     process->eip = (*(uint32_t*) (USER_PROCESS_ADDR + 24));
 
     process_t* ori_process = process_get_pcb(active_process_id);

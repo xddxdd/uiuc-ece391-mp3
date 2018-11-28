@@ -167,6 +167,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     init_paging();
     process_init();     // Initialize multiprocessing structures
+    rtc_init();         // Initialize RTC virtualization
     keyboard_clear();   // Clear boot message
     pit_init();         // PIT initializes after multiprocessing, as it does process switching
                         // otherwise system will triple fault
