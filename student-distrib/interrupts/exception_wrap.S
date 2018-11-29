@@ -26,7 +26,7 @@
         addl $4, %esp               ;\
         iret
 
-// Handlers for exceptions, simple prints out a string.
+// Handlers for exceptions.
 // Read ISA Reference Manual, Vol 3, 5.14 for what these exceptions are.
 EXCEPTION_WRAP    (exception_divide_by_zero,               0x00);
 EXCEPTION_WRAP    (exception_debug,                        0x01);

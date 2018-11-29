@@ -13,10 +13,12 @@ void speaker_init() {
  * @description: plays sound of specified frequency
  */
 void speaker_play(uint16_t hz) {
+    // Speaker is driven by PIT, and PIT uses frequency divider
+    // We calculate the interval to instruct PIT to generate a frequency
     uint16_t div = PIT_FREQUENCY / hz;
-    outb(0xb6, 0x43);
-    outb((uint8_t) div, 0x42);
-    outb((uint8_t) div >> 8, 0x42);
+    outb(SPEAKER_INIT, SPEAKER_PORT_CMD);
+    outb((uint8_t) div, SPEAKER_PORT_DATA);
+    outb((uint8_t) div >> 8, SPEAKER_PORT_DATA);
 }
 
 /* void speaker_play(uint16_t hz)
@@ -26,7 +28,7 @@ void speaker_play(uint16_t hz) {
  * @description: plays sound of specified frequency
  */
 void speaker_tune(uint8_t row, tune_t tune) {
-    printf("%d\n", note_tune(row, tune));
+    // printf("%d\n", note_tune(row, tune));
     speaker_play(note_tune(row, tune));
 }
 
@@ -35,9 +37,9 @@ void speaker_tune(uint8_t row, tune_t tune) {
  * @description: stops speaker playing sound
  */
 void speaker_mute() {
-    uint8_t data = inb(0x61);
-    data &= 0xfc;
-    outb(data, 0x61);
+    uint8_t data = inb(SPEAKER_PORT_CONF);
+    data &= SPEAKER_MASK_MUTE;
+    outb(data, SPEAKER_PORT_CONF);
 }
 
 /* void speaker_unmute()
@@ -45,7 +47,7 @@ void speaker_mute() {
  * @description: let speaker continue playing sound
  */
 void speaker_unmute() {
-    uint8_t data = inb(0x61);
-    data |= 0x03;
-    outb(data, 0x61);
+    uint8_t data = inb(SPEAKER_PORT_CONF);
+    data |= SPEAKER_MASK_UNMUTE;
+    outb(data, SPEAKER_PORT_CONF);
 }
