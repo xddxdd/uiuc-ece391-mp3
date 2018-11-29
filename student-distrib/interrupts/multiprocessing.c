@@ -61,6 +61,7 @@ int32_t process_create(const char* command) {
     // get filename and argument
     int i = 0;
     while(command[i] != STRING_END && command[i] != SPACE) i++;
+    if(i >= ECE391FS_MAX_FILENAME_LEN) return FAIL;
     memcpy(filename, command, i);
     if(command[i] == SPACE) {
         // command includes an argument
