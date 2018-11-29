@@ -9,22 +9,37 @@ int32_t displayed_terminal_id = 0;
 int32_t active_terminal_id = 0;
 int32_t active_process_id = -1;
 
+/* process_t* process_get_active_pcb()
+ * @output: returns the PCB of currently active process.
+ * @description: as stated above.
+ */
 process_t* process_get_active_pcb() {
     return process_get_pcb(active_process_id);
 }
 
+/* process_t* process_get_pcb(int32_t pid)
+ * @input: pid - the id of process we want the pcb for.
+ * @output: returns the PCB of process with given PID.
+ * @description: as stated above.
+ */
 process_t* process_get_pcb(int32_t pid) {
     if(pid < 0 || pid >= PROCESS_COUNT) return NULL;
     return (process_t*) (KERNEL_STACK_BASE_ADDR - (pid + 1) * USER_KMODE_STACK_SIZE);
 }
 
+/* void process_init()
+ * @output: multiprocessing structures get initialized
+ * @description: as stated above.
+ */
 void process_init() {
     int i;
     for(i = 0; i < PROCESS_COUNT; i++) {
+        // There's no process running initially
         process_t* process = process_get_pcb(i);
         process->present = 0;
     }
     for(i = 0; i < TERMINAL_COUNT; i++) {
+        // There's nothing on any terminal screen, no process running
         terminals[i].active_process = -1;
         terminals[i].screen_x = 0;
         terminals[i].screen_y = 0;
@@ -35,6 +50,10 @@ void process_init() {
     }
 }
 
+/* int32_t process_allocate()
+ * @output: a pid if can be allocated, otherwise -1 (FAIL).
+ * @description: find a free PID and reserves it for process creation.
+ */
 int32_t process_allocate() {
     int i;
     cli();
@@ -50,6 +69,13 @@ int32_t process_allocate() {
     return -1;
 }
 
+/* int32_t process_create(const char* command)
+ * @input: command - command entered via shell
+ * @output: current terminal switches to the command called,
+ *          or returns FAIL when the command is invalid
+ * @description: actual code for the execute system call,
+ *     creates a new process with given parameter and switches to it.
+ */
 int32_t process_create(const char* command) {
     if(NULL == command) return FAIL;
 
@@ -104,37 +130,66 @@ int32_t process_create(const char* command) {
     if(FAIL == unified_close(process->fd_array, fd)) return FAIL;
     process->eip = (*(uint32_t*) (USER_PROCESS_ADDR + 24));
 
+    // Save the kernel stack of current process
+    // Must be done directly in this function, or we'll screw up the kernel stack
+    //   and get a page fault when attempting to return to this process
     process_t* ori_process = process_get_pcb(active_process_id);
     if(NULL != ori_process) {
         asm volatile("movl %%esp, %0":"=r" (ori_process->esp));
         asm volatile("movl %%ebp, %0":"=r" (ori_process->ebp));
-        // printf("saved %d, esp %x, ebp %x\n", active_process_id, ori_process->esp, ori_process->ebp);
     }
 
+    // Switch over to the new process
     process_switch_context(pid);
+    // Nobody but GCC cares
     return SUCCESS;
 }
 
+/* int32_t process_halt(uint8_t status)
+ * @input: status - return code of the process.
+ * @output: system switch to process's parent, if there's any,
+ *          or recreate a shell if the process has no parent
+ * @description: return to the process's parent when a process
+ *     is done with its work. Can be called from the process itself
+ *     using system call, or can be called elsewhere (like interrupt handler)
+ *     to implement Ctrl+C, restart on exception, etc.
+ */
 int32_t process_halt(uint8_t status) {
     // extract current pcb
     process_t* process = process_get_pcb(active_process_id);
     if(NULL == process) return FAIL;
 
+    // Close all files on process halt, as required by gradesheet
+    fd_array_t* fd_array = process->fd_array;
+    int i;
+    for(i = 0; i < MAX_NUM_FD_ENTRY; i++) {
+        unified_close(fd_array, i);
+    }
+
     if(-1 == process->parent_pid) {
         // This process is shell, need to be restarted
+        // Remove this process from the terminal, making terminal empty
         process->present = 0;
         active_process_id = -1;
         terminals[active_terminal_id].active_process = -1;
+        // Create a new shell process.
+        // This call MUST BE directly in the halt call, not wrapped in subroutine
+        //     otherwise the structure of the kernel stack will be WRONG and system
+        //     will PAGE FAULT
         process_create("shell");
     } else {
+        // Prepare kernel stack of process's parent
         int32_t parent = process->parent_pid;
         process->present = 0;
         tss.esp0 = KERNEL_STACK_BASE_ADDR - parent * USER_KMODE_STACK_SIZE - 0x4;
+        // Regenerate paging configuration with stored params of parent
         process_switch_paging(parent);
         process = process_get_pcb(parent);
         if(NULL == process) return FAIL;
+        // Make parent proces active
         active_process_id = parent;
         terminals[active_terminal_id].active_process = parent;
+        // Switch kernel stack to parent process
         asm volatile ("         \n\
             movl %%ecx, %%esp   \n\
             movl %%edx, %%ebp   \n\
@@ -146,10 +201,21 @@ int32_t process_halt(uint8_t status) {
             : "b" (status), "c" (process->esp), "d" (process->ebp)
             : "eax", "ebp", "esp"
         );
+        // Simply do a return.
+        // The parent's stack here is preserved by execute call,
+        //     so this is equivalent to returning from the execute call.
+        // EAX stores return value of execute call, which is the status code.
     }
+    // Nobody but GCC cares
     return SUCCESS;
 }
 
+/* void process_switch_paging(int32_t pid)
+ * @input: pid - pid of process we're setting up paging for
+ * @output: paging configuration updated for process #pid
+ * @description: updates the PDE and PTE for execution of a process,
+ *     and applies the changes.
+ */
 void process_switch_paging(int32_t pid) {
     if(pid < 0 || pid >= PROCESS_COUNT) return;
     process_t* process = process_get_pcb(pid);
@@ -174,17 +240,22 @@ void process_switch_paging(int32_t pid) {
     page_directory[PD_index].pde_MB.pat = 0;
     page_directory[PD_index].pde_MB.reserved = 0;
     // physical address = PROCESS_PYSC_BASE_ADDR + process_count
+    // first process gets 8-12M, second 12-16M, etc.
     page_directory[PD_index].pde_MB.PB_addr = PROCESS_PYSC_BASE_ADDR + pid;
 
-    // Direct video mem R/W to main display / alt display based on terminal ids
+    // Redirect video mem R/W to main display / alt display based on terminal ids
     if(active_terminal_id == displayed_terminal_id) {
+        // This process is displayed on screen, let it directly operate on video mem
         page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
         page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_INDEX;
     } else {
+        // This process is hidden in background, redirect it elsewhere
         page_table[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
         page_table_usermap[VIDEO_MEM_INDEX].PB_addr = VIDEO_MEM_ALT_START + process->terminal;
     }
 
+    // Enable video memory map to userspace only when process asked to do so
+    // Other elements of this table is initialized in paging.c
     page_table_usermap[VIDEO_MEM_INDEX].present = process->vidmap;
 
     // flush the TLB by writing to the page directory base register (CR3)
@@ -197,14 +268,10 @@ void process_switch_paging(int32_t pid) {
     );
 }
 
-/*
- * void _execute_context_switch ()
- *    @description: helper function called by sytstem call execute()
- *                  to perform context switch
- *    @input: none
- *    @output: none
- *    @side effect: clobber some registers and flags (EIP, CS, EFLAGS, ESP, SS and DS)
- *                  modify TSS's ss0 and esp0
+/* void process_switch_context(int32_t pid)
+ * @input: pid - pid of process we're switching to
+ * @output: system start to execute another process
+ * @description: creates an artificial IRET stack and let the system run another process
  */
 void process_switch_context(int32_t pid) {
     // Switch the current process
@@ -232,9 +299,16 @@ void process_switch_context(int32_t pid) {
     );
 }
 
+/* void terminal_switch_active(uint32_t tid)
+ * @input: tid - id of terminal we're switching to
+ * @output: the process running on terminal #tid is put to active running
+ * @description: switch to process running on terminal #tid, to implement
+ *     multiprocessing with background process scheduling
+ */
 void terminal_switch_active(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
 
+    // Save the kernel stack of current process
     process_t* process = process_get_pcb(active_process_id);
     if(NULL != process) {
         asm volatile("movl %%esp, %0":"=r" (process->esp));
@@ -244,13 +318,15 @@ void terminal_switch_active(uint32_t tid) {
 
     cli();
     terminals[active_terminal_id].active_process = active_process_id;
-
+    // Switch to another terminal and corresponding process
     active_terminal_id = tid;
     active_process_id = terminals[tid].active_process;
     if(active_process_id == -1) {
+        // If nothing is running there, create a shell
         sti();
         process_create("shell");
     } else {
+        // Switch to that process, just as done in process_halt, except the status part
         tss.esp0 = KERNEL_STACK_BASE_ADDR - active_process_id * USER_KMODE_STACK_SIZE - 0x4;
         process_switch_paging(active_process_id);
         process_t* process = process_get_pcb(active_process_id);
@@ -267,12 +343,18 @@ void terminal_switch_active(uint32_t tid) {
         );
         sti();
     }
+    // If a Ctrl+C is scheduled but not yet done, kill the current process
     if(ctrl_c_pending && (active_terminal_id == displayed_terminal_id)) {
         ctrl_c_pending = 0;
         halt(255);
     }
 }
 
+/* void terminal_switch_display(uint32_t tid)
+ * @input: tid - id of terminal we're switching display to
+ * @output: displayed terminal switches to #tid
+ * @description: changes the terminal displayed on screen
+ */
 void terminal_switch_display(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
 
