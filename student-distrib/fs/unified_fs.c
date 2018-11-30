@@ -3,6 +3,7 @@
 #include "../devices/keyboard.h"
 #include "../devices/rtc.h"
 #include "../devices/tux.h"
+#include "../devices/cpuid.h"
 
 /* int32_t unified_init(fd_array_t* fd_array)
  * @input: fd_array - pointer to a file descriptor array
@@ -60,6 +61,9 @@ int32_t unified_open(fd_array_t* fd_array, const char* filename) {
     } else if(0 == strncmp("stdout", filename, 7)) {
         // Trying to open STDOUT
         fd_array[fd].interface = &terminal_stdout_if;
+    } else if(0 == strncmp("cpuid", filename, 6)) {
+        // Trying to open CPUID
+        fd_array[fd].interface = &cpuid_if;
     } else if(ECE391FS_CALL_SUCCESS == read_dentry_by_name((char*) filename, &finfo)) {
         // File exists in ECE391FS
         switch(finfo.type) {
