@@ -64,6 +64,9 @@ int32_t unified_open(fd_array_t* fd_array, const char* filename) {
     } else if(0 == strncmp("cpuid", filename, 6)) {
         // Trying to open CPUID
         fd_array[fd].interface = &cpuid_if;
+    } else if(0 == strncmp("cpuinfo", filename, 8)) {
+        // Trying to open CPUID
+        fd_array[fd].interface = &cpuid_if;
     } else if(ECE391FS_CALL_SUCCESS == read_dentry_by_name((char*) filename, &finfo)) {
         // File exists in ECE391FS
         switch(finfo.type) {

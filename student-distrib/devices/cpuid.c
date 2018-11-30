@@ -1,5 +1,66 @@
 #include "cpuid.h"
 
+// CPU Cache & TLB info lookup table
+char cpu_cache_tlb_index[] = {
+    0x01, 0x02, 0x03, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x22, 0x23, 0x25, 0x29,
+    0x2C, 0x30, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x50, 0x51, 0x52, 0x5B, 0x5C,
+    0x5D, 0x60, 0x66, 0x67, 0x68, 0x70, 0x71, 0x72, 0x78, 0x79, 0x7A, 0x7B, 0x7C,
+    0x7D, 0x7F, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0xB0, 0xB3, 0xF0, 0xF1, 0x00
+};
+char cpu_cache_tlb_lookup[][80] = {
+    {"Instruction TLB: 4KB Pages, 4-way set associative, 32 entries"},
+    {"Instruction TLB: 4MB Pages, 4-way set associative, 2 entries"},
+    {"Data TLB: 4KB Pages, 4-way set associative, 64 entries"},
+    {"Data TLB: 4MB Pages, 4-way set associative, 8 entries"},
+    {"L1 instruction cache: 8KB, 4-way set associative, 32B line size"},
+    {"L1 instruction cache: 16KB, 4-way set associative, 32B line size"},
+    {"L1 data cache: 8KB, 2-way set associative, 32B line size"},
+    {"L1 data cache: 16KB, 4-way set associative, 32B line size"},
+    {"L3 cache: 512KB, 4-way set associative, 64B line size, 2 lines per sector"},
+    {"L3 cache: 1MB, 8-way set associative, 64B line size, 2 lines per sector"},
+    {"L3 cache: 2MB, 8-way set associative, 64B line size, 2 lines per sector"},
+    {"L3 cache: 4MB, 8-way set associative, 64B line size, 2 lines per sector"},
+    {"L1 data cache: 32KB, 8-way set associative, 64B line size"},
+    {"L1 instruction cache: 32KB, 8-way set associative, 64B line size"},
+    {"No L2 cache or, if processor contains a valid L2 cache, no L3 cache"},
+    {"L2 cache: 128KB, 4-way set associative, 32B line size"},
+    {"L2 cache: 256KB, 4-way set associative, 32B line size"},
+    {"L2 cache: 512KB, 4-way set associative, 32B line size"},
+    {"L2 cache: 1MB, 4-way set associative, 32B line size"},
+    {"L2 cache: 2MB, 4-way set associative, 32B line size"},
+    {"Instruction TLB: 4KB and 2MB or 4MB pages, 64 entries"},
+    {"Instruction TLB: 4KB and 2MB or 4MB pages, 128 entries"},
+    {"Instruction TLB: 4KB and 2MB or 4MB pages, 256 entries"},
+    {"Data TLB: 4KB and 4MB pages, 64 entries"},
+    {"Data TLB: 4KB and 4MB pages, 128 entries"},
+    {"Data TLB: 4KB and 4MB pages, 256 entries"},
+    {"L1 data cache: 16KB, 8-way set associative, 64B line size"},
+    {"L1 data cache: 8KB, 4-way set associative, 64B line size"},
+    {"L1 data cache: 16KB, 4-way set associative, 64B line size"},
+    {"L1 data cache: 32KB, 4-way set associative, 64B line size"},
+    {"Trace cache: 12 K, 8-way set associative"},
+    {"Trace cache: 16 K, 8-way set associative"},
+    {"Trace cache: 32 K, 8-way set associative"},
+    {"L2 cache: 1MB, 4-way set associative, 64B line size"},
+    {"L2 cache: 128KB, 8-way set associative, 64B line size, 2 lines per sector"},
+    {"L2 cache: 256KB, 8-way set associative, 64B line size, 2 lines per sector"},
+    {"L2 cache: 512KB, 8-way set associative, 64B line size, 2 lines per sector"},
+    {"L2 cache: 1MB, 8-way set associative, 64B line size, 2 lines per sector"},
+    {"L2 cache: 2MB, 8-way set associative, 64B line size"},
+    {"L2 cache: 512KB, 2-way set associative, 64B line size"},
+    {"L2 cache: 256KB, 8-way set associative, 32B line size"},
+    {"L2 cache: 512KB, 8-way set associative, 32B line size"},
+    {"L2 cache: 1MB, 8-way set associative, 32B line size"},
+    {"L2 cache: 2MB, 8-way set associative, 32B line size"},
+    {"L2 cache: 512KB, 4-way set associative, 64B line size"},
+    {"L2 cache: 1MB, 8-way set associative, 64B line size"},
+    {"Instruction TLB: 4KB Pages, 4-way set associative, 128 entries"},
+    {"Data TLB: 4KB Pages, 4-way set associative, 128 entries"},
+    {"64-Byte Prefetching"},
+    {"128-Byte Prefetching"},
+};
+
+// Global information about CPU
 cpu_t cpu_info;
 
 /* cpuid_t cpuid(int32_t eax)
@@ -11,7 +72,7 @@ cpuid_t cpuid(int32_t eax) {
     cpuid_t ret;
     asm volatile("cpuid"
                  : "=a"(ret.eax), "=b"(ret.ebx), "=c"(ret.ecx), "=d"(ret.edx)
-                 : "a"(eax)
+                 : "a"(eax), "b"(0), "c"(0), "d"(0)
     );
     return ret;
 }
@@ -31,7 +92,6 @@ void cpuid_init() {
     for(mask = 0; mask < 32; mask += 8) cpu_info.brand[i++] = ((ret.ebx >> mask) & 0xff);
     for(mask = 0; mask < 32; mask += 8) cpu_info.brand[i++] = ((ret.edx >> mask) & 0xff);
     for(mask = 0; mask < 32; mask += 8) cpu_info.brand[i++] = ((ret.ecx >> mask) & 0xff);
-    // puts(cpu_info.brand);
 
     // Handle cpuid 1
     if(cpu_info.max_id_basic >= 1) {
@@ -40,6 +100,11 @@ void cpuid_init() {
         cpu_info.topology.val = ret.ebx;
         cpu_info.features_ext.val = ret.ecx;
         cpu_info.features.val = ret.edx;
+    } else {
+        cpu_info.version.val = 0;
+        cpu_info.topology.val = 0;
+        cpu_info.features_ext.val = 0;
+        cpu_info.features.val = 0;
     }
 
     // Handle cpuid 2
@@ -52,18 +117,47 @@ void cpuid_init() {
         for(i = 0; i < max_times; i++) {
             ret = cpuid(2);
             if(0 == (ret.eax & 0x80000000)) {
-                for(mask = 8; mask < 32; mask += 8) cpu_info.cache[offset++] = ((ret.eax >> mask) & 0xff);
+                for(mask = 8; mask < 32; mask += 8) {
+                    if(0 == ((ret.eax >> mask) & 0xff)) continue;
+                    cpu_info.cache[offset++] = ((ret.eax >> mask) & 0xff);
+                }
             }
             if(0 == (ret.ebx & 0x80000000)) {
-                for(mask = 0; mask < 32; mask += 8) cpu_info.cache[offset++] = ((ret.ebx >> mask) & 0xff);
+                for(mask = 0; mask < 32; mask += 8) {
+                    if(0 == ((ret.ebx >> mask) & 0xff)) continue;
+                    cpu_info.cache[offset++] = ((ret.ebx >> mask) & 0xff);
+                }
             }
             if(0 == (ret.ecx & 0x80000000)) {
-                for(mask = 0; mask < 32; mask += 8) cpu_info.cache[offset++] = ((ret.ecx >> mask) & 0xff);
+                for(mask = 0; mask < 32; mask += 8) {
+                    if(0 == ((ret.ecx >> mask) & 0xff)) continue;
+                    cpu_info.cache[offset++] = ((ret.ecx >> mask) & 0xff);
+                }
             }
             if(0 == (ret.edx & 0x80000000)) {
-                for(mask = 0; mask < 32; mask += 8) cpu_info.cache[offset++] = ((ret.edx >> mask) & 0xff);
+                for(mask = 0; mask < 32; mask += 8) {
+                    if(0 == ((ret.edx >> mask) & 0xff)) continue;
+                    cpu_info.cache[offset++] = ((ret.edx >> mask) & 0xff);
+                }
             }
         }
+        cpu_info.cache_len = offset;
+
+        // Do a bubble sort on these attributes
+        int i = 0;
+        int j = 0;
+        for(i = 0; i < offset - 1; i++) {
+            for(j = 0; j < offset - 1 - i; j++) {
+                if(cpu_info.cache[j] > cpu_info.cache[j + 1]) {
+                    int8_t t = cpu_info.cache[j];
+                    cpu_info.cache[j] = cpu_info.cache[j + 1];
+                    cpu_info.cache[j + 1] = t;
+                }
+            }
+        }
+    } else {
+        memset(cpu_info.cache, 0, CPUID_CACHE_INFO_LEN);
+        cpu_info.cache_len = 0;
     }
 
     // CPUID 3 is for Pentium III only, not implemented
@@ -74,6 +168,10 @@ void cpuid_init() {
         cpu_info.cache_detail.val = ret.eax;
         cpu_info.topology_detail.val = ret.ebx;
         cpu_info.num_of_sets = ret.ecx;
+    } else {
+        cpu_info.cache_detail.val = 0;
+        cpu_info.topology_detail.val = 0;
+        cpu_info.num_of_sets = 0;
     }
 
     // Handle cpuid 5
@@ -81,6 +179,21 @@ void cpuid_init() {
         ret = cpuid(5);
         cpu_info.min_mon_line_size = (uint16_t) ret.eax;
         cpu_info.max_mon_line_size = (uint16_t) ret.ebx;
+    } else {
+        cpu_info.min_mon_line_size = 0;
+        cpu_info.max_mon_line_size = 0;
+    }
+
+    // Handle cpuid 7
+    if(cpu_info.max_id_basic >= 7) {
+        ret = cpuid(7);
+        cpu_info.features_ext2_ebx.val = ret.ebx;
+        cpu_info.features_ext2_ecx.val = ret.ecx;
+        cpu_info.features_ext2_edx.val = ret.edx;
+    } else {
+        cpu_info.features_ext2_ebx.val = 0;
+        cpu_info.features_ext2_ecx.val = 0;
+        cpu_info.features_ext2_edx.val = 0;
     }
 
     // Handle cpuid extended 0
@@ -182,22 +295,53 @@ int32_t cpuid_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
             break;
         case 4:
             APPEND_BUFFER("Features: ");
-            CHECK_FEATURE(cpu_info.features.fpu,        "FPU ");
-            CHECK_FEATURE(cpu_info.features.pae,        "PAE ");
-            CHECK_FEATURE(cpu_info.features.acpi,       "ACPI ");
-            CHECK_FEATURE(cpu_info.features.apic,       "APIC ");
-            CHECK_FEATURE(cpu_info.features.mmx,        "MMX ");
-            CHECK_FEATURE(cpu_info.features.sse,        "SSE ");
-            CHECK_FEATURE(cpu_info.features.sse2,       "SSE2 ");
-            CHECK_FEATURE(cpu_info.features_ext.sse3,   "SSE3 ");
-            CHECK_FEATURE(cpu_info.features.htt,        "HyperThread ");
-            CHECK_FEATURE(cpu_info.features_ext.est,    "EnhancedSpeedStep ");
+            CHECK_FEATURE(cpu_info.features.fpu,                "FPU ");
+            CHECK_FEATURE(cpu_info.features.pae,                "PAE ");
+            CHECK_FEATURE(cpu_info.features.acpi,               "ACPI ");
+            CHECK_FEATURE(cpu_info.features.apic,               "APIC ");
+            CHECK_FEATURE(cpu_info.features.htt,                "HyperThread ");
+            CHECK_FEATURE(cpu_info.features_ext.est,            "EnhancedSpeedStep ");
+            break;
+        case 5:
+            CHECK_FEATURE(cpu_info.features.mmx,                "MMX ");
+            CHECK_FEATURE(cpu_info.features.sse,                "SSE ");
+            CHECK_FEATURE(cpu_info.features.sse2,               "SSE2 ");
+            CHECK_FEATURE(cpu_info.features_ext.sse3,           "SSE3 ");
+            CHECK_FEATURE(cpu_info.features_ext.sse41,          "SSE4.1 ");
+            CHECK_FEATURE(cpu_info.features_ext.sse42,          "SSE4.2 ");
+            CHECK_FEATURE(cpu_info.features_ext.avx,            "AVX ");
+            CHECK_FEATURE(cpu_info.features_ext2_ebx.avx2,      "AVX2 ");
+            CHECK_FEATURE(cpu_info.features_ext2_ebx.avx512f,   "AVX512 ");
+            break;
+        case 6:
+            CHECK_FEATURE(cpu_info.features_ext.aes,            "AES ");
+            CHECK_FEATURE(cpu_info.features_ext.rdrnd,          "RDRAND ");
+            CHECK_FEATURE(cpu_info.features_ext.vmx,            "VMX ");
+            CHECK_FEATURE(cpu_info.features_ext2_ebx.sha,       "SHA ");
             tmp[pos++] = '\n';
             break;
+        case 7:
+            APPEND_BUFFER("Cache & TLB Descriptors:");
+            break;
+        default:
+            if(*offset - 8 < cpu_info.cache_len) {
+                uint8_t feature_id = cpu_info.cache[*offset - 8];
+                uint8_t i = 0;
+                while(cpu_cache_tlb_index[i] != feature_id && cpu_cache_tlb_index[i] != 0) i++;
+                if(cpu_cache_tlb_index[i] == 0) {
+                    // Cannot find description in table
+                    tmp[pos++] = ' ';
+                } else {
+                    APPEND_BUFFER("\n- ");
+                    APPEND_BUFFER(cpu_cache_tlb_lookup[i]);
+                }
+            } else if(*offset - 8 == cpu_info.cache_len) {
+                tmp[pos++] = '\n';
+            }
     }
     (*offset) ++;
     memcpy(buf, tmp, strlen(tmp) + 1);
-    return strlen(tmp);
+    return pos;
 }
 
 /* int32_t cpuid_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
