@@ -3,6 +3,7 @@
  */
 
 #include "paging.h"
+#include "devices/acpi.h"
 
 /* void init_paging()
  * @output: page table and page directory initialized.
@@ -18,11 +19,12 @@ void init_paging()
     {
         // initially, clear all flags
         page_table[index].present
-            = ((index == VIDEO_MEM_INDEX) ||
-                (index == VIDEO_MEM_DIRECT_INDEX) ||
-                (index >= VIDEO_MEM_ALT_START && index < VIDEO_MEM_ALT_END) ||
-                (index >= SB16_MEM_BEGIN && index < SB16_MEM_END))
-                ? 1 : 0;
+            = ((index == VIDEO_MEM_INDEX)
+                || (index == VIDEO_MEM_DIRECT_INDEX)
+                || (index >= VIDEO_MEM_ALT_START && index < VIDEO_MEM_ALT_END)
+                || (index >= SB16_MEM_BEGIN && index < SB16_MEM_END)
+                || (index >= ACPI_MEM_BEGIN && index < ACPI_MEM_BEGIN)
+            ) ? 1 : 0;
         page_table[index].read_write = 0;
         page_table[index].user_supervisor = 0;
         page_table[index].write_through = 0;
@@ -97,14 +99,20 @@ void init_paging()
     for (index = 2; index < NUM_PDE; index++)
     {
         if(index == PAGE_TABLE_USERMAP_LOCATION) continue;
-        page_directory[index].pde_MB.present = 0;
+        // Enable paging present for ACPI related data structures
+        page_directory[index].pde_MB.present = (
+            (index == ((int32_t) rsdp_descriptor >> TB_ADDR_OFFSET_MB))
+            || (index == ((int32_t) rsdt >> TB_ADDR_OFFSET_MB))
+            || (index == ((int32_t) fadt >> TB_ADDR_OFFSET_MB))
+            || (index == ((int32_t) dsdt_s5 >> TB_ADDR_OFFSET_MB))
+        ) ? 1 : 0;
         page_directory[index].pde_MB.read_write = 0;
         page_directory[index].pde_MB.user_supervisor = 0;
         page_directory[index].pde_MB.write_through = 0;
         page_directory[index].pde_MB.cache_disabled = 0;
         page_directory[index].pde_MB.accessed = 0;
         page_directory[index].pde_MB.dirty = 0;
-        page_directory[index].pde_MB.page_size = 0;
+        page_directory[index].pde_MB.page_size = 1;
         page_directory[index].pde_MB.global = 0;
         page_directory[index].pde_MB.avail = 0;
         page_directory[index].pde_MB.pat = 0;

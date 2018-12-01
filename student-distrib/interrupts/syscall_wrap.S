@@ -13,7 +13,7 @@ syscall_wrap:
 
     cmp $1, %eax
     jl invalid_syscall
-    cmp $11, %eax
+    cmp $13, %eax
     jg invalid_syscall
 
     movl syscall_jumptable(, %eax, 4), %eax
@@ -36,14 +36,16 @@ end_syscall:
 
 syscall_jumptable:
     .long 0x0
-    .long halt
-    .long execute
-    .long read
-    .long write
-    .long open
-    .long close
-    .long getargs
-    .long vidmap
-    .long set_handler
-    .long sigreturn
-    .long ioctl
+    .long syscall_halt
+    .long syscall_execute
+    .long syscall_read
+    .long syscall_write
+    .long syscall_open
+    .long syscall_close
+    .long syscall_getargs
+    .long syscall_vidmap
+    .long syscall_set_handler
+    .long syscall_sigreturn
+    .long syscall_ioctl
+    .long syscall_shutdown
+    .long syscall_reboot

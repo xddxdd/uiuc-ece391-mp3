@@ -75,7 +75,7 @@ void keyboard_interrupt() {
             if(displayed_terminal_id == active_terminal_id) {
                 sti();  // Restore interrupt, usually done in asm wrapper,
                         // but done manually here as we don't return to it anymore
-                halt(255);  // 255 is return code, indicate that process exited abnormally
+                syscall_halt(255);  // 255 is return code, indicate that process exited abnormally
             } else {
                 ctrl_c_pending = 1;
             }

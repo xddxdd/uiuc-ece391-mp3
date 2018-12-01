@@ -12,6 +12,7 @@
 // Some constants
 // Table address offset
 #define TB_ADDR_OFFSET    12
+#define TB_ADDR_OFFSET_MB 22
 #define VIDEO_MEM_INDEX   0xb8      // 0xb8000 >> 12
 #define VIDEO_MEM_DIRECT_INDEX 0xb7 // Index used to directly access video mem
 
@@ -22,6 +23,10 @@
 // Memory space for Sound Blaster 16. Takes 64KB space.
 #define SB16_MEM_BEGIN 0x10 // 0x10000 >> 12
 #define SB16_MEM_END 0x20   // 0x20000 >> 12
+
+// Memory space for searching ACPI data. Takes 128KB space.
+#define ACPI_MEM_BEGIN 0xe0 // 0xe0000 >> 12
+#define ACPI_MEM_END 0x100  // 0x100000 >> 12
 
 #define PAGE_TABLE_USERMAP_LOCATION 33  // 132-136M
 

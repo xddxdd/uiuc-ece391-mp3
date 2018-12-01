@@ -1,12 +1,13 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib/lib.h"
-#include "devices/rtc.h"	// Added by jinghua3.
 #include "fs/ece391fs.h"
+#include "fs/unified_fs.h"
+#include "devices/rtc.h"	// Added by jinghua3.
 #include "devices/sb16.h"
 #include "devices/keyboard.h"
 #include "interrupts/sys_calls.h"
-#include "fs/unified_fs.h"
+#include "interrupts/multiprocessing.h"
 
 #define SCANCODE_ENTER 0x1C
 
@@ -621,7 +622,7 @@ int syscall_execute_test()
 	// to be added
 	char* command = "testprint";
 	printf("command is %s\n", command);
-	execute ((uint8_t*)command);
+	syscall_execute ((uint8_t*)command);
 	return PASS;
 }
 

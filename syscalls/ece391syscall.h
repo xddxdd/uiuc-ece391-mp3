@@ -22,6 +22,8 @@ extern int32_t ece391_vidmap (uint8_t** screen_start);
 extern int32_t ece391_set_handler (int32_t signum, void* handler);
 extern int32_t ece391_sigreturn (void);
 extern int32_t ece391_ioctl (int32_t fd, int32_t op);
+extern int32_t ece391_shutdown (void);
+extern int32_t ece391_reboot (void);
 
 enum signums {
 	DIV_ZERO = 0,

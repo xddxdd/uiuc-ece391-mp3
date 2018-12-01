@@ -12,5 +12,7 @@
 #define SYS_SET_HANDLER  9
 #define SYS_SIGRETURN  10
 #define SYS_IOCTL  11
+#define SYS_SHUTDOWN 12
+#define SYS_REBOOT 13
 
 #endif /* ECE391SYSNUM_H */

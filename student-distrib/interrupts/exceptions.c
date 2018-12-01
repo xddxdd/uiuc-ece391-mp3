@@ -107,5 +107,5 @@ void exception_handler_real(uint32_t id, pushal_t pushal, uint32_t err_code, ire
     sti();
 
     // Kill the current process
-    halt(255);
+    syscall_halt(255);
 }

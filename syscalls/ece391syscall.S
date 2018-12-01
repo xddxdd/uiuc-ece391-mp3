@@ -28,6 +28,8 @@ DO_CALL(ece391_vidmap,SYS_VIDMAP)
 DO_CALL(ece391_set_handler,SYS_SET_HANDLER)
 DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 DO_CALL(ece391_ioctl,SYS_IOCTL)
+DO_CALL(ece391_shutdown,SYS_SHUTDOWN)
+DO_CALL(ece391_reboot,SYS_REBOOT)
 
 
 /* Call the main() function, then halt with its return value. */

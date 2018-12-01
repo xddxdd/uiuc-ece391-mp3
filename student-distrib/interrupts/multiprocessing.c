@@ -349,7 +349,7 @@ void terminal_switch_active(uint32_t tid) {
     // If a Ctrl+C is scheduled but not yet done, kill the current process
     if(ctrl_c_pending && (active_terminal_id == displayed_terminal_id)) {
         ctrl_c_pending = 0;
-        halt(255);
+        syscall_halt(255);
     }
 }
 

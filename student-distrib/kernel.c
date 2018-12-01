@@ -9,6 +9,7 @@
 #include "lib/debug.h"
 #include "tests.h"
 
+#include "devices/acpi.h"
 #include "devices/cpuid.h"
 #include "devices/keyboard.h"
 #include "devices/rtc.h"
@@ -159,6 +160,7 @@ void entry(unsigned long magic, unsigned long addr) {
      * PIC, any other initialization stuff... */
     // Only keyboard intialization & CPUID init is needed here,
     // all other devices are auto initialized when used
+    acpi_init();
     cpuid_init();
     keyboard_init();
     // rtc_init();

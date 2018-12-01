@@ -97,15 +97,15 @@ int main() {
 	// Copy over first chunk of music
 	int32_t size;
     int i;
-	size = ece391_read(wav_fd, sb16_buf, TEST_SB16_CHUNK_SIZE);
+	size = ece391_read(wav_fd, sb16_buf, SB16_CHUNK_SIZE);
 	if(size <= 0) return 4;
-    for(i = size; i < TEST_SB16_CHUNK_SIZE; i++) sb16_buf[i] = 0;
+    for(i = size; i < SB16_CHUNK_SIZE; i++) sb16_buf[i] = 0;
 	if(size != ece391_write(aux_fd, sb16_buf, size)) return 5;
 
 	// Copy over second chunk
-	size = ece391_read(wav_fd, sb16_buf, TEST_SB16_CHUNK_SIZE);
+	size = ece391_read(wav_fd, sb16_buf, SB16_CHUNK_SIZE);
 	if(size < 0) return 6;
-    for(i = size; i < TEST_SB16_CHUNK_SIZE; i++) sb16_buf[i] = 0;
+    for(i = size; i < SB16_CHUNK_SIZE; i++) sb16_buf[i] = 0;
 	if(size > 0) {
 		if(size != ece391_write(aux_fd, sb16_buf, size)) return 7;
 	}
@@ -117,8 +117,8 @@ int main() {
 	if(-1 == ece391_ioctl(aux_fd, SB16_CMD_PLAY)) return 8;
 	if(-1 == ece391_ioctl(aux_fd,
         (wav_header.numChannels == 2 ? SB16_MODE_STEREO : SB16_MODE_MONO) | SB16_MODE_UNSIGNED)) return 8;
-	if(-1 == ece391_ioctl(aux_fd, (TEST_SB16_CHUNK_SIZE - 1) & 0xff)) return 8;
-	if(-1 == ece391_ioctl(aux_fd, ((TEST_SB16_CHUNK_SIZE - 1) >> 8) & 0xff)) return 8;
+	if(-1 == ece391_ioctl(aux_fd, (SB16_CHUNK_SIZE - 1) & 0xff)) return 8;
+	if(-1 == ece391_ioctl(aux_fd, ((SB16_CHUNK_SIZE - 1) >> 8) & 0xff)) return 8;
 
 	// Continue playing the following blocks
 	while(1) {
@@ -128,13 +128,13 @@ int main() {
 		if(-1 == ece391_ioctl(aux_fd, SB16_CMD_EXIT_AFTER_BLOCK)) return 10;
 
 		// Read the next chunk of data, copy into block correspondingly
-		size = ece391_read(wav_fd, sb16_buf, TEST_SB16_CHUNK_SIZE);
-        for(i = size; i < TEST_SB16_CHUNK_SIZE; i++) sb16_buf[i] = 0;
+		size = ece391_read(wav_fd, sb16_buf, SB16_CHUNK_SIZE);
+        for(i = size; i < SB16_CHUNK_SIZE; i++) sb16_buf[i] = 0;
 		if(size < 0) return 4;	// FS error occured
 		if(size == 0) break;		// Music has finished
 		if(size != ece391_write(aux_fd, sb16_buf, size)) return 11;
 		if(-1 == ece391_ioctl(aux_fd, SB16_CMD_CONTINUE)) return 12;
-		if(size < TEST_SB16_CHUNK_SIZE) {
+		if(size < SB16_CHUNK_SIZE) {
 			// Wait until second last block finished
 			if(-1 == ece391_read(aux_fd, (char*) 0, 0)) return 13;
 			// The remaining data isn't sufficient for one block
