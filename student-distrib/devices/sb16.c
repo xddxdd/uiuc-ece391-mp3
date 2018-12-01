@@ -64,6 +64,12 @@ unified_fs_interface_t sb16_if = {
     .close = sb16_close
 };
 
+/* int32_t sb16_open(int32_t* inode, char* filename)
+ * @input: all ignored
+ * @output: sound blaster 16 initialized and locked for exclusive use
+ *          ret val - SUCCESS / FAIL
+ * @description: initializes sound blaster 16 for audio output.
+ */
 int32_t sb16_open(int32_t* inode, char* filename) {
     if(FAIL == sb16_init()) return FAIL;
     cli();
@@ -76,8 +82,8 @@ int32_t sb16_open(int32_t* inode, char* filename) {
     return SUCCESS;
 }
 
-/* int32_t sb16_read()
- * @output: function waits after next SB16 interrupt occurs.
+/* int32_t sb16_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @output: waits after next SB16 interrupt occurs.
  *          ret val - SUCCESS / FAIL
  * @description: wait until next SB16 interrupt, so we can copy
  *     the next block of music into buffer.
@@ -89,6 +95,14 @@ int32_t sb16_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
     return SUCCESS;
 }
 
+/* int32_t sb16_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
+ * @input: offset - current pos in SB16 buffer
+ *         buf - data to be copied into
+ *         len - length of buf
+ * @output: SB16 buffer written with data from buf
+ *          ret val - SUCCESS / FAIL
+ * @description: copy audio segment into sound blaster 16's buffer.
+ */
 int32_t sb16_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
     if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
     if(NULL == buf) return FAIL;
@@ -105,12 +119,25 @@ int32_t sb16_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t l
     return len;
 }
 
+/* int32_t sb16_ioctl(int32_t* inode, uint32_t* offset, int32_t op)
+ * @input: op - command to be sent to sound blaster 16
+ * @output: command sent to sound blaster 16
+ *          ret val - SUCCESS / FAIL
+ * @description: sends command to control sound blaster 16.
+ *     used for pausing, resuming, setting params, etc.
+ */
 int32_t sb16_ioctl(int32_t* inode, uint32_t* offset, int32_t op) {
     if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
     outb((uint8_t) op, SB16_PORT_WRITE);
     return SUCCESS;
 }
 
+/* int32_t sb16_close(int32_t* inode)
+ * @input: all ignored
+ * @output: sound blaster 16 lock released for other program's use
+ *          ret val - SUCCESS / FAIL
+ * @description: releases lock on sound blaster 16.
+ */
 int32_t sb16_close(int32_t* inode) {
     if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
     // outb(SB16_CMD_PAUSE, SB16_PORT_WRITE);
