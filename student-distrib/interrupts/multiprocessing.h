@@ -88,4 +88,6 @@ void process_switch_context(int32_t pid);
 void terminal_switch_active(uint32_t tid);
 void terminal_switch_display(uint32_t tid);
 
+void executable_patching(const char* process);
+
 #endif

@@ -130,6 +130,9 @@ int32_t process_create(const char* command) {
     if(FAIL == unified_close(process->fd_array, fd)) return FAIL;
     process->eip = (*(uint32_t*) (USER_PROCESS_ADDR + 24));
 
+    // Patch program
+    executable_patching((char*) filename);
+
     // Save the kernel stack of current process
     // Must be done directly in this function, or we'll screw up the kernel stack
     //   and get a page fault when attempting to return to this process
@@ -381,4 +384,44 @@ void terminal_switch_display(uint32_t tid) {
     active_terminal_id = tmp;
 
     sti();  // End critical section
+}
+
+/* void executable_patching(const char* process)
+ * @input: process - process name to be patched
+ * @output: some code in process gets replaced
+ * @description: patches process on execution, now used to replace shell prompt.
+ */
+void executable_patching(const char* process) {
+    if(NULL == process) return;
+    int pos, i;
+    if(0 == strncmp(process, "shell", 6)) {
+        // Change shell prompt from 391OS to nulsh
+        {
+            char needle[]  = "391OS> ";
+            char replace[] = "nulsh> ";
+            int needle_len = 7;
+            for(pos = USER_PROCESS_ADDR; pos < USER_PROCESS_ADDR + PROGRAM_MAX_LEN - needle_len; pos++) {
+                if(0 == strncmp((char*) pos, needle, needle_len)) {
+                    for(i = 0; i < needle_len; i++) {
+                        *(char*) (pos + i) = replace[i];
+                    }
+                    break;
+                }
+            }
+        }
+        // Change shell start prompt to refer to nullOS
+        {
+            char needle[]  = "Starting 391 Shell";
+            char replace[] = "load nullOS shell ";
+            int needle_len = 18;
+            for(pos = USER_PROCESS_ADDR; pos < USER_PROCESS_ADDR + PROGRAM_MAX_LEN - needle_len; pos++) {
+                if(0 == strncmp((char*) pos, needle, needle_len)) {
+                    for(i = 0; i < needle_len; i++) {
+                        *(char*) (pos + i) = replace[i];
+                    }
+                    break;
+                }
+            }
+        }
+    }
 }
