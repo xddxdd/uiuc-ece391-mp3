@@ -74,7 +74,7 @@ int8_t serial_is_available_tx(uint8_t id) {
 int8_t serial_read(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return FAIL;
     uint16_t port = serial_ports[id];
-    while(!serial_is_available_rx(id));
+    while(!serial_is_available_rx(id)) wait_interrupt();
     return inb(port + SERIAL_REG_OFFSET_DATA);
 }
 

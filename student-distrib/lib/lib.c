@@ -21,6 +21,14 @@ void infinite_loop() {
     asm volatile (".1: hlt; jmp .1;");
 }
 
+/* void wait_interrupt()
+ * @description: halt the CPU until next interrupt occurs.
+ *     used to save some power.
+ */
+void wait_interrupt() {
+    asm volatile("hlt");
+}
+
 /* void clear(void);
  * Inputs: void
  * Return Value: none

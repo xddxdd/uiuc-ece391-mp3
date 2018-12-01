@@ -76,7 +76,7 @@ int32_t rtc_open(int32_t* inode, char* filename) {
 int32_t rtc_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
 {
     *offset = *inode;
-    while(*offset > 0);
+    while(*offset > 0) wait_interrupt();
     return 0;
 }
 

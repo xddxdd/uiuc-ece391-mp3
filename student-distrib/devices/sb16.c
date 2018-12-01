@@ -1,8 +1,7 @@
 #include "sb16.h"
 #include "i8259.h"
 
-uint8_t sb16_here = 0;          // Whether SB16 has been initialized
-uint8_t sb16_used = 0;          // Whether SB16 is being used exclusively
+volatile uint8_t sb16_used = 0;          // Whether SB16 is being used exclusively
 volatile uint8_t sb16_interrupted = 0;   // Interrupt counter, used for sb16_read()
 
 /* int32_t sb16_init()
@@ -11,23 +10,26 @@ volatile uint8_t sb16_interrupted = 0;   // Interrupt counter, used for sb16_rea
  * @description: Initialize Sound Blaster 16 sound card.
  */
 int32_t sb16_init() {
-    if(sb16_here) return SUCCESS; // Don't initialize again
-
     // Sound Blaster 16 initialization sequence,
     // as described in the code in https://wiki.osdev.org/Sound_Blaster_16
     cli();
+    if(sb16_used) {
+        sti();
+        return FAIL;
+    }
     outb(1, SB16_PORT_RESET);   // Enter reset mode
     int i = 0;                  // Wait 10000 cycles,
     for(i = 0; i < 10000; i++); // around 3us assuming 3GHz CPU
     outb(0, SB16_PORT_RESET);   // Leave reset mode
     // Verify if SB16 is present
     uint8_t data = inb(SB16_PORT_READ);
-    sb16_here = data == SB16_STATUS_READY;
-    sti();
 
-    if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
+    if(data != SB16_STATUS_READY) {     // If SB16 isn't present, quit
+        sti();
+        return FAIL;
+    }
+    sb16_used = 1;
 
-    cli();
     enable_irq(SB16_IRQ);   // Enable its IRQ for music transmission
 
     // DMA initialization
@@ -71,15 +73,7 @@ unified_fs_interface_t sb16_if = {
  * @description: initializes sound blaster 16 for audio output.
  */
 int32_t sb16_open(int32_t* inode, char* filename) {
-    if(FAIL == sb16_init()) return FAIL;
-    cli();
-    if(sb16_used) {
-        sti();
-        return FAIL;
-    }
-    sb16_used = 1;
-    sti();
-    return SUCCESS;
+    return sb16_init();
 }
 
 /* int32_t sb16_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
@@ -89,9 +83,9 @@ int32_t sb16_open(int32_t* inode, char* filename) {
  *     the next block of music into buffer.
  */
 int32_t sb16_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
-    if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
+    if(!sb16_used) return FAIL;   // If SB16 isn't present, quit
     uint8_t prev_id = sb16_interrupted;
-    while(prev_id == sb16_interrupted); // Wait until the interrupt state changed
+    while(prev_id == sb16_interrupted) wait_interrupt();    // Wait until the interrupt state changed
     return SUCCESS;
 }
 
@@ -104,7 +98,7 @@ int32_t sb16_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
  * @description: copy audio segment into sound blaster 16's buffer.
  */
 int32_t sb16_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
-    if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
+    if(!sb16_used) return FAIL;   // If SB16 isn't present, quit
     if(NULL == buf) return FAIL;
 
     if(*offset + len <= SB16_BUF_LEN) {
@@ -127,7 +121,7 @@ int32_t sb16_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t l
  *     used for pausing, resuming, setting params, etc.
  */
 int32_t sb16_ioctl(int32_t* inode, uint32_t* offset, int32_t op) {
-    if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
+    if(!sb16_used) return FAIL;   // If SB16 isn't present, quit
     outb((uint8_t) op, SB16_PORT_WRITE);
     return SUCCESS;
 }
@@ -139,7 +133,7 @@ int32_t sb16_ioctl(int32_t* inode, uint32_t* offset, int32_t op) {
  * @description: releases lock on sound blaster 16.
  */
 int32_t sb16_close(int32_t* inode) {
-    if(!sb16_here) return FAIL;   // If SB16 isn't present, quit
+    if(!sb16_used) return FAIL;   // If SB16 isn't present, quit
     // outb(SB16_CMD_PAUSE, SB16_PORT_WRITE);
     sb16_used = 0;
     return SUCCESS;

@@ -15,6 +15,7 @@
 #define TERMINAL_DIRECT_ADDR 0xb7000
 
 void infinite_loop();
+void wait_interrupt();
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 void roll_up();

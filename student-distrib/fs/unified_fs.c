@@ -88,6 +88,7 @@ int32_t unified_open(fd_array_t* fd_array, const char* filename) {
     }
     if(NULL == fd_array[fd].interface->open) return FAIL;
     if(FAIL == (*fd_array[fd].interface->open) (&fd_array[fd].inode, (char*) filename)) {
+        fd_array[fd].interface = NULL;
         return FAIL;
     }
     fd_array[fd].pos = 0;
