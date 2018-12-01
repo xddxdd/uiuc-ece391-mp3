@@ -13,7 +13,7 @@ syscall_wrap:
 
     cmp $1, %eax
     jl invalid_syscall
-    cmp $10, %eax
+    cmp $11, %eax
     jg invalid_syscall
 
     movl syscall_jumptable(, %eax, 4), %eax
@@ -46,3 +46,4 @@ syscall_jumptable:
     .long vidmap
     .long set_handler
     .long sigreturn
+    .long ioctl

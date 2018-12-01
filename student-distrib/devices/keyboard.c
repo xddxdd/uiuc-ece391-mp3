@@ -7,6 +7,7 @@ unified_fs_interface_t terminal_stdin_if = {
     .open = terminal_open,
     .read = terminal_read,
     .write = NULL,
+    .ioctl = NULL,
     .close = NULL
 };
 
@@ -15,6 +16,7 @@ unified_fs_interface_t terminal_stdout_if = {
     .open = terminal_open,
     .read = NULL,
     .write = terminal_write,
+    .ioctl = NULL,
     .close = NULL
 };
 

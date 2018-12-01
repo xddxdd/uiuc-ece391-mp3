@@ -6,6 +6,7 @@ unified_fs_interface_t rtc_if = {
     .open = rtc_open,
     .read = rtc_read,
     .write = rtc_write,
+    .ioctl = NULL,
     .close = rtc_close
 };
 

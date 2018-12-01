@@ -6,6 +6,7 @@ unified_fs_interface_t tux_if = {
     .open = tux_open,
     .read = tux_read,
     .write = tux_write,
+    .ioctl = NULL,
     .close = tux_close
 };
 
@@ -53,23 +54,23 @@ const uint8_t tc_led_segments[] = {
  * @description: Initializes Tux Controller.
  */
 int8_t tux_init() {
-    if(SERIAL_OP_SUCCESS != serial_init(TC_SERIAL_PORT, TC_SERIAL_BAUDRATE)) return TUX_OP_FAIL;
+    if(SUCCESS != serial_init(TC_SERIAL_PORT, TC_SERIAL_BAUDRATE)) return FAIL;
     cli();
     int i;
     for(i = 0; i < TC_INITIALIZATION_SEQUENCE_LEN; i++) {
-        if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_initialization_sequence[i])) {
+        if(SUCCESS != serial_write(TC_SERIAL_PORT, tc_initialization_sequence[i])) {
             sti();
-            return TUX_OP_FAIL;
+            return FAIL;
         }
     }
     for(i = 0; i < TC_LED_SEQUENCE_LEN; i++) {
-        if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
+        if(SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
             sti();
-            return TUX_OP_FAIL;
+            return FAIL;
         }
     }
     sti();
-    return TUX_OP_SUCCESS;
+    return SUCCESS;
 }
 
 /* int8_t tux_set_led(char* word, uint8_t dot)
@@ -93,7 +94,7 @@ int8_t tux_set_led(char* word, uint8_t dot) {
         } else if(ch == ' ') {
             tc_led_sequence[TC_LED_OFFSET + i] = 0;
         } else {
-            return TUX_OP_FAIL;
+            return FAIL;
         }
         // If dot is enabled, set bit 4 for the layout, as described above
         if(dot & (1 << i)) {
@@ -102,11 +103,11 @@ int8_t tux_set_led(char* word, uint8_t dot) {
     }
     // Send the sequence to Tux Controller
     for(i = 0; i < TC_LED_SEQUENCE_LEN; i++) {
-        if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
-            return TUX_OP_FAIL;
+        if(SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
+            return FAIL;
         }
     }
-    return TUX_OP_SUCCESS;
+    return SUCCESS;
 }
 
 /* void tux_interrupt(char packet)
@@ -145,12 +146,12 @@ void tux_interrupt(char packet) {
         // Tux reseted, resend initialization sequence & led sequence
         int i;
         for(i = 0; i < TC_INITIALIZATION_SEQUENCE_LEN; i++) {
-            if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_initialization_sequence[i])) {
+            if(SUCCESS != serial_write(TC_SERIAL_PORT, tc_initialization_sequence[i])) {
                 return;
             }
         }
         for(i = 0; i < TC_LED_SEQUENCE_LEN; i++) {
-            if(SERIAL_OP_SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
+            if(SUCCESS != serial_write(TC_SERIAL_PORT, tc_led_sequence[i])) {
                 return;
             }
         }
@@ -175,10 +176,10 @@ int32_t tux_open(int32_t* inode, char* filename) {
  *     Button bit relationship from 0 to 7: START, A, B, C, UP, DOWN, LEFT, RIGHT
  */
 int32_t tux_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
-    if(buf == NULL) return TUX_OP_FAIL;
-    if(len != sizeof(uint8_t)) return TUX_OP_FAIL;
+    if(buf == NULL) return FAIL;
+    if(len != sizeof(uint8_t)) return FAIL;
     *buf = tc_buttons;
-    return TUX_OP_SUCCESS;
+    return SUCCESS;
 }
 
 /* int32_t tux_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len)
@@ -196,8 +197,8 @@ int32_t tux_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t le
     char word[TC_LED_COUNT];
     uint8_t dot;
 
-    if(buf == NULL) return TUX_OP_FAIL;
-    if(len == 0 || len > TC_LED_COUNT + 1) return TUX_OP_FAIL;
+    if(buf == NULL) return FAIL;
+    if(len == 0 || len > TC_LED_COUNT + 1) return FAIL;
 
     int i;
     for(i = 0; i < TC_LED_COUNT; i++) {
@@ -215,5 +216,5 @@ int32_t tux_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t le
  * @description: closes Tux Controller, currently does nothing.
  */
 int32_t tux_close(int32_t* inode) {
-    return TUX_OP_SUCCESS;
+    return SUCCESS;
 }

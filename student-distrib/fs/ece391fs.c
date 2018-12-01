@@ -6,6 +6,7 @@ unified_fs_interface_t ece391fs_file_if = {
     .open = file_open,
     .read = file_read,
     .write = file_write,
+    .ioctl = NULL,
     .close = file_close
 };
 
@@ -13,6 +14,7 @@ unified_fs_interface_t ece391fs_dir_if = {
     .open = dir_open,
     .read = dir_read,
     .write = dir_write,
+    .ioctl = NULL,
     .close = dir_close
 };
 
@@ -29,17 +31,17 @@ int32_t ece391fs_init(uint32_t module_start, uint32_t module_end) {
     ece391fs_bootblk_t* fs_candidate = (ece391fs_bootblk_t*) module_start;
     // Check if the number of files is within MAX_FILE_COUNT
     if(fs_candidate->num_dir_entries > ECE391FS_MAX_FILE_COUNT) {
-        return ECE391FS_CALL_FAIL;
+        return FAIL;
     }
     // Check if the filesystem ends at correct address
     // The FS consists of 1 bootblock, *num_inodes* inodes, *num_data_blocks* data blocks.
     if((ece391fs_bootblk_t*) module_end
         != fs_candidate + (1 + fs_candidate->num_inodes + fs_candidate->num_data_blocks)) {
-        return ECE391FS_CALL_FAIL;
+        return FAIL;
     }
     // Register the filesystem globally
     fs_bootblk = fs_candidate;
-    return ECE391FS_CALL_SUCCESS;
+    return SUCCESS;
 }
 
 /* int32_t ece391fs_is_initialized()
@@ -47,7 +49,7 @@ int32_t ece391fs_init(uint32_t module_start, uint32_t module_end) {
  * @description: Return whether ece391fs is initialied.
  */
 int32_t ece391fs_is_initialized() {
-    return fs_bootblk ? ECE391FS_CALL_SUCCESS : ECE391FS_CALL_FAIL;
+    return fs_bootblk ? SUCCESS : FAIL;
 }
 
 /* int32_t ece391fs_size(uint32_t inode_idx)
@@ -57,8 +59,8 @@ int32_t ece391fs_is_initialized() {
  * @description: query file size of given inode index.
  */
 int32_t ece391fs_size(uint32_t inode_idx) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    if(inode_idx >= fs_bootblk->num_inodes) return ECE391FS_CALL_FAIL;  // Index over inode count
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    if(inode_idx >= fs_bootblk->num_inodes) return FAIL;  // Index over inode count
     // Calculate pointer to the inode
     ece391fs_inode_t* inode = (ece391fs_inode_t*) fs_bootblk + (inode_idx + 1);
     return inode->size;
@@ -73,9 +75,9 @@ int32_t ece391fs_size(uint32_t inode_idx) {
  *     "file info" is equivalent to "dentry" to make ece391 staff happy.
  */
 int32_t read_dentry_by_name(const char* fname, ece391fs_file_info_t* file_info) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    if(!file_info) return ECE391FS_CALL_FAIL;   // File info ptr invalid
-    if(strlen(fname) > ECE391FS_MAX_FILENAME_LEN) return ECE391FS_CALL_FAIL;// Filename too long
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    if(!file_info) return FAIL;   // File info ptr invalid
+    if(strlen(fname) > ECE391FS_MAX_FILENAME_LEN) return FAIL;// Filename too long
     int i;
     for(i = 0; i < ECE391FS_MAX_FILE_COUNT; i++) {
         ece391fs_file_info_t* f = &(fs_bootblk->file[i]);
@@ -85,11 +87,11 @@ int32_t read_dentry_by_name(const char* fname, ece391fs_file_info_t* file_info) 
         if(0 == strncmp(fname, f->name, fname_len)) {
             // This is the file we're looking for
             *file_info = *f;
-            return ECE391FS_CALL_SUCCESS;
+            return SUCCESS;
         }
     }
     // File not found
-    return ECE391FS_CALL_FAIL;
+    return FAIL;
 }
 
 /* int32_t read_dentry_by_index(uint32_t index, ece391fs_file_info_t* file_info)
@@ -101,11 +103,11 @@ int32_t read_dentry_by_name(const char* fname, ece391fs_file_info_t* file_info) 
  *     "file info" is equivalent to "dentry" to make ece391 staff happy.
  */
 int32_t read_dentry_by_index(uint32_t index, ece391fs_file_info_t* file_info) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    if(index >= fs_bootblk->num_dir_entries) return ECE391FS_CALL_FAIL; // Index over inode count
-    if(!file_info) return ECE391FS_CALL_FAIL;   // File info ptr invalid
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    if(index >= fs_bootblk->num_dir_entries) return FAIL; // Index over inode count
+    if(!file_info) return FAIL;   // File info ptr invalid
     *file_info = fs_bootblk->file[index];
-    return ECE391FS_CALL_SUCCESS;
+    return SUCCESS;
 }
 
 /* int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t length)
@@ -118,9 +120,9 @@ int32_t read_dentry_by_index(uint32_t index, ece391fs_file_info_t* file_info) {
  * @description: read data from given inode.
  */
 int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t length) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    if(inode_idx >= fs_bootblk->num_inodes) return ECE391FS_CALL_FAIL;  // Index over inode count
-    if(!buf) return ECE391FS_CALL_FAIL; // Buffer ptr invalid
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    if(inode_idx >= fs_bootblk->num_inodes) return FAIL;  // Index over inode count
+    if(!buf) return FAIL; // Buffer ptr invalid
     ece391fs_inode_t* inode = (ece391fs_inode_t*) fs_bootblk + (1 + inode_idx);
     if(offset >= inode->size) return 0; // Offset over file length, nothing can be copied
     if(offset + length > inode->size) length = inode->size - offset;    // Length over end of file, reduce it
@@ -163,9 +165,9 @@ int32_t read_data(uint32_t inode_idx, uint32_t offset, char* buf, uint32_t lengt
  *     Offset denotes the index of file to be read.
  */
 int32_t read_dir(uint32_t offset, char* buf, uint32_t length) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    if(offset >= ECE391FS_MAX_FILE_COUNT) return ECE391FS_CALL_FAIL;  // Index over inode count
-    if(!buf) return ECE391FS_CALL_FAIL; // Buffer ptr invalid
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    if(offset >= ECE391FS_MAX_FILE_COUNT) return FAIL;  // Index over inode count
+    if(!buf) return FAIL; // Buffer ptr invalid
     if(length > ECE391FS_MAX_FILENAME_LEN) length = ECE391FS_MAX_FILENAME_LEN;
 
     ece391fs_file_info_t* finfo = &(fs_bootblk->file[offset]);
@@ -225,11 +227,11 @@ void ece391fs_print_file_info(ece391fs_file_info_t* file_info) {
  */
 int32_t file_open(int32_t* inode, char* filename) {
     ece391fs_file_info_t finfo;
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    if(-1 == read_dentry_by_name(filename, &finfo)) return ECE391FS_CALL_FAIL;
-    if(finfo.type != ECE391FS_FILE_TYPE_FILE) return ECE391FS_CALL_FAIL;
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    if(-1 == read_dentry_by_name(filename, &finfo)) return FAIL;
+    if(finfo.type != ECE391FS_FILE_TYPE_FILE) return FAIL;
     *inode = finfo.inode;
-    return ECE391FS_CALL_SUCCESS;
+    return SUCCESS;
 }
 
 /* int32_t file_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
@@ -243,7 +245,7 @@ int32_t file_open(int32_t* inode, char* filename) {
  * @description: read data from a file.
  */
 int32_t file_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    if(!fs_bootblk) return FAIL;  // FS not initialized
     int32_t result = read_data(*inode, *offset, buf, len);
     if(result > 0) *offset += result;
     return result;
@@ -258,7 +260,7 @@ int32_t file_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
  * @description: write data to a file. Just return fail as filesystem is readonly.
  */
 int32_t file_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
-    return ECE391FS_CALL_FAIL;
+    return FAIL;
 }
 
 /* int32_t file_close(int32_t* inode)
@@ -268,9 +270,9 @@ int32_t file_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t l
  * @description: closes a file
  */
 int32_t file_close(int32_t* inode) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    if(!fs_bootblk) return FAIL;  // FS not initialized
     *inode = 0;
-    return ECE391FS_CALL_SUCCESS;
+    return SUCCESS;
 }
 
 /* int32_t dir_open(int32_t* inode, char* filename)
@@ -281,11 +283,11 @@ int32_t file_close(int32_t* inode) {
  */
 int32_t dir_open(int32_t* inode, char* filename) {
     ece391fs_file_info_t finfo;
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    if(-1 == read_dentry_by_name(filename, &finfo)) return ECE391FS_CALL_FAIL;
-    if(finfo.type != ECE391FS_FILE_TYPE_FOLDER) return ECE391FS_CALL_FAIL;
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    if(-1 == read_dentry_by_name(filename, &finfo)) return FAIL;
+    if(finfo.type != ECE391FS_FILE_TYPE_FOLDER) return FAIL;
     *inode = finfo.inode;
-    return ECE391FS_CALL_SUCCESS;
+    return SUCCESS;
 }
 
 /* int32_t dir_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
@@ -299,7 +301,7 @@ int32_t dir_open(int32_t* inode, char* filename) {
  * @description: read file list from a folder.
  */
 int32_t dir_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
+    if(!fs_bootblk) return FAIL;  // FS not initialized
     int32_t result = read_dir(*offset, buf, len);
     if(result > 0) *offset += 1;
     return result;
@@ -314,7 +316,7 @@ int32_t dir_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
  * @description: write data to a folder. Just return fail as filesystem is readonly.
  */
 int32_t dir_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len) {
-    return ECE391FS_CALL_FAIL;
+    return FAIL;
 }
 
 /* int32_t dir_close(int32_t* inode)
@@ -323,6 +325,6 @@ int32_t dir_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t le
  * @description: closes a directory
  */
 int32_t dir_close(int32_t* inode) {
-    if(!fs_bootblk) return ECE391FS_CALL_FAIL;  // FS not initialized
-    return ECE391FS_CALL_SUCCESS;
+    if(!fs_bootblk) return FAIL;  // FS not initialized
+    return SUCCESS;
 }

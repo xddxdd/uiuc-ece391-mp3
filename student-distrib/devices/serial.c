@@ -17,7 +17,7 @@ uint8_t serial_irqs[] = {4, 3};
  * @description: initializes serial port.
  */
 int8_t serial_init(uint8_t id, uint32_t baud_rate) {
-    if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
+    if(id >= SERIAL_PORTS_COUNT) return FAIL;
     cli();
     uint16_t port = serial_ports[id];
     // Disable interrupts
@@ -38,7 +38,7 @@ int8_t serial_init(uint8_t id, uint32_t baud_rate) {
     // Enable IRQ and done
     enable_irq(serial_irqs[id]);
     sti();
-    return SERIAL_OP_SUCCESS;
+    return SUCCESS;
 }
 
 /* int8_t serial_is_available_rx(uint8_t id)
@@ -47,7 +47,7 @@ int8_t serial_init(uint8_t id, uint32_t baud_rate) {
  * @description: checks if the port has something in its receiving buffer.
  */
 int8_t serial_is_available_rx(uint8_t id) {
-    if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
+    if(id >= SERIAL_PORTS_COUNT) return FAIL;
     uint16_t port = serial_ports[id];
     // The state is in bit 0 of line status register, hence the magic number
     return inb(port + SERIAL_REG_OFFSET_LINE_STATUS) & 0x01;
@@ -59,7 +59,7 @@ int8_t serial_is_available_rx(uint8_t id) {
  * @description: checks if the port is ready for sending data.
  */
 int8_t serial_is_available_tx(uint8_t id) {
-    if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
+    if(id >= SERIAL_PORTS_COUNT) return FAIL;
     uint16_t port = serial_ports[id];
     // The state is in bit 5 of line status register, hence the magic number
     return inb(port + SERIAL_REG_OFFSET_LINE_STATUS) & 0x20;
@@ -72,7 +72,7 @@ int8_t serial_is_available_tx(uint8_t id) {
  * @description: read a byte from serial port.
  */
 int8_t serial_read(uint8_t id) {
-    if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
+    if(id >= SERIAL_PORTS_COUNT) return FAIL;
     uint16_t port = serial_ports[id];
     while(!serial_is_available_rx(id));
     return inb(port + SERIAL_REG_OFFSET_DATA);
@@ -85,11 +85,11 @@ int8_t serial_read(uint8_t id) {
  * @description: write a byte to serial port.
  */
 int8_t serial_write(uint8_t id, uint8_t data) {
-    if(id >= SERIAL_PORTS_COUNT) return SERIAL_OP_FAIL;
+    if(id >= SERIAL_PORTS_COUNT) return FAIL;
     uint16_t port = serial_ports[id];
     while(!serial_is_available_tx(id));
     outb(data, port + SERIAL_REG_OFFSET_DATA);
-    return SERIAL_OP_SUCCESS;
+    return SUCCESS;
 }
 
 /* void serial_interrupt(uint8_t id)

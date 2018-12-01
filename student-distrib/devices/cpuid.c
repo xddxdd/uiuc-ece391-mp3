@@ -227,6 +227,7 @@ unified_fs_interface_t cpuid_if = {
     .open = cpuid_open,
     .read = cpuid_read,
     .write = cpuid_write,
+    .ioctl = NULL,
     .close = cpuid_close
 };
 

@@ -2,14 +2,10 @@
 #define _SB16_H_
 
 #include "../lib/lib.h"
+#include "../fs/unified_fs.h"
 
 #define SB16_BUF_ADDR 0x10000
-#define SB16_BUF_MID 0x18000
-#define SB16_BUF_LEN 0xffff
-#define SB16_BUF_LEN_HALF 0x7fff
-
-#define SB16_CALL_SUCCESS 0
-#define SB16_CALL_FAIL -1
+#define SB16_BUF_LEN 0x10000
 
 #define SB16_IRQ 5
 
@@ -54,12 +50,20 @@
 #define DMA_MODE_TRANSFER_BLOCK 0x80
 #define DMA_MODE_TRANSFER_CASCADE 0xc0
 
+extern unified_fs_interface_t sb16_if;
+
 int32_t sb16_init();
-int32_t sb16_play(uint16_t sampling_rate, uint8_t is_stereo, uint8_t is_signed);
-int32_t sb16_continue();
-int32_t sb16_pause();
-int32_t sb16_stop_after_block();
-int32_t sb16_read();
+int32_t sb16_open(int32_t* inode, char* filename);
+int32_t sb16_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len);
+int32_t sb16_write(int32_t* inode, uint32_t* offset, const char* buf, uint32_t len);
+int32_t sb16_ioctl(int32_t* inode, uint32_t* offset, int32_t op);
+int32_t sb16_close(int32_t* inode);
+
+// int32_t sb16_play(uint16_t sampling_rate, uint8_t is_stereo, uint8_t is_signed);
+// int32_t sb16_continue();
+// int32_t sb16_pause();
+// int32_t sb16_stop_after_block();
+// int32_t sb16_read();
 void sb16_interrupt();
 
 #endif

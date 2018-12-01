@@ -37,6 +37,12 @@ int test_fdarray_wrapper(int (*func)(fd_array_t*)) {
 
 	int ret = (*func)(process->fd_array);
 
+	// Close all files
+	int i;
+	for(i = 0; i < MAX_NUM_FD_ENTRY; i++) {
+		unified_close(process->fd_array, i);
+	}
+
 	// Release the pid
 	process->present = 0;
 	return ret;
@@ -223,7 +229,7 @@ int paging_struct_test(){
  */
 int ece391fs_loaded() {
 	TEST_HEADER;
-	if(ECE391FS_CALL_FAIL == ece391fs_is_initialized()) return FAIL;
+	if(FAIL == ece391fs_is_initialized()) return FAIL;
 	return PASS;
 }
 
@@ -236,7 +242,7 @@ int ece391fs_loaded() {
 int ece391fs_read_existent_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
-    if(ECE391FS_CALL_FAIL == read_dentry_by_name("frame1.txt", &finfo)) return FAIL;
+    if(FAIL == read_dentry_by_name("frame1.txt", &finfo)) return FAIL;
 	if(ece391fs_size(finfo.inode) != 174) return FAIL;
 	char buf[200];
 	if(174 != read_data(finfo.inode, 0, buf, 200)) return FAIL;
@@ -253,7 +259,7 @@ int ece391fs_read_existent_file() {
 int ece391fs_read_nonexistent_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
-    if(ECE391FS_CALL_SUCCESS == read_dentry_by_name("404.not.found", &finfo)) return FAIL;
+    if(SUCCESS == read_dentry_by_name("404.not.found", &finfo)) return FAIL;
 	return PASS;
 }
 
@@ -265,7 +271,7 @@ int ece391fs_read_nonexistent_file() {
 int ece391fs_read_toolong_file() {
 	TEST_HEADER;
     ece391fs_file_info_t finfo;
-    if(ECE391FS_CALL_SUCCESS == read_dentry_by_name("verylargetextwithverylongname.txt", &finfo)) return FAIL;
+    if(SUCCESS == read_dentry_by_name("verylargetextwithverylongname.txt", &finfo)) return FAIL;
 	return PASS;
 }
 
@@ -277,7 +283,7 @@ int ece391fs_read_toolong_file() {
 int ece391fs_read_existent_idx() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(ECE391FS_CALL_FAIL == read_dentry_by_index(0, &finfo)) return FAIL;
+	if(FAIL == read_dentry_by_index(0, &finfo)) return FAIL;
 	if(ECE391FS_FILE_TYPE_FOLDER != finfo.type) return FAIL;
 	if(0 != finfo.inode) return FAIL;
 	return PASS;
@@ -291,7 +297,7 @@ int ece391fs_read_existent_idx() {
 int ece391fs_read_nonexistent_idx() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(ECE391FS_CALL_SUCCESS == read_dentry_by_index(100, &finfo)) return FAIL;
+	if(SUCCESS == read_dentry_by_index(100, &finfo)) return FAIL;
 	return PASS;
 }
 
@@ -303,7 +309,7 @@ int ece391fs_read_nonexistent_idx() {
 int ece391fs_large_file() {
 	TEST_HEADER;
 	ece391fs_file_info_t finfo;
-	if(ECE391FS_CALL_FAIL == read_dentry_by_name("verylargetextwithverylongname.tx", &finfo)) return FAIL;
+	if(FAIL == read_dentry_by_name("verylargetextwithverylongname.tx", &finfo)) return FAIL;
 	if(ece391fs_size(finfo.inode) != 5277) return FAIL;
 	char buf[33];
 	buf[32] = '\0';
@@ -361,12 +367,12 @@ int ece391fs_interface_read_existent_file() {
 	int32_t fd;
 	uint32_t offset = 0;
 	char buf[200];
-	if(ECE391FS_CALL_FAIL == file_open(&fd, "frame1.txt")) return FAIL;
-	if(ECE391FS_CALL_FAIL == file_read(&fd, &offset, buf, 200)) return FAIL;
+	if(FAIL == file_open(&fd, "frame1.txt")) return FAIL;
+	if(FAIL == file_read(&fd, &offset, buf, 200)) return FAIL;
 	if(offset != 174) return FAIL;
 	int i;
 	for(i = 0; i < offset; i++) putc(buf[i]);
-	if(ECE391FS_CALL_FAIL == file_close(&fd)) return FAIL;
+	if(FAIL == file_close(&fd)) return FAIL;
 	if(0 != fd) return FAIL;
 	return PASS;
 }
@@ -380,7 +386,7 @@ int ece391fs_interface_read_existent_file() {
 int ece391fs_interface_read_nonexistent_file() {
 	TEST_HEADER;
 	int32_t fd = 0;
-    if(ECE391FS_CALL_SUCCESS == file_open(&fd, "404.not.found")) return FAIL;
+    if(SUCCESS == file_open(&fd, "404.not.found")) return FAIL;
 	if(0 != fd) return FAIL;
 	return PASS;
 }
@@ -394,7 +400,7 @@ int ece391fs_interface_read_existent_dir() {
 	TEST_HEADER;
 	int32_t fd = 0;
 	char buf[ECE391FS_MAX_FILENAME_LEN + 1];
-	if(ECE391FS_CALL_FAIL == dir_open(&fd, ".")) return FAIL;
+	if(FAIL == dir_open(&fd, ".")) return FAIL;
 
 	int32_t ret;
 	uint32_t offset = 0;
@@ -407,7 +413,7 @@ int ece391fs_interface_read_existent_dir() {
 		printf(buf);
 		printf(", ");
 	}
-	if(ECE391FS_CALL_FAIL == dir_close(&fd)) return FAIL;
+	if(FAIL == dir_close(&fd)) return FAIL;
 	if(fd != 0) return FAIL;
 	return PASS;
 }
@@ -421,7 +427,7 @@ int ece391fs_interface_read_existent_dir() {
 int ece391fs_interface_read_nonexistent_dir() {
 	TEST_HEADER;
 	int32_t fd = 0;
-    if(ECE391FS_CALL_SUCCESS == dir_open(&fd, "404.not.found")) return FAIL;
+    if(SUCCESS == dir_open(&fd, "404.not.found")) return FAIL;
 	if(0 != fd) return FAIL;
 	return PASS;
 }
@@ -489,17 +495,17 @@ int unified_fs_read_file(fd_array_t* fd_array) {
 	int32_t fd;
 	int i;
 	char buf[100];
-	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "frame1.txt"))) return FAIL;
+	if(FAIL == (fd = unified_open(fd_array, "frame1.txt"))) return FAIL;
 
-	if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, buf, 100)) return FAIL;
+	if(FAIL == unified_read(fd_array, fd, buf, 100)) return FAIL;
 	if(fd_array[fd].pos != 100) return FAIL;
 	for(i = 0; i < 100; i++) putc(buf[i]);
 
-	if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, buf, 100)) return FAIL;
+	if(FAIL == unified_read(fd_array, fd, buf, 100)) return FAIL;
 	if(fd_array[fd].pos != 174) return FAIL;
 	for(i = 0; i < 74; i++) putc(buf[i]);
 
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	if(FAIL == unified_close(fd_array, fd)) return FAIL;
 	if(NULL != fd_array[fd].interface) return FAIL;
 	return PASS;
 }
@@ -515,7 +521,7 @@ int unified_fs_read_dir(fd_array_t* fd_array) {
 	int32_t fd;
 	int ret;
 	char buf[ECE391FS_MAX_FILENAME_LEN + 1];
-	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "."))) return FAIL;
+	if(FAIL == (fd = unified_open(fd_array, "."))) return FAIL;
 
 	while(1) {
 		ret = unified_read(fd_array, fd, buf, ECE391FS_MAX_FILENAME_LEN);
@@ -527,7 +533,7 @@ int unified_fs_read_dir(fd_array_t* fd_array) {
 		printf(", ");
 	}
 
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	if(FAIL == unified_close(fd_array, fd)) return FAIL;
 	if(NULL != fd_array[fd].interface) return FAIL;
 	return PASS;
 }
@@ -539,7 +545,7 @@ int unified_fs_read_dir(fd_array_t* fd_array) {
  */
 int unified_fs_read_nonexistent(fd_array_t* fd_array) {
 	TEST_HEADER;
-	if(UNIFIED_FS_FAIL != unified_open(fd_array, "404.not.found")) return FAIL;
+	if(FAIL != unified_open(fd_array, "404.not.found")) return FAIL;
 	return PASS;
 }
 
@@ -552,9 +558,9 @@ int unified_fs_invalid_fd(fd_array_t* fd_array) {
 	TEST_HEADER;
 	int32_t fd = 7;	// There's no fd 7, we haven't opened anything!
 	char buf[100];
-	if(UNIFIED_FS_FAIL != unified_read(fd_array, fd, buf, 100)) return FAIL;
-	if(UNIFIED_FS_FAIL != unified_write(fd_array, fd, buf, 100)) return FAIL;
-	if(UNIFIED_FS_FAIL != unified_close(fd_array, fd)) return FAIL;
+	if(FAIL != unified_read(fd_array, fd, buf, 100)) return FAIL;
+	if(FAIL != unified_write(fd_array, fd, buf, 100)) return FAIL;
+	if(FAIL != unified_close(fd_array, fd)) return FAIL;
 	return PASS;
 }
 
@@ -570,7 +576,7 @@ int unified_fs_rtc_read_write(fd_array_t* fd_array) {
 	TEST_HEADER;
 
 	int32_t fd;
-	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "rtc"))) return FAIL;
+	if(FAIL == (fd = unified_open(fd_array, "rtc"))) return FAIL;
 
 	// new frequency set to the RTC
 	uint32_t freq = 2;
@@ -578,14 +584,14 @@ int unified_fs_rtc_read_write(fd_array_t* fd_array) {
 	{
 		int i;
 		for(i = 0; i < freq; i++) {
-			if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, NULL, 0)) return FAIL;
+			if(FAIL == unified_read(fd_array, fd, NULL, 0)) return FAIL;
 			printf("%d ", freq);
 		}
 		freq *= 2;
-		if(UNIFIED_FS_FAIL == unified_write(fd_array, fd, &freq, sizeof(uint32_t))) return FAIL;
+		if(FAIL == unified_write(fd_array, fd, &freq, sizeof(uint32_t))) return FAIL;
 		printf("\n");
 	}
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd));
+	if(FAIL == unified_close(fd_array, fd));
 	return PASS;
 }
 
@@ -601,10 +607,10 @@ int unified_fs_rtc_read_write(fd_array_t* fd_array) {
 // 	TEST_HEADER;
 //
 // 	char buf[128];
-// 	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, "Hi, what's your name? ", 22)) return FAIL;
-// 	if(UNIFIED_FS_FAIL == unified_read(fd_array, 0, buf, 128)) return FAIL;
-// 	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, "Hello, ", 7)) return FAIL;
-// 	if(UNIFIED_FS_FAIL == unified_write(fd_array, 1, buf, 128)) return FAIL;
+// 	if(FAIL == unified_write(fd_array, 1, "Hi, what's your name? ", 22)) return FAIL;
+// 	if(FAIL == unified_read(fd_array, 0, buf, 128)) return FAIL;
+// 	if(FAIL == unified_write(fd_array, 1, "Hello, ", 7)) return FAIL;
+// 	if(FAIL == unified_write(fd_array, 1, buf, 128)) return FAIL;
 // 	return PASS;
 // }
 
@@ -631,7 +637,7 @@ int unified_fs_tux_read(fd_array_t* fd_array) {
 	TEST_HEADER;
 
 	int32_t fd;
-	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "tux"))) return FAIL;
+	if(FAIL == (fd = unified_open(fd_array, "tux"))) return FAIL;
 
 	// List of buttons, see function interface of tux_read()
 	char buttons[8][6] = {"START", "A", "B", "C", "Up", "Down", "Left", "Right"};
@@ -641,7 +647,7 @@ int unified_fs_tux_read(fd_array_t* fd_array) {
 	uint8_t quit_count = 0;
 	printf("Press START 3 times to quit\n");
 	while(1) {
-		if(UNIFIED_FS_FAIL == unified_read(fd_array, fd, &curr_buttons, sizeof(uint8_t))) return FAIL;
+		if(FAIL == unified_read(fd_array, fd, &curr_buttons, sizeof(uint8_t))) return FAIL;
 		int i;
 		for(i = 0; i < 8; i++) {
 			if(!(prev_buttons & (1 << i)) && (curr_buttons & (1 << i))) {
@@ -668,7 +674,7 @@ int unified_fs_tux_read(fd_array_t* fd_array) {
 		if(quit_count >= 3) break;
 	}
 
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	if(FAIL == unified_close(fd_array, fd)) return FAIL;
 	return PASS;
 }
 
@@ -681,11 +687,11 @@ int unified_fs_tux_write(fd_array_t* fd_array) {
 
 	// Tries to open both Tux and RTC
 	int32_t tux_fd;
-	if(UNIFIED_FS_FAIL == (tux_fd = unified_open(fd_array, "tux"))) return FAIL;
+	if(FAIL == (tux_fd = unified_open(fd_array, "tux"))) return FAIL;
 	int32_t rtc_fd;
-	if(UNIFIED_FS_FAIL == (rtc_fd = unified_open(fd_array, "rtc"))) return FAIL;
+	if(FAIL == (rtc_fd = unified_open(fd_array, "rtc"))) return FAIL;
 	uint32_t freq = 2;
-	if(UNIFIED_FS_FAIL == unified_write(fd_array, rtc_fd, &freq, sizeof(uint32_t))) return FAIL;
+	if(FAIL == unified_write(fd_array, rtc_fd, &freq, sizeof(uint32_t))) return FAIL;
 
 	// sequence of strings to be displayed on Tux
 	char seq[16][6] = {
@@ -710,65 +716,84 @@ int unified_fs_tux_write(fd_array_t* fd_array) {
 	// Display the strings, 3 loops total
 	int i = 0;
 	while(i < 16 * 3) {
-		if(UNIFIED_FS_FAIL == unified_write(fd_array, tux_fd, seq[i % 16], strlen(seq[i % 16]))) return FAIL;
+		if(FAIL == unified_write(fd_array, tux_fd, seq[i % 16], strlen(seq[i % 16]))) return FAIL;
 		// Wait 0.5s for each operation
-		if(UNIFIED_FS_FAIL == unified_read(fd_array, rtc_fd, NULL, 0)) return FAIL;
+		if(FAIL == unified_read(fd_array, rtc_fd, NULL, 0)) return FAIL;
 		i++;
 	}
 
 	// Closes everything
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, tux_fd)) return FAIL;
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, rtc_fd)) return FAIL;
+	if(FAIL == unified_close(fd_array, tux_fd)) return FAIL;
+	if(FAIL == unified_close(fd_array, rtc_fd)) return FAIL;
 	return PASS;
 }
 
 /* int sb16_play_music()
+ * Deprecated, use play command in shell - yuhuixu2
  * @output: PASS / FAIL
  * @description: Tests reading music from filesystem and playing it.
  */
+#define TEST_SB16_CHUNK_SIZE 0x2000
+#define TEST_SB16_SAMPLING_RATE 22050
+char sb16_test_buf[TEST_SB16_CHUNK_SIZE];
 int sb16_play_music(fd_array_t* fd_array) {
 	TEST_HEADER;
 
-	int32_t fd;
-	if(UNIFIED_FS_FAIL == (fd = unified_open(fd_array, "halloffame.wav"))) return FAIL;
+	int32_t wav_fd;
+	if(FAIL == (wav_fd = unified_open(fd_array, "halloffame.wav"))) return FAIL;
+	int32_t aux_fd;
+	if(FAIL == (aux_fd = unified_open(fd_array, "aux"))) return FAIL;
 
-	// Read the first chunk of data, and record position
-	int32_t size = unified_read(fd_array, fd, (char*) SB16_BUF_ADDR, SB16_BUF_LEN + 1);
+	// Copy over first chunk of music
+	int32_t size;
+	size = unified_read(fd_array, wav_fd, sb16_test_buf, TEST_SB16_CHUNK_SIZE);
+	if(size <= 0) return FAIL;
+	memset(sb16_test_buf + size, 0, TEST_SB16_CHUNK_SIZE - size);
+	if(size != unified_write(fd_array, aux_fd, sb16_test_buf, size)) return FAIL;
+
+	// Copy over second chunk
+	size = unified_read(fd_array, wav_fd, sb16_test_buf, TEST_SB16_CHUNK_SIZE);
 	if(size < 0) return FAIL;
-	uint8_t copy_count = 0;
-	// Initialize playing with 22050 Hz, Mono, Unsigned PCM
-	if(SB16_CALL_FAIL == sb16_init()) return FAIL;
-	if(SB16_CALL_FAIL == sb16_play(22050, SB16_MODE_STEREO, SB16_MODE_UNSIGNED)) return FAIL;
+	memset(sb16_test_buf + size, 0, TEST_SB16_CHUNK_SIZE - size);
+	if(size > 0) {
+		if(size != unified_write(fd_array, aux_fd, sb16_test_buf, size)) return FAIL;
+	}
+
+	// Initialize SB16, note that we have to send command manually using ioctl
+	if(FAIL == unified_ioctl(fd_array, aux_fd, SB16_CMD_SAMPLING_RATE)) return FAIL;
+	if(FAIL == unified_ioctl(fd_array, aux_fd, (TEST_SB16_SAMPLING_RATE >> 8) & 0xff)) return FAIL;
+	if(FAIL == unified_ioctl(fd_array, aux_fd, TEST_SB16_SAMPLING_RATE & 0xff)) return FAIL;
+	if(FAIL == unified_ioctl(fd_array, aux_fd, SB16_CMD_PLAY)) return FAIL;
+	if(FAIL == unified_ioctl(fd_array, aux_fd, SB16_MODE_STEREO | SB16_MODE_UNSIGNED)) return FAIL;
+	if(FAIL == unified_ioctl(fd_array, aux_fd, (TEST_SB16_CHUNK_SIZE - 1) & 0xff)) return FAIL;
+	if(FAIL == unified_ioctl(fd_array, aux_fd, ((TEST_SB16_CHUNK_SIZE - 1) >> 8) & 0xff)) return FAIL;
+
+	// Continue playing the following blocks
 	while(1) {
 		// Wait until one block finished
-		if(SB16_CALL_FAIL == sb16_read()) return FAIL;
+		if(FAIL == unified_read(fd_array, aux_fd, NULL, 0)) return FAIL;
 		// Tell SB16 to stop temporarily after this block, to handle slow FS operations better
-		if(SB16_CALL_FAIL == sb16_stop_after_block()) return FAIL;
+		if(FAIL == unified_ioctl(fd_array, aux_fd, SB16_CMD_EXIT_AFTER_BLOCK)) return FAIL;
 
 		// Read the next chunk of data, copy into block correspondingly
-		size = unified_read(fd_array, fd,
-			(char*) (copy_count % 2 ? SB16_BUF_MID : SB16_BUF_ADDR), SB16_BUF_LEN_HALF + 1);
-		if(size < 0) return FAIL;
-		if(size < SB16_BUF_LEN_HALF + 1) {
-			// Clear the remaining part of the block
-			memset((char*) (copy_count % 2 ? SB16_BUF_MID : SB16_BUF_ADDR),
-				0, SB16_BUF_LEN_HALF + 1 - size);
-		}
-		// Move file pos
-		copy_count++;
-		// Tell SB16 to not stop playing after this block, or resume if already stopped
-		if(SB16_CALL_FAIL == sb16_continue()) return FAIL;
-
-		if(size < SB16_BUF_LEN_HALF + 1) {
+		size = unified_read(fd_array, wav_fd, sb16_test_buf, TEST_SB16_CHUNK_SIZE);
+		if(size < 0) return FAIL;	// FS error occured
+		memset(sb16_test_buf + size, 0, TEST_SB16_CHUNK_SIZE - size);
+		if(size == 0) break;		// Music has finished
+		if(size != unified_write(fd_array, aux_fd, sb16_test_buf, size)) return FAIL;
+		if(FAIL == unified_ioctl(fd_array, aux_fd, SB16_CMD_CONTINUE)) return FAIL;
+		if(size < TEST_SB16_CHUNK_SIZE) {
 			// Wait until second last block finished
-			if(SB16_CALL_FAIL == sb16_read()) return FAIL;
+			if(FAIL == unified_read(fd_array, aux_fd, NULL, 0)) return FAIL;
 			// The remaining data isn't sufficient for one block
 			// Finish after this block
-			if(SB16_CALL_FAIL == sb16_stop_after_block()) return FAIL;
+			if(FAIL == unified_ioctl(fd_array, aux_fd, SB16_CMD_EXIT_AFTER_BLOCK)) return FAIL;
 			break;
 		}
 	}
-	if(UNIFIED_FS_FAIL == unified_close(fd_array, fd)) return FAIL;
+	if(FAIL == unified_close(fd_array, wav_fd)) return FAIL;
+	if(FAIL == unified_close(fd_array, aux_fd)) return FAIL;
+
 	return PASS;
 }
 
@@ -814,9 +839,9 @@ void launch_tests(){
 	// Extra features
 	// TEST_OUTPUT("Tux Controller Read", test_fdarray_wrapper(unified_fs_tux_read));
 	// TEST_OUTPUT("Tux Controller Write", test_fdarray_wrapper(unified_fs_tux_write));
-	// TEST_OUTPUT("SB16 Play Music", test_fdarray_wrapper(sb16_play_music));
 
 	// Deprecated / No longer works
 	// rtc_test();
 	// TEST_OUTPUT("Unified FS STDIO", test_fdarray_wrapper(unified_fs_stdio));
+	// TEST_OUTPUT("SB16 Play Music", test_fdarray_wrapper(sb16_play_music));
 }

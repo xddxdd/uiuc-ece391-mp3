@@ -9,6 +9,7 @@
  */
 int32_t halt (uint8_t status)
 {
+    printf("halt with status %d\n", status);
     cli();
     int32_t ret = process_halt(status);
     sti();
@@ -32,7 +33,7 @@ int32_t execute (const uint8_t* command)
 /*
  * int32_t read (int32_t fd, void* buf, int32_t nbytes)
  * system call read
- * INPUT: fd - fild descriptor
+ * INPUT: fd - file descriptor
  *        buf - buffer used to write to terminal
  *        nbytes - number of bytes to write
  * OUTPUT: SUCCESS and FAIL
@@ -45,7 +46,7 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes){
 /*
  * int32_t write (int32_t fd, void* buf, int32_t nbytes)
  * system call write
- * INPUT: fd - fild descriptor
+ * INPUT: fd - file descriptor
  *        buf - buffer used to write to terminal
  *        nbytes - number of bytes to write
  * OUTPUT: SUCCESS and FAIL
@@ -53,6 +54,18 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes){
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
     pcb_t* pcb = process_get_active_pcb();
     return unified_write(pcb->fd_array, fd, buf, nbytes);
+}
+
+/*
+ * int32_t ioctl (int32_t fd, int32_t op)
+ * system call ioctl
+ * INPUT: fd - file descriptor
+ *        op - ioctl operation number
+ * OUTPUT: SUCCESS and FAIL
+ */
+int32_t ioctl (int32_t fd, int32_t op){
+    pcb_t* pcb = process_get_active_pcb();
+    return unified_ioctl(pcb->fd_array, fd, op);
 }
 
 /*

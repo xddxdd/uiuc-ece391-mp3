@@ -1,9 +1,6 @@
 #ifndef _TUX_H_
 #define _TUX_H_
 
-#define TUX_OP_SUCCESS 0
-#define TUX_OP_FAIL -1
-
 #define TC_SERIAL_PORT COM1
 #define TC_SERIAL_BAUDRATE 9600
 
