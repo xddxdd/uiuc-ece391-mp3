@@ -98,8 +98,9 @@ int8_t serial_write(uint8_t id, uint8_t data) {
  */
 void serial_interrupt(uint8_t id) {
     if(id >= SERIAL_PORTS_COUNT) return;
-    while(serial_is_available_rx(id)) {
-        char data = serial_read(id);
+    uint16_t port = serial_ports[id];
+    while(inb(port + SERIAL_REG_OFFSET_LINE_STATUS) & 0x01) {
+        char data = inb(port + SERIAL_REG_OFFSET_DATA);
         if(id == TC_SERIAL_PORT) tux_interrupt(data);
     }
     send_eoi(serial_irqs[id]);
