@@ -12,6 +12,13 @@
 #define PASS 0
 #define FAIL -1
 
+#define VIDEO       0xB8000
+#define NUM_COLS    80
+#define NUM_ROWS    25
+#define ATTRIB      0x7
+#define BACKSPACE   0x8
+#define NULL_CHAR   0
+
 #define TERMINAL_DIRECT_ADDR 0xb7000
 
 void infinite_loop();

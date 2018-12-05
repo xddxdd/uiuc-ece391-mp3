@@ -46,7 +46,14 @@ void process_init() {
         terminals[i].keyboard_buffer_top = 0;
         terminals[i].keyboard_buffer_enable = 0;
         memset(terminals[i].keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE + 1);
-        memset((void*) (TERMINAL_ALT_START + TERMINAL_ALT_SIZE * i), 0, TERMINAL_ALT_SIZE);
+        int j;
+        for(j = 0; j < TERMINAL_ALT_SIZE; j++) {
+            if(1 == j % 2) {
+                *((char*) TERMINAL_ALT_START + TERMINAL_ALT_SIZE * i + j) = ATTRIB;
+            } else {
+                *((char*) TERMINAL_ALT_START + TERMINAL_ALT_SIZE * i + j) = ' ';
+            }
+        }
     }
 }
 

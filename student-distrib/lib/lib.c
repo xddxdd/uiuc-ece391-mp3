@@ -4,13 +4,6 @@
 #include "lib.h"
 #include "../interrupts/multiprocessing.h"
 
-#define VIDEO       0xB8000
-#define NUM_COLS    80
-#define NUM_ROWS    25
-#define ATTRIB      0x7
-#define BACKSPACE   0x8
-#define NULL_CHAR   0
-
 static char* video_mem = (char *)VIDEO;
 
 /* void infinite_loop()
