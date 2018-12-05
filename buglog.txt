@@ -1,0 +1,60 @@
+Checkpoint 1:
+
+- Problem:  Interrupt handling will cause General Protection Exception
+  Cause:    Didn't set size bit of IDT entry
+  Fix:      set it
+
+- Problem:  System triple faults when enabling paging
+  Cause:    The sequence of page table entry is reversed
+            (using big-endian instead of little-endian)
+  Fix:      Use little-endian
+
+Checkpoint 2:
+
+- Problem:  Random Double Fault at system bootup
+  Cause:    When implementing cursor moving in printf,
+            CLI/STI is used, which enables interrupts before
+            i8259 is set up
+  Fix:      Set up i8259 first at system bootup
+
+Checkpoint 3:
+
+- Problem:  Exiting from root shell twice causes page fault
+  Cause:    The restarted shell is put at wrong memory location
+  Fix:      Correct the location of the shell
+
+Checkpoint 5:
+
+- Problem:  Switching between terminals causes page fault on very low mem position
+  Cause:    ESP & EBP was saved in a subroutine, but when restoring them, the extra layer
+            wasn't accounted for
+  Fix:      Move ESP & EBP saving code to main routine of execute / interrupt
+
+- Problem:  Some texts are printed to the wrong terminal (different from the terminal the
+            program is running)
+  Cause:    The terminals aren't properly separated from each other (saving states during
+            context switching isn't enough)
+  Fix:      Rewrote terminal code and printing code, make sure they print to the correct terminal
+
+- Problem:  Screen cursor sometimes isn't synced when terminal switches
+  Cause:    Terminal cursor moving code checks if the displayed terminal is the same as running terminal,
+            if they aren't then it does nothing
+  Fix:      During terminal switching, temporarily "mask" running terminal to let it work
+
+- Problem:  FISH is not correctly displayed on terminal #2 and #3, the bottom half is black, until we
+            press enter to reach that line
+  Cause:    Terminal #2 & #3 is initialized with all zero, which marks "black text on black background",
+            and when pressing enter to that line, clear_row() fixes the attributes
+  Fix:      Let initialization code initialize attributes correctly
+
+Extra functionality:
+
+- Problem:  Not receiving serial port interrupts
+  Cause:    Sample code on OSDev.org didn't enable interrupts of serial controller,
+            while it claims it does
+  Fix:      Add the code that enables it
+
+- Problem:  When a second program opens sound card, the first program using it will stop, reporting error
+  Cause:    Opening for a second time incorrectly resets the "initialized" flag, marking sound card as
+            uninitialized
+  Fix:      Rewrote the code that detects whether sound card is in use
