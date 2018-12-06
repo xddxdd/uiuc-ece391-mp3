@@ -1,2 +1,3 @@
 *.o
 student-distrib/Makefile.dep
+.ipynb_checkpoints
