@@ -24,6 +24,7 @@ void init_paging()
                 || (index >= VIDEO_MEM_ALT_START && index < VIDEO_MEM_ALT_END)
                 || (index >= SB16_MEM_BEGIN && index < SB16_MEM_END)
                 || (index >= ACPI_MEM_BEGIN && index < ACPI_MEM_BEGIN)
+                || (index >= QEMU_VGA_MEM_BEGIN && index < QEMU_VGA_MEM_END)
             ) ? 1 : 0;
         page_table[index].read_write = 0;
         page_table[index].user_supervisor = 0;

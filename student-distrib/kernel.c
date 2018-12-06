@@ -18,6 +18,7 @@
 #include "devices/sb16.h"
 #include "devices/speaker.h"
 #include "devices/pit.h"
+#include "devices/qemu_vga.h"
 #include "paging.h"
 #include "fs/ece391fs.h"
 #include "interrupts/sys_calls.h"
@@ -190,8 +191,7 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     sti();
 
-    //rtc_set_freq(2);    // Set frequency after initialization,
-                        // because it includes CLI and STI
+    // qemu_vga_init();
 
     // Switch to the first terminal
     terminal_switch_active(0);
