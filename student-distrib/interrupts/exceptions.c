@@ -37,14 +37,6 @@ char *exceptions[20] = {
 void exception_handler_real(uint32_t id, pushal_t pushal, uint32_t err_code, iret_t iret) {
     cli();  // Disable interruption
 
-    if(id == ERR_PAGE_FAULT) {
-        uint32_t page_fault_pos;
-        asm volatile (
-            "movl %%cr2, %0"
-            :"=r" (page_fault_pos)
-        );
-    }
-
     // Print the big 00P5 and exception message
     /*
     printf("+---+ +---+ +---+ +---+\n");

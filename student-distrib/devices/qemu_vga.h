@@ -20,17 +20,16 @@
 #define QEMU_VGA_MIN_VER 0xb0c0
 #define QEMU_VGA_MAX_VER 0xb0c5
 
-#define QEMU_VGA_DISABLE 0x00
-#define QEMU_VGA_ENABLE 0xA1
-#define QEMU_VGA_ENABLE_CLEAR 0x21
+#define QEMU_VGA_DISABLE 0xe0
+#define QEMU_VGA_ENABLE 0xe1
+#define QEMU_VGA_ENABLE_CLEAR 0x61
 
-#define QEMU_VGA_XRES 1024
-#define QEMU_VGA_YRES 768
-#define QEMU_VGA_BPP 32
 #define BITS_IN_BYTE 8
 
-#define QEMU_VGA_SUCCESS 0
-#define QEMU_VGA_FAIL -1
+extern int qemu_vga_enabled;
+extern uint16_t qemu_vga_xres;
+extern uint16_t qemu_vga_yres;
+extern uint16_t qemu_vga_bpp;
 
 uint16_t qemu_vga_read(uint16_t index);
 void qemu_vga_write(uint16_t index, uint16_t data);
@@ -40,11 +39,13 @@ void qemu_vga_enable();
 void qemu_vga_disable();
 void qemu_vga_enable_clear();
 
-uint16_t qemu_vga_init();
+uint16_t qemu_vga_init(uint16_t xres, uint16_t yres, uint16_t bpp);
 void qemu_vga_pixel_set(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
 void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch,
         uint8_t fr, uint8_t fg, uint8_t fb,
         uint8_t br, uint8_t bg, uint8_t bb);
-void qemu_vga_scroll_up(uint16_t y);
+void qemu_vga_puts(uint16_t x, uint16_t y, uint8_t* s, uint16_t len,
+        uint8_t fr, uint8_t fg, uint8_t fb,
+        uint8_t br, uint8_t bg, uint8_t bb);
 
 #endif

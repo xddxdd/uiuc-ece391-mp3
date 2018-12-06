@@ -19,6 +19,11 @@
 #include "devices/speaker.h"
 #include "devices/pit.h"
 #include "devices/qemu_vga.h"
+#include "devices/cmos.h"
+
+#include "data/uiuc.h"
+#include "data/vga_fonts.h"
+
 #include "paging.h"
 #include "fs/ece391fs.h"
 #include "interrupts/sys_calls.h"
@@ -40,6 +45,44 @@ void entry(unsigned long magic, unsigned long addr) {
     // CLI/STI is used for printf, so we initialize i8259 first
     // to prevent unwanted interrupts
     i8259_init();
+
+    // Display bootup screen
+    // #define VGA_SCREEN_WIDTH 640
+    // #define VGA_SCREEN_HEIGHT 480
+    //
+    // qemu_vga_init(VGA_SCREEN_WIDTH, VGA_SCREEN_HEIGHT, 16);
+    // qemu_vga_enable_clear();
+    // int bank;
+    // int x = 0, y = 0;
+    // for(bank = 0; bank * QEMU_VGA_BANK_SIZE < VGA_SCREEN_WIDTH * VGA_SCREEN_HEIGHT * 2; bank++) {
+    //     qemu_vga_select_bank(bank);
+    //     int i;
+    //     for(i = 0; i < QEMU_VGA_BANK_SIZE; i += 2) {
+    //         x++;
+    //         if(x >= VGA_SCREEN_WIDTH) { x = 0; y++; }
+    //         if(y >= VGA_SCREEN_HEIGHT) break;
+    //         if(x >= UIUC_IMAGE_LEFT && x < UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH
+    //             && y >= UIUC_IMAGE_TOP && y < UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT) {
+    //             *((uint16_t*) (QEMU_VGA_MEM_POS + i)) = UIUC_IMAGE_DATA[(y - UIUC_IMAGE_TOP) * UIUC_IMAGE_WIDTH + (x - UIUC_IMAGE_LEFT)];
+    //         } else {
+    //             *((uint16_t*) (QEMU_VGA_MEM_POS + i)) = UIUC_IMAGE_DATA[0];
+    //         }
+    //     }
+    // }
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP,
+    //      (uint8_t*) "nullOS", 6, 255, 255, 255, 19, 41, 75);
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 2,
+    //      (uint8_t*) "Made by:", 8, 255, 255, 255, 19, 41, 75);
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 3,
+    //      (uint8_t*) "- Yuhui Xu", 10, 255, 255, 255, 19, 41, 75);
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 4,
+    //      (uint8_t*) "- Zhenbang Wu", 13, 255, 255, 255, 19, 41, 75);
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 5,
+    //      (uint8_t*) "- Jinghua Wang", 14, 255, 255, 255, 19, 41, 75);
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 6,
+    //      (uint8_t*) "- Jiaqi Xing", 12, 255, 255, 255, 19, 41, 75);
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT - FONT_HEIGHT,
+    //      (uint8_t*) "Starting...", 11, 255, 255, 255, 19, 41, 75);
 
     /* Clear the screen. */
     clear();
@@ -185,13 +228,17 @@ void entry(unsigned long magic, unsigned long addr) {
     pit_init();         // PIT initializes after multiprocessing, as it does process switching
                         // otherwise system will triple fault
 
+
+    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT - FONT_HEIGHT,
+    //     (uint8_t*) "Entering Shell...", 17, 255, 255, 255, 19, 41, 75);
+    qemu_vga_disable();
+
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
     sti();
-
-    // qemu_vga_init();
 
     // Switch to the first terminal
     terminal_switch_active(0);
