@@ -10,7 +10,6 @@
 #define CMOS_REG_YEAR 0x09
 #define CMOS_REG_MONTH 0x08
 #define CMOS_REG_DAY 0x07
-#define CMOS_REG_DAY_OF_WEEK 0x06
 #define CMOS_REG_HOUR 0x04
 #define CMOS_REG_MINUTE 0x02
 #define CMOS_REG_SECOND 0x00
@@ -21,7 +20,6 @@ typedef struct {
     uint16_t year;
     uint8_t month;
     uint8_t day;
-    uint8_t dow;
     uint8_t hour;
     uint8_t minute;
     uint8_t second;

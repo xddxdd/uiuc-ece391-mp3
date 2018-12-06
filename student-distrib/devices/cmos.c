@@ -31,7 +31,6 @@ datetime_t cmos_datetime() {
     uint16_t year = cmos_reg_read(CMOS_REG_YEAR);
     uint8_t month = cmos_reg_read(CMOS_REG_MONTH);
     uint8_t day = cmos_reg_read(CMOS_REG_DAY);
-    uint8_t dow = cmos_reg_read(CMOS_REG_DAY_OF_WEEK);
     uint8_t hour = cmos_reg_read(CMOS_REG_HOUR);
     uint8_t min = cmos_reg_read(CMOS_REG_MINUTE);
     uint8_t sec = cmos_reg_read(CMOS_REG_SECOND);
@@ -41,7 +40,6 @@ datetime_t cmos_datetime() {
     year = (year >> 4) * 10 + (year & 0x0f);
     month = (month >> 4) * 10 + (month & 0x0f);
     day = (day >> 4) * 10 + (day & 0x0f);
-    dow = (dow >> 4) * 10 + (dow & 0x0f);
     hour = (hour >> 4) * 10 + (hour & 0x0f);
     min = (min >> 4) * 10 + (min & 0x0f);
     sec = (sec >> 4) * 10 + (sec & 0x0f);
@@ -49,7 +47,7 @@ datetime_t cmos_datetime() {
     if(0 == century) century = 20;
     year += century * 100;
 
-    datetime_t ret = {year, month, day, dow, hour, min, sec};
+    datetime_t ret = {year, month, day, hour, min, sec};
     return ret;
 }
 
@@ -79,9 +77,8 @@ int32_t cmos_open(int32_t* inode, char* filename) {
  * @description: formats date time and writes them into buffer.
  */
 int32_t cmos_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
-    if(NULL == buf) return FAIL;    //
-    char weeks[] = "SunMonTueWedThuFriSatSun";
-    char tmp[] = "0000-00-00 XXX 00:00:00\n";
+    if(NULL == buf) return FAIL;
+    char tmp[] = "0000-00-00 00:00:00\n";
     if(len < strlen(tmp)) return FAIL;
     if(0 != *offset) return 0;
 
@@ -95,13 +92,12 @@ int32_t cmos_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
     tmp[7] = '-';
     itoa(datetime.day, (int8_t*) (tmp + ((datetime.day < 10) ? 9 : 8)), 10);
     tmp[10] = ' ';
-    memcpy((int8_t*) (tmp + 11), (int8_t*) (weeks + datetime.dow * 3), 3);
-    itoa(datetime.hour, (int8_t*) (tmp + ((datetime.hour < 10) ? 16 : 15)), 10);
-    tmp[17] = ':';
-    itoa(datetime.minute, (int8_t*) (tmp + ((datetime.minute < 10) ? 19 : 18)), 10);
-    tmp[20] = ':';
-    itoa(datetime.second, (int8_t*) (tmp + ((datetime.second < 10) ? 22 : 21)), 10);
-    tmp[23] = '\n';
+    itoa(datetime.hour, (int8_t*) (tmp + ((datetime.hour < 10) ? 12 : 11)), 10);
+    tmp[13] = ':';
+    itoa(datetime.minute, (int8_t*) (tmp + ((datetime.minute < 10) ? 15 : 14)), 10);
+    tmp[16] = ':';
+    itoa(datetime.second, (int8_t*) (tmp + ((datetime.second < 10) ? 18 : 17)), 10);
+    tmp[19] = '\n';
 
     // Do the output
     memcpy(buf, tmp, strlen(tmp));
