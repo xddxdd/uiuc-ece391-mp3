@@ -4,6 +4,7 @@
 #include "../lib/lib.h"
 
 #define CHINESE_FONT_LEFT 1
+#define CHINESE_FONT_RIGHT 1
 #define CHINESE_FONT_WIDTH 16
 #define CHINESE_FONT_HEIGHT 16
 #define CHINESE_ENCODE_START 0x4e00

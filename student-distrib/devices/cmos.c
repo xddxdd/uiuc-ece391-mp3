@@ -37,6 +37,7 @@ datetime_t cmos_datetime() {
     uint8_t century = (0 != fadt->Century) ? (cmos_reg_read(fadt->Century)) : 0;
     sti();
 
+    // Convert hex representation of time into decimal
     year = (year >> 4) * 10 + (year & 0x0f);
     month = (month >> 4) * 10 + (month & 0x0f);
     day = (day >> 4) * 10 + (day & 0x0f);
@@ -77,7 +78,7 @@ int32_t cmos_open(int32_t* inode, char* filename) {
  * @description: formats date time and writes them into buffer.
  */
 int32_t cmos_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
-    if(NULL == buf) return FAIL;
+    if(NULL == buf || NULL == offset) return FAIL;
     char tmp[] = "0000-00-00 00:00:00\n";
     if(len < strlen(tmp)) return FAIL;
     if(0 != *offset) return 0;

@@ -2,6 +2,7 @@
 #include "../devices/keyboard.h"
 #include "../devices/qemu_vga.h"
 #include "../data/uiuc.h"
+#include "../lib/status_bar.h"
 
 char program_header[PROGRAM_HEADER_LEN] = {0x7f, 0x45, 0x4c, 0x46};
 
@@ -398,6 +399,7 @@ void terminal_switch_display(uint32_t tid) {
     active_terminal_id = tmp;
 
     qemu_vga_switch_terminal(displayed_terminal_id);
+    status_bar_switch_terminal(displayed_terminal_id);
 
     sti();  // End critical section
 }

@@ -24,6 +24,7 @@
 
 uint8_t rtc_init();
 void rtc_interrupt();
+void rtc_periodic_event();
 
 // RTC Driver
 int32_t rtc_open(int32_t* inode, char* filename);

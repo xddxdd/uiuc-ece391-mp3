@@ -1,5 +1,8 @@
 #include "rtc.h"
 #include "../interrupts/multiprocessing.h"
+#include "../lib/status_bar.h"
+
+uint8_t rtc_global_counter = 0;
 
 // Unified FS interface for RTC.
 unified_fs_interface_t rtc_if = {
@@ -32,6 +35,10 @@ uint8_t rtc_init() {
  *     Decreases offset for all RTC handles, as offsets are counters for timing.
  */
 void rtc_interrupt() {
+    // Triggers global event every 256 ticks (0.25s)
+    rtc_global_counter++;
+    if(0 == rtc_global_counter) rtc_periodic_event();
+
     // For all processes, find RTC handles and update their offset
     int pid;
     for(pid = 0; pid < MAX_PROGRAMS_NUM; pid++) {
@@ -53,6 +60,13 @@ void rtc_interrupt() {
     inb(RTC_PORT_DATA);		       // just throw away contents
 
     send_eoi(RTC_IRQ);  // And we're done
+}
+
+/* void rtc_periodic_event()
+ * @description: runs some global events triggered every 0.25s.
+ */
+void rtc_periodic_event() {
+    status_bar_update_clock();
 }
 
 /* int32_t rtc_open(int32_t* inode, char* filename)

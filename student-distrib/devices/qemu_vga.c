@@ -186,6 +186,12 @@ void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg, vga_color
                             qemu_vga_pixel_set(x + CHINESE_FONT_LEFT + j, y + i, bg);
                         }
                     }
+                    for(j = 0; j < CHINESE_FONT_LEFT; j++) {
+                        qemu_vga_pixel_set(x + j, y + i, bg);
+                    }
+                    for(j = 0; j < CHINESE_FONT_RIGHT; j++) {
+                        qemu_vga_pixel_set(x + CHINESE_FONT_LEFT + CHINESE_FONT_WIDTH + j, y + i, bg);
+                    }
                 }
             }
         }
@@ -199,6 +205,9 @@ void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg, vga_color
                 } else {
                     qemu_vga_pixel_set(x + j, y + i, bg);
                 }
+            }
+            for(j = FONT_DATA_WIDTH; j < FONT_ACTUAL_WIDTH; j++) {
+                qemu_vga_pixel_set(x + j, y + i, bg);
             }
         }
     }
