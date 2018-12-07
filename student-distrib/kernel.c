@@ -178,7 +178,7 @@ void entry(unsigned long magic, unsigned long addr) {
     init_paging();
     process_init();     // Initialize multiprocessing structures
     rtc_init();         // Initialize RTC virtualization
-    keyboard_clear();   // Clear boot message
+    ONTO_DISPLAY_WRAP(clear()); // Clear boot message
 
 #ifdef RUN_TESTS
     /* Run tests */

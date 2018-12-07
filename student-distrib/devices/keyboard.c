@@ -62,7 +62,7 @@ void keyboard_interrupt() {
         key = scancode[scancode_idx][0];
         if(key == 'l'){
             // Ctrl+L or Ctrl+l received, clear screen and put cursor at the top.
-            ONTO_DISPLAY_WRAP(keyboard_clear());
+            ONTO_DISPLAY_WRAP(clear());
             // clear the keyboard buffer.
             terminals[displayed_terminal_id].keyboard_buffer_top = 0;
         }
@@ -112,10 +112,10 @@ void keyboard_interrupt() {
             if (key == BACKSPACE) {
                 if(terminals[displayed_terminal_id].keyboard_buffer_top > 0) {
                     terminals[displayed_terminal_id].keyboard_buffer_top--;
-                    ONTO_DISPLAY_WRAP(keyboard_echo(key));
+                    ONTO_DISPLAY_WRAP(putc(key));
                 }
             } else if (key == '\n') {
-                ONTO_DISPLAY_WRAP(keyboard_echo(key));
+                ONTO_DISPLAY_WRAP(putc(key));
                 // put newline character
                 terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = '\n';
                 // increment keyboard_buffer_top
@@ -123,7 +123,7 @@ void keyboard_interrupt() {
                 // disable keyboard buffer
                 terminals[displayed_terminal_id].keyboard_buffer_enable = 0;
             } else if (terminals[displayed_terminal_id].keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE) {
-                ONTO_DISPLAY_WRAP(keyboard_echo('\n'));
+                ONTO_DISPLAY_WRAP(putc('\n'));
                 // put newline character
                 terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = '\n';
                 // increment keyboard_buffer_top
@@ -131,14 +131,14 @@ void keyboard_interrupt() {
                 // disable keyboard buffer
                 terminals[displayed_terminal_id].keyboard_buffer_enable = 0;
             } else {
-                ONTO_DISPLAY_WRAP(keyboard_echo(key));
+                ONTO_DISPLAY_WRAP(putc(key));
                 // record current key
                 terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = key;
                 // increment keyboard_buffer_top
                 terminals[displayed_terminal_id].keyboard_buffer_top++;
             }
         } else {
-            ONTO_DISPLAY_WRAP(keyboard_echo(key));
+            ONTO_DISPLAY_WRAP(putc(key));
         }
     }
     // send End Of Interrupt

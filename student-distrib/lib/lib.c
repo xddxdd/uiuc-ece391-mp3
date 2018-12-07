@@ -41,29 +41,6 @@ void clear(void) {
     qemu_vga_set_cursor_pos(0, 0);
 }
 
-/* void keyboard_clear(void);
- * Inputs: void
- * Return Value: none
- * Function: Force clear current video memory, used in keyboard interrupt.
- *     Should be called with ONTO_DISPLAY_WRAP to operate on displayed terminal.
- */
-void keyboard_clear(void) {
-    int32_t i;
-    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(TERMINAL_DIRECT_ADDR + (i << 1)) = ' ';
-        *(uint8_t *)(TERMINAL_DIRECT_ADDR + (i << 1) + 1) = ATTRIB;
-    }
-    // We're in keyboard interrupt context, we're directly operating on the screen
-    // and we don't mind which terminal is active, only which is displayed
-    terminals[active_terminal_id].screen_x = 0;
-    terminals[active_terminal_id].screen_y = 0;
-
-    qemu_vga_clear();
-
-    vga_text_set_cursor_pos(0, 0);
-    qemu_vga_set_cursor_pos(0, 0);
-}
-
 /* void clear_row(uint32_t row)
  * @input: row - the id of row to be cleared, should be in range 0 to (NUM_ROWS - 1)
  * @output: the row on screen gets cleared
@@ -246,6 +223,25 @@ void putc(uint8_t c)
         if (terminals[active_terminal_id].screen_y >= NUM_ROWS) roll_up();
         clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
         terminals[active_terminal_id].screen_x = 0;
+    } else if(c == BACKSPACE) {
+        // Move back one character
+        terminals[active_terminal_id].screen_x--;
+        // If the line is filled up
+        if(terminals[active_terminal_id].screen_x < 0) {
+            // clear_row(terminals[active_terminal_id].screen_y);
+            terminals[active_terminal_id].screen_x = NUM_COLS - 1;
+            terminals[active_terminal_id].screen_y -= 1;
+            if(terminals[active_terminal_id].screen_y < 0) {
+                terminals[active_terminal_id].screen_x = 0;
+                terminals[active_terminal_id].screen_y = 0;
+            }
+        }
+        // Clear the current character
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
+        qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
+            terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
+            ' ', qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
     } else {
         if(terminals[active_terminal_id].utf8_state.got == 0) {
             // The input char has no relation to UTF-8, simply print it
@@ -259,6 +255,7 @@ void putc(uint8_t c)
             *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
         }
+
         if(terminals[active_terminal_id].utf8_state.got == 0) {
             // Tell QEMU VGA to put a character at the same position
             qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
@@ -309,86 +306,13 @@ void putc(uint8_t c)
  * Inputs: none
  * Return Value: void
  * Function:roll the page up one line */
-void roll_up()
-{
+void roll_up() {
     memcpy(video_mem, video_mem + (NUM_COLS << 1), (NUM_ROWS - 1) * NUM_COLS * 2);
     terminals[active_terminal_id].screen_x = 0;
     terminals[active_terminal_id].screen_y = NUM_ROWS - 1;
     qemu_vga_roll_up();
     qemu_vga_set_cursor_pos(0, NUM_ROWS - 1);
     clear_row(NUM_ROWS - 1);
-}
-
-/* void keyboard_echo(uint8_t c);
- * Inputs: uint_8* c = character to print
- * Return Value: void
- * Function: Output a character to the console (only used by keyboard driver)
- *     Should be called with ONTO_DISPLAY_WRAP to operate on displayed terminal.
- */
-void keyboard_echo(uint8_t c)
-{
-    if (c == NULL_CHAR) return;
-
-    // We're in keyboard interrupt context, we're directly operating on the screen
-    // and we don't mind which terminal is active, only which is displayed
-    // Therefore we're using active_terminal_id instead of active_terminal_id
-
-    // if reach the right bottom of the screen
-    if (NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x
-        >= NUM_COLS * NUM_ROWS) roll_up();
-
-    // new line
-    if(c == '\n' || c == '\r') {
-        terminals[active_terminal_id].screen_y++;
-        // if reach the right bottom of the screen
-        if (terminals[active_terminal_id].screen_y >= NUM_ROWS) roll_up();
-        clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
-        terminals[active_terminal_id].screen_x = 0;
-    }
-    // backspace
-    else if (c == BACKSPACE)
-    {
-        terminals[active_terminal_id].screen_x--;
-        // If the line is filled up
-        if(terminals[active_terminal_id].screen_x < 0)
-        {
-            clear_row(terminals[active_terminal_id].screen_y);
-            terminals[active_terminal_id].screen_x = NUM_COLS - 1;
-            terminals[active_terminal_id].screen_y -= 1;
-            if(terminals[active_terminal_id].screen_y < 0)
-            {
-                terminals[active_terminal_id].screen_x = 0;
-                terminals[active_terminal_id].screen_y = 0;
-            }
-        }
-        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = ' ';
-        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
-        qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
-            terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
-            ' ', qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
-    }
-    // default
-    else
-    {
-        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
-        qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
-            terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
-            c, qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
-        terminals[active_terminal_id].screen_x++;
-        // If the line is filled up
-        if(terminals[active_terminal_id].screen_x >= NUM_COLS)
-        {
-            terminals[active_terminal_id].screen_x = 0;
-            terminals[active_terminal_id].screen_y++;
-            // if reach the right bottom of the screen
-            if (terminals[active_terminal_id].screen_y >= NUM_ROWS) roll_up();
-            clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
-        }
-    }
-
-    vga_text_set_cursor_pos(terminals[active_terminal_id].screen_x, terminals[active_terminal_id].screen_y);
-    qemu_vga_set_cursor_pos(terminals[active_terminal_id].screen_x, terminals[active_terminal_id].screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
