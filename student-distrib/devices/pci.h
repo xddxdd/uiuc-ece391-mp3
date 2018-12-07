@@ -6,6 +6,14 @@
 #define PCI_REG_ADDR 0xCF8
 #define PCI_REG_DATA 0xCFC
 
+// #define PCI_COUNT_BUS 255
+#define PCI_COUNT_BUS 8
+#define PCI_COUNT_DEVICE 32
+#define PCI_COUNT_FUNC 8
+
+#define PCI_MASK_BAR_MEMSPACE 0xfffffff0
+#define PCI_MASK_BAR_IOSPACE 0xfffffffc
+
 typedef union {
     uint32_t val;
     struct __attribute__((packed)) {
@@ -49,6 +57,7 @@ typedef union {
 } pci_device_t;
 
 int32_t pci_get_device(uint8_t bus, uint8_t device, uint8_t func, pci_device_t* ret);
+void pci_register_device(uint8_t bus, uint8_t device, uint8_t func, pci_device_t* dev_info);
 void pci_init();
 
 #endif

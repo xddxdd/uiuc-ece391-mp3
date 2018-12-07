@@ -1,5 +1,6 @@
 #include "multiprocessing.h"
 #include "../devices/keyboard.h"
+#include "../devices/qemu_vga.h"
 
 char program_header[PROGRAM_HEADER_LEN] = {0x7f, 0x45, 0x4c, 0x46};
 
@@ -389,6 +390,8 @@ void terminal_switch_display(uint32_t tid) {
     active_terminal_id = displayed_terminal_id;
     vga_text_set_cursor_pos(terminals[displayed_terminal_id].screen_x, terminals[displayed_terminal_id].screen_y);
     active_terminal_id = tmp;
+
+    qemu_vga_switch_terminal(displayed_terminal_id);
 
     sti();  // End critical section
 }

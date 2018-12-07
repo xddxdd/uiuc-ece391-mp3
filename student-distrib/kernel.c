@@ -47,47 +47,6 @@ void entry(unsigned long magic, unsigned long addr) {
     // to prevent unwanted interrupts
     i8259_init();
 
-    // Display bootup screen
-    #define VGA_SCREEN_WIDTH 720
-    #define VGA_SCREEN_HEIGHT 400
-
-    // qemu_vga_init(VGA_SCREEN_WIDTH, VGA_SCREEN_HEIGHT, 16);
-    // int bank;
-    // int x = 0, y = 0;
-    // for(bank = 0; bank * QEMU_VGA_BANK_SIZE < VGA_SCREEN_WIDTH * VGA_SCREEN_HEIGHT * 2; bank++) {
-    //     qemu_vga_select_bank(bank);
-    //     int i;
-    //     for(i = 0; i < QEMU_VGA_BANK_SIZE; i += 2) {
-    //         x++;
-    //         if(x >= VGA_SCREEN_WIDTH) { x = 0; y++; }
-    //         if(y >= VGA_SCREEN_HEIGHT) break;
-    //         if(x >= UIUC_IMAGE_LEFT && x < UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH
-    //             && y >= UIUC_IMAGE_TOP && y < UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT) {
-    //             *((uint16_t*) (QEMU_VGA_MEM_POS + i)) = UIUC_IMAGE_DATA[(y - UIUC_IMAGE_TOP) * UIUC_IMAGE_WIDTH + (x - UIUC_IMAGE_LEFT)];
-    //         } else {
-    //             *((uint16_t*) (QEMU_VGA_MEM_POS + i)) = UIUC_IMAGE_DATA[0];
-    //         }
-    //     }
-    // }
-
-    vga_color_t white = {0xffff};
-    vga_color_t uiuc_blue = {0x1149};
-
-    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP,
-         (uint8_t*) "nullOS", 6, white, uiuc_blue);
-    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 2,
-         (uint8_t*) "Made by:", 8, white, uiuc_blue);
-    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 3,
-         (uint8_t*) "- Yuhui Xu", 10, white, uiuc_blue);
-    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 4,
-         (uint8_t*) "- Zhenbang Wu", 13, white, uiuc_blue);
-    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 5,
-         (uint8_t*) "- Jinghua Wang", 14, white, uiuc_blue);
-    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 6,
-         (uint8_t*) "- Jiaqi Xing", 12, white, uiuc_blue);
-    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT - FONT_ACTUAL_HEIGHT,
-         (uint8_t*) "Starting...", 11, white, uiuc_blue);
-
     /* Clear the screen. */
     clear();
 
@@ -117,21 +76,22 @@ void entry(unsigned long magic, unsigned long addr) {
 
     if (CHECK_FLAG(mbi->flags, 3)) {
         int mod_count = 0;
-        int i;
+        // int i;
         module_t* mod = (module_t*)mbi->mods_addr;
         ece391fs_init((uint32_t) mod->mod_start, (uint32_t) mod->mod_end);
         while (mod_count < mbi->mods_count) {
-            printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
-            printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
-            printf("First few bytes of module:\n");
-            for (i = 0; i < 16; i++) {
-                printf("0x%x ", *((char*)(mod->mod_start+i)));
-            }
-            printf("\n");
+            printf("Module %d loaded at address: 0x%#x - 0x%#x\n", mod_count,
+                (unsigned int)mod->mod_start, (unsigned int)mod->mod_end);
+            // printf("First few bytes of module:\n");
+            // for (i = 0; i < 16; i++) {
+            //     printf("0x%x ", *((char*)(mod->mod_start+i)));
+            // }
+            // printf("\n");
             mod_count++;
             mod++;
         }
     }
+
     /* Bits 4 and 5 are mutually exclusive! */
     if (CHECK_FLAG(mbi->flags, 4) && CHECK_FLAG(mbi->flags, 5)) {
         printf("Both bits 4 and 5 are set.\n");
@@ -212,6 +172,7 @@ void entry(unsigned long magic, unsigned long addr) {
     cpuid_init();
     keyboard_init();
     pci_init();
+    qemu_vga_init(QEMU_VGA_DEFAULT_WIDTH, QEMU_VGA_DEFAULT_HEIGHT, QEMU_VGA_DEFAULT_BPP);
     // rtc_init();
     // serial_init(COM1);
     // tux_init();

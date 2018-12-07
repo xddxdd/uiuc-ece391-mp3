@@ -23,7 +23,7 @@ void vga_text_set_color(uint8_t x, uint8_t y, uint8_t foreground, uint8_t backgr
  *               Initially used to draw Aqua on exception screen, but can be used for others.
  */
 void vga_text_set_character(uint8_t x, uint8_t y, uint8_t ch) {
-    // *(uint8_t*) (VIDEO + (y * SCREEN_WIDTH + x) * 2) = ch;
+    *(uint8_t*) (VIDEO + (y * SCREEN_WIDTH + x) * 2) = ch;
 }
 
 /* void vga_text_disable_cursor()

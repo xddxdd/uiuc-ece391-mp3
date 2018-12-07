@@ -4,6 +4,7 @@
 
 #include "paging.h"
 #include "devices/acpi.h"
+#include "devices/qemu_vga.h"
 
 /* void init_paging()
  * @output: page table and page directory initialized.
@@ -13,7 +14,7 @@
 void init_paging()
 {
     // loop variable
-    int index;
+    uint32_t index;
     // initialize Page Table
     for (index = 0; index < NUM_PTE; index++)
     {
@@ -102,12 +103,12 @@ void init_paging()
         if(index == PAGE_TABLE_USERMAP_LOCATION) continue;
         // Enable paging present for ACPI related data structures
         page_directory[index].pde_MB.present = (
-            (index == ((int32_t) rsdp_descriptor >> TB_ADDR_OFFSET_MB))
-            || (index == ((int32_t) rsdt >> TB_ADDR_OFFSET_MB))
-            || (index == ((int32_t) fadt >> TB_ADDR_OFFSET_MB))
-            || (index == ((int32_t) dsdt_s5 >> TB_ADDR_OFFSET_MB))
-            || (index >= (QEMU_VGA_PDE_BEGIN >> TB_ADDR_OFFSET_MB)
-                && index < (QEMU_VGA_PDE_END >> TB_ADDR_OFFSET_MB))
+            (index == ((uint32_t) rsdp_descriptor >> TB_ADDR_OFFSET_MB))
+            || (index == ((uint32_t) rsdt >> TB_ADDR_OFFSET_MB))
+            || (index == ((uint32_t) fadt >> TB_ADDR_OFFSET_MB))
+            || (index == ((uint32_t) dsdt_s5 >> TB_ADDR_OFFSET_MB))
+            || (index >= ((uint32_t) qemu_vga_addr >> TB_ADDR_OFFSET_MB)
+                && index < ((uint32_t) (qemu_vga_addr + QEMU_VGA_BANK_SIZE) >> TB_ADDR_OFFSET_MB))
         ) ? 1 : 0;
         page_directory[index].pde_MB.read_write = 0;
         page_directory[index].pde_MB.user_supervisor = 0;

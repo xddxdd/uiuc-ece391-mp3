@@ -71,6 +71,16 @@ typedef struct {
 #define TERMINAL_ALT_START 0xb9000
 #define TERMINAL_ALT_SIZE 0x1000
 
+// Wrapper for interrupts, etc, to force operation
+// onto displayed terminal instead of active terminal
+#define ONTO_DISPLAY_WRAP(code)                 \
+    cli();                                      \
+    int active_tid = active_terminal_id;        \
+    active_terminal_id = displayed_terminal_id; \
+    code;                                       \
+    active_terminal_id = active_tid;            \
+    sti();
+
 extern volatile terminal_t terminals[TERMINAL_COUNT];
 extern int32_t displayed_terminal_id;
 extern int32_t active_terminal_id;
