@@ -34,13 +34,13 @@
 
 #define QEMU_VGA_DEFAULT_WIDTH 720
 #define QEMU_VGA_DEFAULT_HEIGHT 400
-#define QEMU_VGA_DEFAULT_BPP 32
+#define QEMU_VGA_DEFAULT_BPP 16
 
-extern int qemu_vga_enabled;
 extern uint16_t qemu_vga_xres;
 extern uint16_t qemu_vga_yres;
 extern uint16_t qemu_vga_bpp;
 extern uint32_t qemu_vga_addr;
+extern uint32_t qemu_vga_enabled;
 extern uint32_t qemu_vga_cursor_x;
 extern uint32_t qemu_vga_cursor_y;
 
@@ -76,5 +76,6 @@ void qemu_vga_clear_row(uint8_t grid_y);
 void qemu_vga_roll_up();
 void qemu_vga_set_cursor_pos(uint8_t x, uint8_t y);
 vga_color_t qemu_vga_get_terminal_color(uint8_t color);
+void qemu_vga_show_picture(uint16_t width, uint16_t height, uint8_t bpp, uint8_t* data);
 
 #endif

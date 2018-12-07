@@ -20,6 +20,8 @@
 
 #define TERMINAL_DIRECT_ADDR 0xb7000
 
+extern char* video_mem;
+
 void infinite_loop();
 void wait_interrupt();
 int32_t printf(int8_t *format, ...);

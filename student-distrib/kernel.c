@@ -166,18 +166,14 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
-    // Only keyboard intialization & CPUID init is needed here,
-    // all other devices are auto initialized when used
-    acpi_init();
-    cpuid_init();
-    keyboard_init();
-    pci_init();
+    // All other devices are auto initialized when used
+    acpi_init();        // Find the ACPI tables, so we can leave space for them when paging
+    cpuid_init();       // No need of querying every time
+    keyboard_init();    // Required for user input
+    pci_init();         // Required for QEMU VGA
+    // QEMU VGA initializes before paging, video memory redirected according to whether
+    // QEMU VGA is enabled
     qemu_vga_init(QEMU_VGA_DEFAULT_WIDTH, QEMU_VGA_DEFAULT_HEIGHT, QEMU_VGA_DEFAULT_BPP);
-    // rtc_init();
-    // serial_init(COM1);
-    // tux_init();
-    // sb16_init();
-    // speaker_init();
 
     init_paging();
     process_init();     // Initialize multiprocessing structures

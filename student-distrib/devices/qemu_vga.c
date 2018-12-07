@@ -9,6 +9,7 @@ uint16_t qemu_vga_xres = 0;
 uint16_t qemu_vga_yres = 0;
 uint16_t qemu_vga_bpp = 0;
 uint32_t qemu_vga_addr = 0;
+uint32_t qemu_vga_enabled = 0;
 uint32_t qemu_vga_cursor_x = 0;
 uint32_t qemu_vga_cursor_y = 0;
 
@@ -51,6 +52,7 @@ uint16_t qemu_vga_init(uint16_t xres, uint16_t yres, uint16_t bpp) {
     qemu_vga_write(QEMU_VGA_IDX_X_OFFSET, 0);
     qemu_vga_write(QEMU_VGA_IDX_Y_OFFSET, 0);
     qemu_vga_write(QEMU_VGA_IDX_ENABLE, QEMU_VGA_ENABLE_CLEAR);
+    qemu_vga_enabled = 1;
 
     return SUCCESS;
 }
@@ -128,9 +130,9 @@ void qemu_vga_set_cursor_pos(uint8_t x, uint8_t y) {
     if(active_terminal_id != displayed_terminal_id) return;
     if(qemu_vga_cursor_x == x && qemu_vga_cursor_y == y) return;
 
-    // erase cursor on current location by redrawing the character
-    // uint8_t ch = *(uint8_t*) (TERMINAL_DIRECT_ADDR + (SCREEN_WIDTH * qemu_vga_cursor_y + qemu_vga_cursor_x) * 2);
-    // uint8_t attrib = *(uint8_t*) (TERMINAL_DIRECT_ADDR + (SCREEN_WIDTH * qemu_vga_cursor_y + qemu_vga_cursor_x) * 2 + 1);
+    // // erase cursor on current location by redrawing the character
+    // uint8_t ch = *(volatile uint8_t*) (TERMINAL_DIRECT_ADDR + (SCREEN_WIDTH * qemu_vga_cursor_y + qemu_vga_cursor_x) * 2);
+    // uint8_t attrib = *(volatile uint8_t*) (TERMINAL_DIRECT_ADDR + (SCREEN_WIDTH * qemu_vga_cursor_y + qemu_vga_cursor_x) * 2 + 1);
     // qemu_vga_putc(qemu_vga_cursor_x * FONT_ACTUAL_WIDTH,
     //     qemu_vga_cursor_y * FONT_ACTUAL_HEIGHT,
     //     ch, qemu_vga_get_terminal_color(attrib), qemu_vga_get_terminal_color(attrib >> 4));
@@ -142,7 +144,7 @@ void qemu_vga_set_cursor_pos(uint8_t x, uint8_t y) {
     qemu_vga_cursor_x = x;
     qemu_vga_cursor_y = y;
 
-    // draw cursor on new location by drawing an underline
+    // // draw cursor on new location by drawing an underline
     // qemu_vga_putc_transparent(qemu_vga_cursor_x * FONT_ACTUAL_WIDTH,
     //     qemu_vga_cursor_y * FONT_ACTUAL_HEIGHT,
     //     '_', qemu_vga_get_terminal_color(ATTRIB));
@@ -150,4 +152,21 @@ void qemu_vga_set_cursor_pos(uint8_t x, uint8_t y) {
 
 vga_color_t qemu_vga_get_terminal_color(uint8_t color) {
     return (qemu_vga_bpp == 16 ? terminal_color_16 : terminal_color_32)[(color & 0xff)];
+}
+
+void qemu_vga_show_picture(uint16_t width, uint16_t height, uint8_t bpp, uint8_t* data) {
+    if(width > qemu_vga_xres || height > qemu_vga_yres) return;
+
+    int row = 0;
+    int i;
+    for(i = 0; i < height; i++) {
+        memcpy((char*) (qemu_vga_active_window_addr() + row),
+            (char*) (data + i * width * bpp / BITS_IN_BYTE), width * bpp / BITS_IN_BYTE);
+        row += qemu_vga_xres * qemu_vga_bpp / BITS_IN_BYTE;
+    }
+
+    if(terminals[active_terminal_id].screen_y < height / FONT_ACTUAL_HEIGHT) {
+        terminals[active_terminal_id].screen_y = height / FONT_ACTUAL_HEIGHT + 1;
+        terminals[active_terminal_id].screen_x = 0;
+    }
 }

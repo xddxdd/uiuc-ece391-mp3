@@ -6,7 +6,7 @@
 #include "../devices/vga_text.h"
 #include "../devices/qemu_vga.h"
 
-static char* video_mem = (char *)VIDEO;
+char* video_mem = (char *)VIDEO;
 
 /* void infinite_loop()
  * @description: an environment-friendly infinite loop.
@@ -260,12 +260,7 @@ void putc(uint8_t c)
  * Function:roll the page up one line */
 void roll_up()
 {
-    int32_t index;
-    for (index = 0; index < (NUM_ROWS - 1) * NUM_COLS; index++)
-    {
-        *(uint8_t *)(video_mem + (index << 1)) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1));
-        *(uint8_t *)(video_mem + (index << 1) + 1) = *(uint8_t *)(video_mem + ((index + NUM_COLS) << 1) + 1);
-    }
+    memcpy(video_mem, video_mem + (NUM_COLS << 1), (NUM_ROWS - 1) * NUM_COLS * 2);
     terminals[active_terminal_id].screen_x = 0;
     terminals[active_terminal_id].screen_y = NUM_ROWS - 1;
     qemu_vga_roll_up();
@@ -282,8 +277,6 @@ void roll_up()
 void keyboard_echo(uint8_t c)
 {
     if (c == NULL_CHAR) return;
-    // Temporarily enable direct access to video memory, ignoring which terminal is displayed
-    video_mem = (char*) TERMINAL_DIRECT_ADDR;
 
     // We're in keyboard interrupt context, we're directly operating on the screen
     // and we don't mind which terminal is active, only which is displayed
@@ -342,8 +335,7 @@ void keyboard_echo(uint8_t c)
             clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
         }
     }
-    // Re-enable terminal separation
-    video_mem = (char*) VIDEO;
+
     vga_text_set_cursor_pos(terminals[active_terminal_id].screen_x, terminals[active_terminal_id].screen_y);
     qemu_vga_set_cursor_pos(terminals[active_terminal_id].screen_x, terminals[active_terminal_id].screen_y);
 }

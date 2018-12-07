@@ -30,10 +30,6 @@
 
 #define PAGE_TABLE_USERMAP_LOCATION 33  // 132-136M
 
-// Memory space for QEMU VGA device, Takes 64KB space.
-#define QEMU_VGA_MEM_BEGIN 0xa0
-#define QEMU_VGA_MEM_END 0xb0
-
 // function used to initial paging
 void init_paging();
 

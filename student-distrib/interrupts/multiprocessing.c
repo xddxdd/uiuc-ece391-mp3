@@ -1,6 +1,7 @@
 #include "multiprocessing.h"
 #include "../devices/keyboard.h"
 #include "../devices/qemu_vga.h"
+#include "../data/uiuc.h"
 
 char program_header[PROGRAM_HEADER_LEN] = {0x7f, 0x45, 0x4c, 0x46};
 
@@ -148,6 +149,9 @@ int32_t process_create(const char* command) {
     if(NULL != ori_process) {
         asm volatile("movl %%esp, %0":"=r" (ori_process->esp));
         asm volatile("movl %%ebp, %0":"=r" (ori_process->ebp));
+    } else {
+        // This is shell starting, show the splash image
+        qemu_vga_show_picture(UIUC_IMAGE_WIDTH, UIUC_IMAGE_HEIGHT, 16, (uint8_t*) UIUC_IMAGE_DATA);
     }
 
     // Switch over to the new process
