@@ -225,23 +225,72 @@ void putc(uint8_t c)
 {
     // if reach the right bottom of the screen
     if (NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x
-        >= NUM_COLS * NUM_ROWS)
-    {
-        roll_up();
+        >= NUM_COLS * NUM_ROWS) roll_up();
+
+    // If this is the beginning of a UTF-8 code, mark it
+    if(UTF8_3BYTE_MASK == (c & UTF8_3BYTE_MASK)) {
+        // This is a 3 byte UTF-8 code
+        terminals[active_terminal_id].utf8_state.got = 3;
+    } else if(UTF8_2BYTE_MASK == (c & UTF8_2BYTE_MASK)) {
+        // This is a 2 byte UTF-8 code
+        terminals[active_terminal_id].utf8_state.got = 2;
+    } else if(terminals[active_terminal_id].utf8_state.got > 0) {
+        // This is the 2nd or 3rd byte of a UTF-8 code
+        // Decrease counter of expected length by 1
+        terminals[active_terminal_id].utf8_state.got--;
     }
 
+    // If input is a line feed
     if(c == '\n' || c == '\r') {
         terminals[active_terminal_id].screen_y++;
         if (terminals[active_terminal_id].screen_y >= NUM_ROWS) roll_up();
         clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
         terminals[active_terminal_id].screen_x = 0;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
-        qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
-            terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
-            c, qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
-        terminals[active_terminal_id].screen_x++;
+        if(terminals[active_terminal_id].utf8_state.got == 0) {
+            // The input char has no relation to UTF-8, simply print it
+            *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
+        } else if(terminals[active_terminal_id].utf8_state.got < 3) {
+            // The input char is the second last char of UTF-8 code
+            // As VGA text mode cannot display these characters,
+            // Create a space for it, as each Chinese character is 2 letters wide.
+            // With one space at got == 2 and one at got == 1, 2 spaces are made.
+            *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
+        }
+        if(terminals[active_terminal_id].utf8_state.got == 0) {
+            // Tell QEMU VGA to put a character at the same position
+            qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
+                terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
+                c, qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
+            terminals[active_terminal_id].screen_x++;
+        } else if(terminals[active_terminal_id].utf8_state.got == 1) {
+            // Last call to draw the character.
+            // Tell QEMU VGA to put a character at one letter before,
+            // in the 2 space for a Chinese character
+            if(terminals[active_terminal_id].screen_x > 0) terminals[active_terminal_id].screen_x--;
+            qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
+                terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
+                c, qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
+            // And then create space for it
+            terminals[active_terminal_id].screen_x += 2;
+        } else if(terminals[active_terminal_id].utf8_state.got == 2) {
+            // Second last call to draw the character.
+            // Create the first of the two space for the Chinese Character,
+            // and inform QEMU VGA (it won't draw anything yet)
+            qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
+                terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
+                c, qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
+            terminals[active_terminal_id].screen_x++;
+        } else {
+            // First of the three calls to draw this character, simply inform QEMU VGA
+            qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
+                terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
+                c, qemu_vga_get_terminal_color(ATTRIB), qemu_vga_get_terminal_color(ATTRIB >> 4));
+        }
+
+        // Handle finishing of one line and moving onto next line
         if(terminals[active_terminal_id].screen_x >= NUM_COLS) {  // If the line is filled up
             terminals[active_terminal_id].screen_x = 0;
             terminals[active_terminal_id].screen_y++;
@@ -250,6 +299,8 @@ void putc(uint8_t c)
             clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
         }
     }
+
+    // Synchronize cursor position with VGA
     vga_text_set_cursor_pos(terminals[active_terminal_id].screen_x, terminals[active_terminal_id].screen_y);
     qemu_vga_set_cursor_pos(terminals[active_terminal_id].screen_x, terminals[active_terminal_id].screen_y);
 }

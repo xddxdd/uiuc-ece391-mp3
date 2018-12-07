@@ -36,6 +36,9 @@
 #define QEMU_VGA_DEFAULT_HEIGHT 400
 #define QEMU_VGA_DEFAULT_BPP 16
 
+#define UTF8_3BYTE_MASK 0xe0
+#define UTF8_2BYTE_MASK 0xc0
+
 extern uint16_t qemu_vga_xres;
 extern uint16_t qemu_vga_yres;
 extern uint16_t qemu_vga_bpp;
@@ -60,6 +63,15 @@ typedef union {
     };
 } vga_color_t;
 
+typedef struct {
+    // For QEMU VGA
+    uint8_t len;    // Length of this UTF-8 code
+    uint8_t have;   // Length of what we got
+    uint8_t buf[3]; // What we got
+    // For putc in lib.c
+    uint8_t got;    // How many letters left for UTF-8 code
+} utf8_state_t;
+
 uint16_t qemu_vga_read(uint16_t index);
 void qemu_vga_write(uint16_t index, uint16_t data);
 
@@ -70,7 +82,6 @@ uint16_t qemu_vga_init(uint16_t xres, uint16_t yres, uint16_t bpp);
 void qemu_vga_pixel_set(uint16_t x, uint16_t y, vga_color_t color);
 void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg, vga_color_t bg);
 void qemu_vga_putc_transparent(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg);
-void qemu_vga_puts(uint16_t x, uint16_t y, uint8_t* s, uint16_t len, vga_color_t fg, vga_color_t bg);
 void qemu_vga_clear();
 void qemu_vga_clear_row(uint8_t grid_y);
 void qemu_vga_roll_up();

@@ -8,6 +8,7 @@
 #include "../devices/vga_text.h"
 #include "../fs/unified_fs.h"
 #include "../devices/keyboard.h"
+#include "../devices/qemu_vga.h"
 
 #define STRING_END              '\0'
 #define SPACE                   ' '
@@ -62,6 +63,7 @@ typedef struct {
     uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
     int keyboard_buffer_top;
     volatile int keyboard_buffer_enable;
+    utf8_state_t utf8_state;                       // UTF-8 character state
 } terminal_t;
 
 #define TERMINAL_COUNT 3

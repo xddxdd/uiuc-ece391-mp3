@@ -152,6 +152,8 @@ int32_t process_create(const char* command) {
     } else {
         // This is shell starting, show the splash image
         qemu_vga_show_picture(UIUC_IMAGE_WIDTH, UIUC_IMAGE_HEIGHT, 16, (uint8_t*) UIUC_IMAGE_DATA);
+        // and a line indicating Chinese capability
+        puts("本系统使用 Noto Sans CJK 字体支持中文显示 Chinese display font: Noto Sans CJK\n");
     }
 
     // Switch over to the new process
