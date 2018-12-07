@@ -106,6 +106,8 @@ void init_paging()
             || (index == ((int32_t) rsdt >> TB_ADDR_OFFSET_MB))
             || (index == ((int32_t) fadt >> TB_ADDR_OFFSET_MB))
             || (index == ((int32_t) dsdt_s5 >> TB_ADDR_OFFSET_MB))
+            || (index >= (QEMU_VGA_PDE_BEGIN >> TB_ADDR_OFFSET_MB)
+                && index < (QEMU_VGA_PDE_END >> TB_ADDR_OFFSET_MB))
         ) ? 1 : 0;
         page_directory[index].pde_MB.read_write = 0;
         page_directory[index].pde_MB.user_supervisor = 0;

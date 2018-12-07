@@ -3,9 +3,9 @@
 
 #include "../lib/types.h"
 
-#define FONT_WIDTH 12
-#define FONT_HEIGHT 24
+#define FONT_DATA_WIDTH 8
+#define FONT_DATA_HEIGHT 16
 
-extern uint8_t font_data[256][FONT_HEIGHT * FONT_WIDTH];
+extern uint8_t font_data[256][FONT_DATA_HEIGHT];
 
 #endif

@@ -34,6 +34,9 @@
 #define QEMU_VGA_MEM_BEGIN 0xa0
 #define QEMU_VGA_MEM_END 0xb0
 
+#define QEMU_VGA_PDE_BEGIN 0xe0000000
+#define QEMU_VGA_PDE_END 0xe1000000
+
 // function used to initial paging
 void init_paging();
 

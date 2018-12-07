@@ -3,6 +3,8 @@
 
 #include "lib.h"
 #include "../interrupts/multiprocessing.h"
+#include "../devices/vga_text.h"
+#include "../devices/qemu_vga.h"
 
 static char* video_mem = (char *)VIDEO;
 
@@ -35,6 +37,7 @@ void clear(void) {
     terminals[active_terminal_id].screen_x = 0;
     terminals[active_terminal_id].screen_y = 0;
     vga_text_set_cursor_pos(0, 0);
+    qemu_vga_clear();
 }
 
 /* void keyboard_clear(void);
@@ -70,6 +73,7 @@ void clear_row(uint32_t row) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+    qemu_vga_clear_row(row);
 }
 
 /* Standard printf().
@@ -224,6 +228,9 @@ void putc(uint8_t c)
         roll_up();
     }
 
+    vga_color_t black = {0x0000};
+    vga_color_t white = {0xffff};
+
     if(c == '\n' || c == '\r') {
         terminals[active_terminal_id].screen_y++;
         if (terminals[active_terminal_id].screen_y >= NUM_ROWS)
@@ -235,6 +242,9 @@ void putc(uint8_t c)
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x) << 1) + 1) = ATTRIB;
+        qemu_vga_putc(terminals[active_terminal_id].screen_x * FONT_ACTUAL_WIDTH,
+            terminals[active_terminal_id].screen_y * FONT_ACTUAL_HEIGHT,
+            c, white, black);
         terminals[active_terminal_id].screen_x++;
         if(terminals[active_terminal_id].screen_x >= NUM_COLS) {  // If the line is filled up
             terminals[active_terminal_id].screen_x = 0;

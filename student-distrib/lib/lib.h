@@ -6,7 +6,6 @@
 #define _LIB_H
 
 #include "types.h"
-#include "../devices/vga_text.h"
 
 #define SUCCESS 0
 #define PASS 0
@@ -114,7 +113,7 @@ do {                                    \
 /* Writes four bytes to four consecutive ports */
 #define outl(data, port)                \
 do {                                    \
-    asm volatile ("outl %l1, (%w0)"     \
+    asm volatile ("outl %1, (%w0)"     \
             :                           \
             : "d"(port), "a"(data)      \
             : "memory", "cc"            \

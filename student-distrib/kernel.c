@@ -9,6 +9,7 @@
 #include "lib/debug.h"
 #include "tests.h"
 
+#include "devices/pci.h"
 #include "devices/acpi.h"
 #include "devices/cpuid.h"
 #include "devices/keyboard.h"
@@ -47,11 +48,10 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     // Display bootup screen
-    // #define VGA_SCREEN_WIDTH 640
-    // #define VGA_SCREEN_HEIGHT 480
-    //
+    #define VGA_SCREEN_WIDTH 720
+    #define VGA_SCREEN_HEIGHT 400
+
     // qemu_vga_init(VGA_SCREEN_WIDTH, VGA_SCREEN_HEIGHT, 16);
-    // qemu_vga_enable_clear();
     // int bank;
     // int x = 0, y = 0;
     // for(bank = 0; bank * QEMU_VGA_BANK_SIZE < VGA_SCREEN_WIDTH * VGA_SCREEN_HEIGHT * 2; bank++) {
@@ -69,20 +69,24 @@ void entry(unsigned long magic, unsigned long addr) {
     //         }
     //     }
     // }
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP,
-    //      (uint8_t*) "nullOS", 6, 255, 255, 255, 19, 41, 75);
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 2,
-    //      (uint8_t*) "Made by:", 8, 255, 255, 255, 19, 41, 75);
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 3,
-    //      (uint8_t*) "- Yuhui Xu", 10, 255, 255, 255, 19, 41, 75);
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 4,
-    //      (uint8_t*) "- Zhenbang Wu", 13, 255, 255, 255, 19, 41, 75);
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 5,
-    //      (uint8_t*) "- Jinghua Wang", 14, 255, 255, 255, 19, 41, 75);
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_HEIGHT * 6,
-    //      (uint8_t*) "- Jiaqi Xing", 12, 255, 255, 255, 19, 41, 75);
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT - FONT_HEIGHT,
-    //      (uint8_t*) "Starting...", 11, 255, 255, 255, 19, 41, 75);
+
+    vga_color_t white = {0xffff};
+    vga_color_t uiuc_blue = {0x1149};
+
+    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP,
+         (uint8_t*) "nullOS", 6, white, uiuc_blue);
+    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 2,
+         (uint8_t*) "Made by:", 8, white, uiuc_blue);
+    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 3,
+         (uint8_t*) "- Yuhui Xu", 10, white, uiuc_blue);
+    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 4,
+         (uint8_t*) "- Zhenbang Wu", 13, white, uiuc_blue);
+    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 5,
+         (uint8_t*) "- Jinghua Wang", 14, white, uiuc_blue);
+    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + FONT_ACTUAL_HEIGHT * 6,
+         (uint8_t*) "- Jiaqi Xing", 12, white, uiuc_blue);
+    qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT - FONT_ACTUAL_HEIGHT,
+         (uint8_t*) "Starting...", 11, white, uiuc_blue);
 
     /* Clear the screen. */
     clear();
@@ -207,6 +211,7 @@ void entry(unsigned long magic, unsigned long addr) {
     acpi_init();
     cpuid_init();
     keyboard_init();
+    pci_init();
     // rtc_init();
     // serial_init(COM1);
     // tux_init();
@@ -227,12 +232,6 @@ void entry(unsigned long magic, unsigned long addr) {
 
     pit_init();         // PIT initializes after multiprocessing, as it does process switching
                         // otherwise system will triple fault
-
-
-    // qemu_vga_puts(UIUC_IMAGE_LEFT + UIUC_IMAGE_WIDTH, UIUC_IMAGE_TOP + UIUC_IMAGE_HEIGHT - FONT_HEIGHT,
-    //     (uint8_t*) "Entering Shell...", 17, 255, 255, 255, 19, 41, 75);
-    qemu_vga_disable();
-
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

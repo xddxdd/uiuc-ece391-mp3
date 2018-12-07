@@ -14,8 +14,8 @@
 #define QEMU_VGA_IDX_ENABLE 4
 #define QEMU_VGA_IDX_BANK 5
 
-#define QEMU_VGA_MEM_POS 0xa0000
-#define QEMU_VGA_BANK_SIZE 0x10000
+#define QEMU_VGA_MEM_POS 0xe0000000
+#define QEMU_VGA_BANK_SIZE 0x1000000
 
 #define QEMU_VGA_MIN_VER 0xb0c0
 #define QEMU_VGA_MAX_VER 0xb0c5
@@ -26,26 +26,39 @@
 
 #define BITS_IN_BYTE 8
 
+#define FONT_ACTUAL_WIDTH 9
+#define FONT_ACTUAL_HEIGHT 16
+
 extern int qemu_vga_enabled;
 extern uint16_t qemu_vga_xres;
 extern uint16_t qemu_vga_yres;
 extern uint16_t qemu_vga_bpp;
 
+typedef union {
+    uint32_t val;
+    struct __attribute__((packed)) {
+        uint8_t r16         : 5;
+        uint8_t g16         : 6;
+        uint8_t b16         : 5;
+        uint16_t dummy16    : 16;
+    };
+    struct __attribute__((packed)) {
+        uint8_t r32;
+        uint8_t g32;
+        uint8_t b32;
+        uint8_t dummy32;
+    };
+} vga_color_t;
+
 uint16_t qemu_vga_read(uint16_t index);
 void qemu_vga_write(uint16_t index, uint16_t data);
 void qemu_vga_select_bank(uint16_t bank);
 
-void qemu_vga_enable();
-void qemu_vga_disable();
-void qemu_vga_enable_clear();
-
 uint16_t qemu_vga_init(uint16_t xres, uint16_t yres, uint16_t bpp);
-void qemu_vga_pixel_set(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b);
-void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch,
-        uint8_t fr, uint8_t fg, uint8_t fb,
-        uint8_t br, uint8_t bg, uint8_t bb);
-void qemu_vga_puts(uint16_t x, uint16_t y, uint8_t* s, uint16_t len,
-        uint8_t fr, uint8_t fg, uint8_t fb,
-        uint8_t br, uint8_t bg, uint8_t bb);
+void qemu_vga_pixel_set(uint16_t x, uint16_t y, vga_color_t color);
+void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg, vga_color_t bg);
+void qemu_vga_puts(uint16_t x, uint16_t y, uint8_t* s, uint16_t len, vga_color_t fg, vga_color_t bg);
+void qemu_vga_clear();
+void qemu_vga_clear_row(uint8_t grid_y);
 
 #endif
