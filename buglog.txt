@@ -47,6 +47,11 @@ Checkpoint 5:
             and when pressing enter to that line, clear_row() fixes the attributes
   Fix:      Let initialization code initialize attributes correctly
 
+- Problem:  Programs got randomly terminated or redirected to another terminal
+  Cause:    Double CLI/STI in both RTC interrupt handler and CMOS data reading code
+            (both used by statusbar routine)
+  Fix:      Removed CLI/STI for RTC, as it's rare for two threads querying it together
+
 Extra functionality:
 
 - Problem:  Not receiving serial port interrupts
