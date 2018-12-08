@@ -5,6 +5,13 @@ acpi_rsdt_t* rsdt;
 acpi_fadt_t* fadt;
 acpi_dsdt_s5_t* dsdt_s5;
 
+/* int32_t acpi_verify(char* ptr, int32_t len)
+ * @input: ptr - pointer to the ACPI table being verified
+ *         len - length of table
+ * @output: TRUE / FALSE
+ * @description: verifies the checksum of ACPI table.
+ *     All bytes in table should add up to 0.
+ */
 int32_t acpi_verify(char* ptr, int32_t len) {
     uint8_t sum = 0;
     int32_t i;
@@ -12,6 +19,14 @@ int32_t acpi_verify(char* ptr, int32_t len) {
     return 0 == sum;
 }
 
+/* void acpi_init()
+ * @output: initializes ACPI related structure
+ * @description: in multiple steps, search and step through all ACPI tables
+ *     that this OS may use. Only ACPI 1.0 standard is implemented on QEMU,
+ *     so we don't need 2.0 features.
+ *   - This should be run before paging, so paging can take care of the tables
+ *     and expose them to kernel.
+ */
 void acpi_init() {
     // Step 1: find the RSDP descriptor
     int32_t pos;
@@ -34,7 +49,7 @@ void acpi_init() {
         return;
     }
 
-    // Step 2: Find RSDT
+    // Step 2: Find RSDT, the index to all other tables
     rsdt = (acpi_rsdt_t*) rsdp_descriptor->RsdtAddress;
     if(!acpi_verify((char*) rsdt, rsdt->header.Length)) {
         rsdt = NULL;
@@ -87,6 +102,10 @@ void acpi_init() {
     }
 }
 
+/* int32_t acpi_shutdown()
+ * @output: system shutsdown (QEMU quits)
+ * @description: shuts down the system by calling an ACPI command.
+ */
 int32_t acpi_shutdown() {
     if(NULL == fadt || NULL == dsdt_s5) return FAIL;
     if(0 != fadt->PM1aControlBlock) {
@@ -98,8 +117,16 @@ int32_t acpi_shutdown() {
     return SUCCESS;
 }
 
+/* int32_t acpi_reboot()
+ * @output: system reboots
+ * @description: reboots the system. Actually has no relation to ACPI, instead
+ *     it uses 8042 keyboard controller to send the reset signal.
+ *     Put here for simple management of all power related functions.
+ */
 int32_t acpi_reboot() {
+    // Clear keyboard controller data
     while(inb(RESET_8042_PORT) & RESET_8042_MASK);
+    // Tell 8042 to pull up the reset line
     outb(RESET_8042_CMD, RESET_8042_PORT);
     return SUCCESS;
 }

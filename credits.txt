@@ -1,0 +1,12 @@
+Open source project used in this homework:
+(Unrelated to code, only used as data):
+
+- Noto Sans CJK, Google Fonts
+  - URL: https://www.google.com/get/noto/help/cjk/
+  - License: SIL Open Font License, free for personal/educational use
+  - Chinese font data in `student-distrib/data/chinese_font.c`
+- Chinese character to Pinyin translation table
+  - URL: https://github.com/ervinzhao/hanzipinyin
+  - License: Public domain
+  - Preprocessed with `helpers/chinese-pinyin.ipynb`, stored as pinyin->character
+    table in `student-distrib/data/chinese_pinyin.c`

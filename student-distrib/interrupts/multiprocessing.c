@@ -46,6 +46,8 @@ void process_init() {
         terminals[i].active_process = -1;
         terminals[i].screen_x = 0;
         terminals[i].screen_y = 0;
+
+        // Clear keyboard buffer
         terminals[i].keyboard_buffer_top = 0;
         terminals[i].keyboard_buffer_enable = 0;
         memset(terminals[i].keyboard_buffer, 0, KEYBOARD_BUFFER_SIZE + 1);
@@ -57,6 +59,14 @@ void process_init() {
                 *((char*) TERMINAL_ALT_START + TERMINAL_ALT_SIZE * i + j) = ' ';
             }
         }
+
+        // Clear Chinese input buffer
+        terminals[i].chinese_input_buf.enabled = 0;
+        terminals[i].chinese_input_buf.buf_len = 0;
+        terminals[i].chinese_input_buf.pos = 0;
+        terminals[i].chinese_input_buf.len = 0;
+        terminals[i].chinese_input_buf.page = 0;
+        memset(terminals[i].chinese_input_buf.buf, 0, CHINESE_INPUT_BUF_LEN + 1);
     }
 }
 
@@ -158,7 +168,7 @@ int32_t process_create(const char* command) {
         // This is a terminal starting, show the splash image
         qemu_vga_show_picture(UIUC_IMAGE_WIDTH, UIUC_IMAGE_HEIGHT, 16, (uint8_t*) UIUC_IMAGE_DATA);
         // and a line indicating Chinese capability
-        puts("本系统支持中文显示 nullOS supports displaying Chinese\n");
+        puts("本系统支持中文显示和输入 Chinese display & input supported\n");
     }
 
     // Switch over to the new process
