@@ -3,6 +3,11 @@
 #include "../devices/qemu_vga.h"
 #include "../interrupts/multiprocessing.h"
 
+/* void status_bar_switch_terminal(uint8_t tid)
+ * @input: tid - new terminal
+ * @output: status bar refreshed on new terminal
+ * @description: refreshes status message and time on new terminal
+ */
 void status_bar_switch_terminal(uint8_t tid) {
     if(tid > TERMINAL_COUNT) return;
     char s[] = "Switched to terminal #0";
@@ -11,6 +16,11 @@ void status_bar_switch_terminal(uint8_t tid) {
     status_bar_update_clock();
 }
 
+/* void status_bar_update_message(char* msg, uint32_t len, uint8_t attr)
+ * @input: msg, len - data and length of message for status bar
+ * @output: attr - attribute
+ * @description: display a message on status bar
+ */
 void status_bar_update_message(char* msg, uint32_t len, uint8_t attr) {
     if(NULL == msg) return;
     int i;
@@ -28,6 +38,10 @@ void status_bar_update_message(char* msg, uint32_t len, uint8_t attr) {
     }
 }
 
+/* void status_bar_update_clock()
+ * @output: clock on right bottom corner of screen gets updated
+ * @description: updates the clock with CMOS time
+ */
 char prev_time[STATUS_BAR_X_TIME_END - STATUS_BAR_X_TIME_START] = {0};
 void status_bar_update_clock() {
     char time[STATUS_BAR_X_TIME_END - STATUS_BAR_X_TIME_START] = "0000-00-00 00:00:00 ";

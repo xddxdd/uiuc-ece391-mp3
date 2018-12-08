@@ -124,6 +124,9 @@ int32_t process_create(const char* command) {
         return FAIL;
     }
 
+    // If this is a terminal starting, display splash later
+    uint8_t display_splash_later = terminals[active_terminal_id].active_process == -1;
+
     // Create process structure
     process->parent_pid = active_process_id;
     process->esp = USER_STACK_ADDR;
@@ -151,11 +154,11 @@ int32_t process_create(const char* command) {
     if(NULL != ori_process) {
         asm volatile("movl %%esp, %0":"=r" (ori_process->esp));
         asm volatile("movl %%ebp, %0":"=r" (ori_process->ebp));
-    } else if(qemu_vga_enabled) {
-        // This is shell starting, show the splash image
+    } else if(display_splash_later && qemu_vga_enabled) {
+        // This is a terminal starting, show the splash image
         qemu_vga_show_picture(UIUC_IMAGE_WIDTH, UIUC_IMAGE_HEIGHT, 16, (uint8_t*) UIUC_IMAGE_DATA);
         // and a line indicating Chinese capability
-        puts("本系统使用 Noto Sans CJK 字体支持中文显示 Chinese display font: Noto Sans CJK\n");
+        puts("本系统支持中文显示 nullOS supports displaying Chinese\n");
     }
 
     // Switch over to the new process
@@ -190,7 +193,10 @@ int32_t process_halt(uint8_t status) {
         // Remove this process from the terminal, making terminal empty
         process->present = 0;
         active_process_id = -1;
-        terminals[active_terminal_id].active_process = -1;
+        // Don't release the terminal, or splash image will show again
+        // !!! REVERT THIS CHANGE IF SYSTEM IS BUGGY !!!
+        // terminals[active_terminal_id].active_process = -1;
+
         // Create a new shell process.
         // This call MUST BE directly in the halt call, not wrapped in subroutine
         //     otherwise the structure of the kernel stack will be WRONG and system
