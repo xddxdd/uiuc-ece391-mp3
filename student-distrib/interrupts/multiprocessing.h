@@ -9,6 +9,7 @@
 #include "../fs/unified_fs.h"
 #include "../devices/keyboard.h"
 #include "../devices/qemu_vga.h"
+#include "../lib/chinese_input.h"
 
 #define STRING_END              '\0'
 #define SPACE                   ' '
@@ -64,7 +65,8 @@ typedef struct {
     uint8_t keyboard_buffer[KEYBOARD_BUFFER_SIZE + 1];
     int keyboard_buffer_top;
     volatile int keyboard_buffer_enable;
-    utf8_state_t utf8_state;                       // UTF-8 character state
+    utf8_state_t utf8_state;                        // UTF-8 character state
+    chinese_input_buf_t chinese_input_buf;          // Chinese IME state
 } terminal_t;
 
 #define TERMINAL_COUNT 3

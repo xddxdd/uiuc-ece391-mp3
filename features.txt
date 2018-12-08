@@ -11,3 +11,4 @@ Extra features implemented in this OS:
   - Image display
   - Chinese character display
   - Status bar
+  - Chinese Pinyin input method

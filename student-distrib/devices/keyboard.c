@@ -113,9 +113,9 @@ void keyboard_interrupt() {
 
         // if keyboard buffer is enable
         if (t->keyboard_buffer_enable == 1) {
-            if(chinese_input_enabled
+            if(t->chinese_input_buf.enabled
                 && key != '\n'
-                && (key != BACKSPACE || chinese_input_buf.buf_len > 0)) {
+                && (key != BACKSPACE || t->chinese_input_buf.buf_len > 0)) {
                 ONTO_DISPLAY_WRAP(chinese_input_keystroke(key));
             } else if (key == BACKSPACE) {
                 if(t->keyboard_buffer_top > 0) {
@@ -260,6 +260,7 @@ int32_t terminal_write(int32_t* inode, uint32_t* offset, const char* buf, uint32
  *         otherwise 1.
  */
 int update_special_key_stat(uint8_t keyboard_input){
+  volatile terminal_t* t = &terminals[displayed_terminal_id];
   switch(keyboard_input){
     case CAPSLOCK_PRESS:
       capslock_pressed = 1;
@@ -283,7 +284,7 @@ int update_special_key_stat(uint8_t keyboard_input){
     case LEFT_SHIFT_RELEASE:
     case RIGHT_SHIFT_RELEASE:
       shift_pressed = 0;
-      chinese_input_enabled = 1 - chinese_input_enabled;
+      t->chinese_input_buf.enabled = 1 - t->chinese_input_buf.enabled;
       return 1;
 
     case LEFT_ALT_PRESS:

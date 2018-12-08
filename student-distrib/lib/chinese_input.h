@@ -10,6 +10,7 @@
 #define CHINESE_INPUT_CANDIDATE_WIDTH 5
 
 typedef struct {
+    uint8_t enabled;
     char buf[CHINESE_INPUT_BUF_LEN + 1];
     uint8_t buf_len;// length of buffer
     uint16_t pos;   // position of pinyin in pinyin list
@@ -19,9 +20,6 @@ typedef struct {
 
 #define CHINESE_INPUT_ATTR_BUF 0x0e
 #define CHINESE_INPUT_ATTR_CANDIDATE 0x0f
-
-extern chinese_input_buf_t chinese_input_buf;
-extern uint8_t chinese_input_enabled;
 
 void chinese_input_keystroke(uint8_t ch);
 void chinese_input_search();
