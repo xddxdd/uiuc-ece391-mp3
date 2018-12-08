@@ -45,8 +45,6 @@ void entry(unsigned long magic, unsigned long addr) {
     multiboot_info_t *mbi;
 
     // Init the PIC
-    // CLI/STI is used for printf, so we initialize i8259 first
-    // to prevent unwanted interrupts
     i8259_init();
 
     /* Clear the screen. */

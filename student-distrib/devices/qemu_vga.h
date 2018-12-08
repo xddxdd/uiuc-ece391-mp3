@@ -38,6 +38,7 @@
 
 #define UTF8_3BYTE_MASK 0xe0
 #define UTF8_2BYTE_MASK 0xc0
+#define UTF8_MASK 0x80
 
 extern uint16_t qemu_vga_xres;
 extern uint16_t qemu_vga_yres;

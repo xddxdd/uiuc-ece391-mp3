@@ -1,6 +1,8 @@
 #include "keyboard.h"
 #include "../interrupts/multiprocessing.h"
 #include "../data/keyboard-scancode.h"
+#include "../lib/chinese_input.h"
+#include "../devices/qemu_vga.h"
 
 // Unified FS interface definition for STDIN.
 unified_fs_interface_t terminal_stdin_if = {
@@ -51,6 +53,8 @@ void keyboard_interrupt() {
     char key;
     int is_special_key;
 
+    volatile terminal_t* t = &terminals[displayed_terminal_id];
+
     is_special_key = update_special_key_stat(scancode_idx);
     if (is_special_key == 1){
         // send End Of Interrupt
@@ -64,7 +68,7 @@ void keyboard_interrupt() {
             // Ctrl+L or Ctrl+l received, clear screen and put cursor at the top.
             ONTO_DISPLAY_WRAP(clear());
             // clear the keyboard buffer.
-            terminals[displayed_terminal_id].keyboard_buffer_top = 0;
+            t->keyboard_buffer_top = 0;
         }
 
         // send End Of Interrupt
@@ -108,34 +112,55 @@ void keyboard_interrupt() {
         }
 
         // if keyboard buffer is enable
-        if (terminals[displayed_terminal_id].keyboard_buffer_enable == 1) {
-            if (key == BACKSPACE) {
-                if(terminals[displayed_terminal_id].keyboard_buffer_top > 0) {
-                    terminals[displayed_terminal_id].keyboard_buffer_top--;
-                    ONTO_DISPLAY_WRAP(putc(key));
+        if (t->keyboard_buffer_enable == 1) {
+            if(chinese_input_enabled
+                && key != '\n'
+                && (key != BACKSPACE || chinese_input_buf.buf_len > 0)) {
+                ONTO_DISPLAY_WRAP(chinese_input_keystroke(key));
+            } else if (key == BACKSPACE) {
+                if(t->keyboard_buffer_top > 0) {
+                    int i = t->keyboard_buffer_top - 1;
+                    if(t->keyboard_buffer[i] & UTF8_MASK) {
+                        // This is part of a UTF-8 code, find its beginning
+                        while(((t->keyboard_buffer[i] & UTF8_2BYTE_MASK) != UTF8_2BYTE_MASK)
+                            && (t->keyboard_buffer_top - i <= 3)) i--;
+                        if((t->keyboard_buffer[i] & UTF8_2BYTE_MASK) == UTF8_2BYTE_MASK) {
+                            // We found the beginning of the code
+                            t->keyboard_buffer_top = i;
+                            // Remove the 2 char wide character on screen
+                            ONTO_DISPLAY_WRAP(putc(BACKSPACE));
+                            ONTO_DISPLAY_WRAP(putc(BACKSPACE));
+                        } else {
+                            t->keyboard_buffer_top--;
+                            ONTO_DISPLAY_WRAP(putc(BACKSPACE));
+                        }
+                    } else {
+                        t->keyboard_buffer_top--;
+                        ONTO_DISPLAY_WRAP(putc(BACKSPACE));
+                    }
                 }
             } else if (key == '\n') {
                 ONTO_DISPLAY_WRAP(putc(key));
                 // put newline character
-                terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = '\n';
+                t->keyboard_buffer[t->keyboard_buffer_top] = '\n';
                 // increment keyboard_buffer_top
-                terminals[displayed_terminal_id].keyboard_buffer_top++;
+                t->keyboard_buffer_top++;
                 // disable keyboard buffer
-                terminals[displayed_terminal_id].keyboard_buffer_enable = 0;
-            } else if (terminals[displayed_terminal_id].keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE) {
+                t->keyboard_buffer_enable = 0;
+            } else if (t->keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE) {
                 ONTO_DISPLAY_WRAP(putc('\n'));
                 // put newline character
-                terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = '\n';
+                t->keyboard_buffer[t->keyboard_buffer_top] = '\n';
                 // increment keyboard_buffer_top
-                terminals[displayed_terminal_id].keyboard_buffer_top++;
+                t->keyboard_buffer_top++;
                 // disable keyboard buffer
-                terminals[displayed_terminal_id].keyboard_buffer_enable = 0;
+                t->keyboard_buffer_enable = 0;
             } else {
                 ONTO_DISPLAY_WRAP(putc(key));
                 // record current key
-                terminals[displayed_terminal_id].keyboard_buffer[terminals[displayed_terminal_id].keyboard_buffer_top] = key;
+                t->keyboard_buffer[t->keyboard_buffer_top] = key;
                 // increment keyboard_buffer_top
-                terminals[displayed_terminal_id].keyboard_buffer_top++;
+                t->keyboard_buffer_top++;
             }
         } else {
             ONTO_DISPLAY_WRAP(putc(key));
@@ -258,6 +283,7 @@ int update_special_key_stat(uint8_t keyboard_input){
     case LEFT_SHIFT_RELEASE:
     case RIGHT_SHIFT_RELEASE:
       shift_pressed = 0;
+      chinese_input_enabled = 1 - chinese_input_enabled;
       return 1;
 
     case LEFT_ALT_PRESS:

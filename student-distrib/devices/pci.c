@@ -1,5 +1,6 @@
 #include "pci.h"
 #include "qemu_vga.h"
+#include "rtl8139.h"
 
 /* int32_t pci_get_device(uint8_t bus, uint8_t device, uint8_t func, pci_device_t* ret)
  * @input: bus, device, func - index of the PCI slot
@@ -56,16 +57,26 @@ void pci_register_device(uint8_t bus, uint8_t device, uint8_t func, pci_device_t
     switch((uint32_t) dev_info->vendor_id << 16 | dev_info->device_id) {
         case 0x12341111:    // vendor device id pair for QEMU VGA device
             // Register bar0 address as the address for linear buffer
-            qemu_vga_addr = dev_info->device.bar[0];
-            if(qemu_vga_addr & 1) {
-                // IO space BAR
-                qemu_vga_addr &= PCI_MASK_BAR_IOSPACE;
-            } else {
-                // Memory space BAR
-                qemu_vga_addr &= PCI_MASK_BAR_MEMSPACE;
-            }
+            qemu_vga_addr = dev_info->device.bar[0] & PCI_MASK_BAR_MEMSPACE;
             printf("QEMU VGA Adapter detected, vram=%x\n", qemu_vga_addr);
             break;
+        case 0x10ec8139:    // for RTL8139 Ethernet Adapter
+            {   // Enable PCI bus mastering by setting bit 2
+                dev_info->command |= 0x4;
+
+                pci_addr_t addr = {0};
+                addr.func_num = func;
+                addr.device_num = device;
+                addr.bus_num = bus;
+                addr.reg_num = 1;
+                addr.enable = 1;
+
+                outl(addr.val, PCI_REG_ADDR);
+                outl(dev_info->val[1], PCI_REG_DATA);
+            }
+
+            // Let driver do the rest
+            rtl8139_init(dev_info->device.bar[0] & PCI_MASK_BAR_IOSPACE, dev_info->device.interrupt_line);
     }
 }
 

@@ -9,6 +9,7 @@
  * @description: refreshes status message and time on new terminal
  */
 void status_bar_switch_terminal(uint8_t tid) {
+    if(!qemu_vga_enabled) return;
     if(tid > TERMINAL_COUNT) return;
     char s[] = "Switched to terminal #0";
     s[strlen(s) - 1] = '0' + tid;
@@ -22,6 +23,7 @@ void status_bar_switch_terminal(uint8_t tid) {
  * @description: display a message on status bar
  */
 void status_bar_update_message(char* msg, uint32_t len, uint8_t attr) {
+    if(!qemu_vga_enabled) return;
     if(NULL == msg) return;
     int i;
     for(i = 0; i < len && i < STATUS_BAR_X_MSG_END; i++) {
@@ -44,6 +46,7 @@ void status_bar_update_message(char* msg, uint32_t len, uint8_t attr) {
  */
 char prev_time[STATUS_BAR_X_TIME_END - STATUS_BAR_X_TIME_START] = {0};
 void status_bar_update_clock() {
+    if(!qemu_vga_enabled) return;
     char time[STATUS_BAR_X_TIME_END - STATUS_BAR_X_TIME_START] = "0000-00-00 00:00:00 ";
     uint32_t i = 0;
     cmos_read(NULL, &i, time, STATUS_BAR_X_TIME_END - STATUS_BAR_X_TIME_START);
