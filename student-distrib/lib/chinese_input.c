@@ -155,24 +155,34 @@ void chinese_input_draw() {
     // Draw candidate section
     for(i = 0; i < CHINESE_INPUT_CANDIDATES; i++) {
         int x = CHINESE_INPUT_BUF_LEN + CHINESE_INPUT_CANDIDATE_WIDTH * i;
-        qemu_vga_putc(x * FONT_ACTUAL_WIDTH,
-            CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
-            '1' + i,
-            qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE),
-            qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE >> 4));
-        qemu_vga_putc((x + 1) * FONT_ACTUAL_WIDTH,
-            CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
-            '.',
-            qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE),
-            qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE >> 4));
         if(b->page * CHINESE_INPUT_CANDIDATES + i < b->len) {
+            qemu_vga_putc(x * FONT_ACTUAL_WIDTH,
+                CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
+                '1' + i,
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE),
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE >> 4));
+            qemu_vga_putc((x + 1) * FONT_ACTUAL_WIDTH,
+                CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
+                '.',
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE),
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE >> 4));
             // There is a candidate character here
             chinese_input_draw_utf8_char((x + 2) * FONT_ACTUAL_WIDTH,
                 CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
                 pinyin_data[b->pos + b->page * CHINESE_INPUT_CANDIDATES + i],
                 CHINESE_INPUT_ATTR_CANDIDATE);
         } else {
-            // No candidate here, clear the position with two spaces
+            // No candidate here, clear the position with 4 spaces
+            qemu_vga_putc(x * FONT_ACTUAL_WIDTH,
+                CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
+                ' ',
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE),
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE >> 4));
+            qemu_vga_putc((x + 1) * FONT_ACTUAL_WIDTH,
+                CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
+                ' ',
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE),
+                qemu_vga_get_terminal_color(CHINESE_INPUT_ATTR_CANDIDATE >> 4));
             qemu_vga_putc((x + 2) * FONT_ACTUAL_WIDTH,
                 CHINESE_INPUT_Y * FONT_ACTUAL_HEIGHT,
                 ' ',

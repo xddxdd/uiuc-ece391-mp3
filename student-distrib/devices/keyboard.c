@@ -284,7 +284,8 @@ int update_special_key_stat(uint8_t keyboard_input){
     case LEFT_SHIFT_RELEASE:
     case RIGHT_SHIFT_RELEASE:
       shift_pressed = 0;
-      t->chinese_input_buf.enabled = 1 - t->chinese_input_buf.enabled;
+      // If QEMU VGA is enabled, Chinese IME can work, so toggle it
+      if(qemu_vga_enabled) t->chinese_input_buf.enabled = 1 - t->chinese_input_buf.enabled;
       return 1;
 
     case LEFT_ALT_PRESS:
