@@ -24,5 +24,6 @@ int32_t syscall_set_handler (int32_t signum, void* handler_address);
 int32_t syscall_sigreturn (void);
 int32_t syscall_shutdown(void);
 int32_t syscall_reboot(void);
+int32_t syscall_ps(void);
 
 #endif

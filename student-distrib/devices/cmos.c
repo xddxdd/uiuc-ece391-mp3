@@ -26,7 +26,6 @@ void cmos_reg_write(uint8_t index, uint8_t data) {
  * @description: queries CMOS for date time information
  */
 datetime_t cmos_datetime() {
-    cli();
     while(cmos_reg_read(CMOS_REG_TIME_UPDATING) & CMOS_REG_TIME_UPDATING_MASK);
     uint16_t year = cmos_reg_read(CMOS_REG_YEAR);
     uint8_t month = cmos_reg_read(CMOS_REG_MONTH);
@@ -35,7 +34,6 @@ datetime_t cmos_datetime() {
     uint8_t min = cmos_reg_read(CMOS_REG_MINUTE);
     uint8_t sec = cmos_reg_read(CMOS_REG_SECOND);
     uint8_t century = (0 != fadt->Century) ? (cmos_reg_read(fadt->Century)) : 0;
-    sti();
 
     // Convert hex representation of time into decimal
     year = (year >> 4) * 10 + (year & 0x0f);

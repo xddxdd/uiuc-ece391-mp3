@@ -165,3 +165,38 @@ int32_t syscall_shutdown(void) {
 int32_t syscall_reboot(void) {
     return acpi_reboot();
 }
+
+/* int32_t syscall_ps(void)
+ * @output: status & output handles of all terminals and processes
+ * @description: similar to the ps command on linux.
+ */
+int32_t syscall_ps(void) {
+    int pid;
+    for(pid = 0; pid < PROCESS_COUNT; pid++) {
+        process_t* pcb = process_get_pcb(pid);
+        if(!pcb->present) {
+            printf("P#%d (NULL)\n", pid);
+        } else {
+            printf("P#%d %s %s, parent=%d, terminal=%d", pid,
+                pcb->cmd, pcb->arg, pcb->parent_pid, pcb->terminal);
+            if(terminals[pcb->terminal].active_process == pid) {
+                puts(" (active)");
+            }
+            puts("\n    Files: ");
+            int fd;
+            for(fd = 0; fd < MAX_NUM_FD_ENTRY; fd++) {
+                if(NULL != pcb->fd_array[fd].interface) {
+                    putc('+');
+                } else {
+                    putc('-');
+                }
+            }
+            putc('\n');
+        }
+    }
+    int tid;
+    for(tid = 0; tid < TERMINAL_COUNT; tid++) {
+        printf("T#%d pid=%d\n", tid, terminals[tid].active_process);
+    }
+    return SUCCESS;
+}

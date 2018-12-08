@@ -51,6 +51,7 @@ typedef struct process_control_block {
     uint32_t eip;                           // save eip;
     uint32_t terminal;                      // terminal id
     uint32_t vidmap;                        // is vidmap enabled
+    char cmd[MAX_ARG_LENGTH + 1];           // process executable name
     char arg[MAX_ARG_LENGTH + 1];           // argument to process
 } process_t;
 

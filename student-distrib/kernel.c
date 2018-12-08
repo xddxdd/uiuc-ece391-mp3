@@ -180,10 +180,10 @@ void entry(unsigned long magic, unsigned long addr) {
     init_paging();
     process_init();     // Initialize multiprocessing structures
     rtc_init();         // Initialize RTC virtualization
-    // ONTO_DISPLAY_WRAP(clear()); // Clear boot message
+
     // Show build info on status bar
-    // char build_ver[] = "nullOS by Team NULL, build " __DATE__ " " __TIME__;
-    // status_bar_update_message(build_ver, strlen(build_ver), ATTR_YELLOW_ON_BLACK);
+    char build_ver[] = "nullOS by Team NULL, build " __DATE__ " " __TIME__;
+    status_bar_update_message(build_ver, strlen(build_ver), ATTR_YELLOW_ON_BLACK);
 
 #ifdef RUN_TESTS
     /* Run tests */

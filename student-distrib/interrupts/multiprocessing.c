@@ -131,6 +131,7 @@ int32_t process_create(const char* command) {
     process->terminal = active_terminal_id;
     terminals[active_terminal_id].active_process = pid;
     process->vidmap = 0;
+    memcpy(process->cmd, filename, MAX_ARG_LENGTH + 1);
     memcpy(process->arg, argument, MAX_ARG_LENGTH + 1);
 
     // Change paging configuration, load program
@@ -399,7 +400,7 @@ void terminal_switch_display(uint32_t tid) {
     active_terminal_id = tmp;
 
     qemu_vga_switch_terminal(displayed_terminal_id);
-    // ONTO_DISPLAY_WRAP(status_bar_switch_terminal(displayed_terminal_id));
+    ONTO_DISPLAY_WRAP(status_bar_switch_terminal(displayed_terminal_id));
 
     sti();  // End critical section
 }

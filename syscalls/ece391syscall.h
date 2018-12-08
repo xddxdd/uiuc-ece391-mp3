@@ -24,6 +24,7 @@ extern int32_t ece391_sigreturn (void);
 extern int32_t ece391_ioctl (int32_t fd, int32_t op);
 extern int32_t ece391_shutdown (void);
 extern int32_t ece391_reboot (void);
+extern int32_t ece391_ps (void);
 
 enum signums {
 	DIV_ZERO = 0,

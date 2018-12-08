@@ -30,7 +30,7 @@ DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 DO_CALL(ece391_ioctl,SYS_IOCTL)
 DO_CALL(ece391_shutdown,SYS_SHUTDOWN)
 DO_CALL(ece391_reboot,SYS_REBOOT)
-
+DO_CALL(ece391_ps,SYS_PS)
 
 /* Call the main() function, then halt with its return value. */
 
