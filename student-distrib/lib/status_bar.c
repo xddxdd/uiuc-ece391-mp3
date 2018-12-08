@@ -7,8 +7,8 @@ void status_bar_switch_terminal(uint8_t tid) {
     if(tid > TERMINAL_COUNT) return;
     char s[] = "Switched to terminal #0";
     s[strlen(s) - 1] = '0' + tid;
-    ONTO_DISPLAY_WRAP(status_bar_update_message(s, strlen(s), ATTR_YELLOW_ON_BLACK));
-    ONTO_DISPLAY_WRAP(status_bar_update_clock());
+    status_bar_update_message(s, strlen(s), ATTR_YELLOW_ON_BLACK);
+    status_bar_update_clock();
 }
 
 void status_bar_update_message(char* msg, uint32_t len, uint8_t attr) {

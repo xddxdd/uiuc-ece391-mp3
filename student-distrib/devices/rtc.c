@@ -66,7 +66,7 @@ void rtc_interrupt() {
  * @description: runs some global events triggered every 0.25s.
  */
 void rtc_periodic_event() {
-    status_bar_update_clock();
+    ONTO_DISPLAY_WRAP(status_bar_update_clock());
 }
 
 /* int32_t rtc_open(int32_t* inode, char* filename)

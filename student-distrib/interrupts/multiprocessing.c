@@ -150,7 +150,7 @@ int32_t process_create(const char* command) {
     if(NULL != ori_process) {
         asm volatile("movl %%esp, %0":"=r" (ori_process->esp));
         asm volatile("movl %%ebp, %0":"=r" (ori_process->ebp));
-    } else {
+    } else if(qemu_vga_enabled) {
         // This is shell starting, show the splash image
         qemu_vga_show_picture(UIUC_IMAGE_WIDTH, UIUC_IMAGE_HEIGHT, 16, (uint8_t*) UIUC_IMAGE_DATA);
         // and a line indicating Chinese capability
@@ -399,7 +399,7 @@ void terminal_switch_display(uint32_t tid) {
     active_terminal_id = tmp;
 
     qemu_vga_switch_terminal(displayed_terminal_id);
-    status_bar_switch_terminal(displayed_terminal_id);
+    // ONTO_DISPLAY_WRAP(status_bar_switch_terminal(displayed_terminal_id));
 
     sti();  // End critical section
 }
