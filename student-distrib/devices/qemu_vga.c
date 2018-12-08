@@ -60,6 +60,7 @@ uint32_t qemu_vga_active_window_addr() {
  * so with a change of Y display offset, we can switch between these terminals.
  */
 void qemu_vga_switch_terminal(int32_t tid) {
+    if(!qemu_vga_enabled) return;
     if(tid >= TERMINAL_COUNT) return;
     qemu_vga_write(QEMU_VGA_IDX_Y_OFFSET, tid * qemu_vga_yres);
 }
@@ -113,6 +114,7 @@ uint16_t qemu_vga_init(uint16_t xres, uint16_t yres, uint16_t bpp) {
  * @description: sets a pixel.
  */
 void qemu_vga_pixel_set(uint16_t x, uint16_t y, vga_color_t color) {
+    if(!qemu_vga_enabled) return;
     if(x >= qemu_vga_xres || y >= qemu_vga_yres) return;
     uint32_t pos = qemu_vga_active_window_addr() + (y * qemu_vga_xres + x) * qemu_vga_bpp / BITS_IN_BYTE;
 
@@ -136,6 +138,7 @@ void qemu_vga_pixel_set(uint16_t x, uint16_t y, vga_color_t color) {
  *     NOTE: Shares UTF-8 state with transparent putc function.
  */
 void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg, vga_color_t bg) {
+    if(!qemu_vga_enabled) return;
     int i, j;
     volatile utf8_state_t* utf8_state = &terminals[active_terminal_id].utf8_state;
     if(UTF8_3BYTE_MASK == (ch & UTF8_3BYTE_MASK)) {
@@ -223,6 +226,7 @@ void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg, vga_color
  *     NOTE: Shares UTF-8 state with non transparent putc function.
  */
 void qemu_vga_putc_transparent(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg) {
+    if(!qemu_vga_enabled) return;
     int i, j;
     volatile utf8_state_t* utf8_state = &terminals[active_terminal_id].utf8_state;
     if(UTF8_3BYTE_MASK == (ch & UTF8_3BYTE_MASK)) {
@@ -292,6 +296,7 @@ void qemu_vga_putc_transparent(uint16_t x, uint16_t y, uint8_t ch, vga_color_t f
  * @description: clear the current virtual screen.
  */
 void qemu_vga_clear() {
+    if(!qemu_vga_enabled) return;
     memset((char*) qemu_vga_active_window_addr(), 0,
         FONT_ACTUAL_HEIGHT * SCREEN_HEIGHT * qemu_vga_xres * qemu_vga_bpp / BITS_IN_BYTE);
 }
@@ -302,6 +307,7 @@ void qemu_vga_clear() {
  * @description: clear the row on screen.
  */
 void qemu_vga_clear_row(uint8_t grid_y) {
+    if(!qemu_vga_enabled) return;
     int pos_start = grid_y * FONT_ACTUAL_HEIGHT * qemu_vga_xres * qemu_vga_bpp / BITS_IN_BYTE;
     memset((char*) (pos_start + qemu_vga_active_window_addr()), 0,
         FONT_ACTUAL_HEIGHT * qemu_vga_xres * qemu_vga_bpp / BITS_IN_BYTE);
@@ -313,6 +319,7 @@ void qemu_vga_clear_row(uint8_t grid_y) {
  *     they will not be touched. Useful for status bars.
  */
 void qemu_vga_roll_up() {
+    if(!qemu_vga_enabled) return;
     int pos_offset = FONT_ACTUAL_HEIGHT * qemu_vga_xres * qemu_vga_bpp / BITS_IN_BYTE;
     int len_roll = (SCREEN_HEIGHT - 1) * pos_offset;
     memcpy((char*) qemu_vga_active_window_addr(),
@@ -327,6 +334,7 @@ void qemu_vga_roll_up() {
  * @description: simulates VGA cursor, NOT WORKING NOW
  */
 void qemu_vga_set_cursor_pos(uint8_t x, uint8_t y) {
+    if(!qemu_vga_enabled) return;
     if(active_terminal_id != displayed_terminal_id) return;
     if(qemu_vga_cursor_x == x && qemu_vga_cursor_y == y) return;
 
@@ -368,6 +376,7 @@ vga_color_t qemu_vga_get_terminal_color(uint8_t color) {
  * @description: show a picture at left top corner of the screen.
  */
 void qemu_vga_show_picture(uint16_t width, uint16_t height, uint8_t bpp, uint8_t* data) {
+    if(!qemu_vga_enabled) return;
     if(width > qemu_vga_xres || height > qemu_vga_yres || bpp != qemu_vga_bpp) return;
 
     // Copy over the image, row by row

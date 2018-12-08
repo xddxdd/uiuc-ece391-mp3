@@ -175,15 +175,15 @@ void entry(unsigned long magic, unsigned long addr) {
     pci_init();         // Required for QEMU VGA
     // QEMU VGA initializes before paging, video memory redirected according to whether
     // QEMU VGA is enabled
-    qemu_vga_init(QEMU_VGA_DEFAULT_WIDTH, QEMU_VGA_DEFAULT_HEIGHT, QEMU_VGA_DEFAULT_BPP);
+    // qemu_vga_init(QEMU_VGA_DEFAULT_WIDTH, QEMU_VGA_DEFAULT_HEIGHT, QEMU_VGA_DEFAULT_BPP);
 
     init_paging();
     process_init();     // Initialize multiprocessing structures
     rtc_init();         // Initialize RTC virtualization
-    ONTO_DISPLAY_WRAP(clear()); // Clear boot message
+    // ONTO_DISPLAY_WRAP(clear()); // Clear boot message
     // Show build info on status bar
-    char build_ver[] = "nullOS by Team NULL, build " __DATE__ " " __TIME__;
-    status_bar_update_message(build_ver, strlen(build_ver), ATTR_YELLOW_ON_BLACK);
+    // char build_ver[] = "nullOS by Team NULL, build " __DATE__ " " __TIME__;
+    // status_bar_update_message(build_ver, strlen(build_ver), ATTR_YELLOW_ON_BLACK);
 
 #ifdef RUN_TESTS
     /* Run tests */

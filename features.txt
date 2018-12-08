@@ -10,3 +10,4 @@ Extra features implemented in this OS:
 - 16/32 bit color support using QEMU's VGA adapter
   - Image display
   - Chinese character display
+  - Status bar
