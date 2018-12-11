@@ -171,6 +171,7 @@ void entry(unsigned long magic, unsigned long addr) {
     cpuid_init();       // No need of querying every time
     keyboard_init();    // Required for user input
     pci_init();         // Required for QEMU VGA
+    rng_init();         // Seed the RNG
     // QEMU VGA initializes before paging, video memory redirected according to whether
     // QEMU VGA is enabled
     qemu_vga_init(QEMU_VGA_DEFAULT_WIDTH, QEMU_VGA_DEFAULT_HEIGHT, QEMU_VGA_DEFAULT_BPP);

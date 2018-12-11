@@ -204,12 +204,15 @@ void putc(uint8_t c)
     if (NUM_COLS * terminals[active_terminal_id].screen_y + terminals[active_terminal_id].screen_x
         >= NUM_COLS * NUM_ROWS) roll_up();
 
-    // If this is the beginning of a UTF-8 code, mark it
-    if(UTF8_3BYTE_MASK == (c & UTF8_3BYTE_MASK)) {
-        // This is a 3 byte UTF-8 code
+    if(!(UTF8_MASK & c)) {
+        // This char isn't related to UTF8,
+        // the previous UTF-8 code is broken, ignore it
+        terminals[active_terminal_id].utf8_state.got = 0;
+    } else if(UTF8_3BYTE_MASK == (c & UTF8_3BYTE_MASK)) {
+        // This is the beginning of a 3 byte UTF-8 code
         terminals[active_terminal_id].utf8_state.got = 3;
     } else if(UTF8_2BYTE_MASK == (c & UTF8_2BYTE_MASK)) {
-        // This is a 2 byte UTF-8 code
+        // This is the beginning of a 2 byte UTF-8 code
         terminals[active_terminal_id].utf8_state.got = 2;
     } else if(terminals[active_terminal_id].utf8_state.got > 0) {
         // This is the 2nd or 3rd byte of a UTF-8 code

@@ -141,6 +141,14 @@ void qemu_vga_putc(uint16_t x, uint16_t y, uint8_t ch, vga_color_t fg, vga_color
     if(!qemu_vga_enabled) return;
     int i, j;
     volatile utf8_state_t* utf8_state = &terminals[active_terminal_id].utf8_state;
+
+    if(!(UTF8_MASK & ch)) {
+        // This char isn't related to UTF8,
+        // the previous UTF-8 code is broken, ignore it
+        utf8_state->len = 0;
+        utf8_state->have = 0;
+    }
+
     if(UTF8_3BYTE_MASK == (ch & UTF8_3BYTE_MASK)) {
         // Detected the beginning of a 3 byte UTF-8 code
         utf8_state->len = 3;
@@ -229,6 +237,14 @@ void qemu_vga_putc_transparent(uint16_t x, uint16_t y, uint8_t ch, vga_color_t f
     if(!qemu_vga_enabled) return;
     int i, j;
     volatile utf8_state_t* utf8_state = &terminals[active_terminal_id].utf8_state;
+
+    if(!(UTF8_MASK & ch)) {
+        // This char isn't related to UTF8,
+        // the previous UTF-8 code is broken, ignore it
+        utf8_state->len = 0;
+        utf8_state->have = 0;
+    }
+
     if(UTF8_3BYTE_MASK == (ch & UTF8_3BYTE_MASK)) {
         // Detected the beginning of a 3 byte UTF-8 code
         utf8_state->len = 3;
