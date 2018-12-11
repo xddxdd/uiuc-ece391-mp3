@@ -2,21 +2,31 @@
 #include "cpuid.h"
 #include "cmos.h"
 
-uint32_t rand_num = 0;
-
-
-// GNU Assembler in devel VM is too old to recognize RDRAND instruction,
+// GNU Assembler in devel VM is too old to recognize RDRAND & RDSEED instruction,
 //   so this is the machine code for two instructions:
 // 0f c7 f0     RDRAND %eax
 // c3           RET
+char rng_rdrand_machine_code[] = {0x0f, 0xc7, 0xf0, 0xc3};
+//   and this is the machine code for two instructions:
+// 0f c7 f8     RDSEED %eax
+// c3           RET
+char rng_rdseed_machine_code[] = {0x0f, 0xc7, 0xf8, 0xc3};
 //   This machine code can be easily regenerated with an up to date GCC and/or GAS.
-char rng_x86_instructions[] = {0x0f, 0xc7, 0xf0, 0xc3};
+
+uint32_t rand_num = 0;  // Previous generated random number
 
 /* void rng_init()
  * @output: RNG initialized with current time
  * @description: seed the RNG with CMOS time
  */
 void rng_init() {
+    if(cpu_info.features_ext2_ebx.rdseed) {
+        // GAS in devel VM is too old to recognize RDSEED instruction,
+        // so I put machine code in array rng_x86_instructions on top of this file.
+        // C won't let me directly call an array, so I use an assembly call.
+        asm volatile("call rng_rdseed_machine_code" : "=a"(rand_num) : : "memory");
+        if(rand_num) return;
+    }
     datetime_t time = cmos_datetime();
     rand_num = time.second
              + time.minute * RNG_SEC_IN_MIN
@@ -40,7 +50,7 @@ uint32_t rng_generate() {
         // GAS in devel VM is too old to recognize RDRAND instruction,
         // so I put machine code in array rng_x86_instructions on top of this file.
         // C won't let me directly call an array, so I use an assembly call.
-        asm volatile("call rng_x86_instructions" : "=a"(d) : : "memory");
+        asm volatile("call rng_rdrand_machine_code" : "=a"(d) : : "memory");
         if(d) return d;
     }
     return rand_num = RNG_MASK & (RNG_MULTIPLIER * rand_num + RNG_INCREMENT);
