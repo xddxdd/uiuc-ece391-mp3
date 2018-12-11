@@ -6,6 +6,7 @@
 #include "../devices/cpuid.h"
 #include "../devices/sb16.h"
 #include "../devices/cmos.h"
+#include "../devices/rng.h"
 
 /* int32_t unified_init(fd_array_t* fd_array)
  * @input: fd_array - pointer to a file descriptor array
@@ -75,6 +76,9 @@ int32_t unified_open(fd_array_t* fd_array, const char* filename) {
     } else if(0 == strncmp("date", filename, 5)) {
         // Trying to open CMOS
         fd_array[fd].interface = &cmos_if;
+    } else if(0 == strncmp("rng", filename, 4)) {
+        // Trying to open CMOS
+        fd_array[fd].interface = &rng_if;
     } else if(SUCCESS == read_dentry_by_name((char*) filename, &finfo)) {
         // File exists in ECE391FS
         switch(finfo.type) {
