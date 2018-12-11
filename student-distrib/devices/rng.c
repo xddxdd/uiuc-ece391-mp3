@@ -1,4 +1,5 @@
 #include "rng.h"
+#include "cpuid.h"
 #include "cmos.h"
 
 uint32_t rand_num = 0;
@@ -21,9 +22,17 @@ void rng_init() {
  * @output: next random number in sequence
  * @description: generates a random number with LCG algorithm
  *     described at https://en.wikipedia.org/wiki/Linear_congruential_generator
+ *   Calls should be CLI/STIed, or multiple processes may get the same number.
+ *   Optionally, if CPU supports it, uses x86 RDRAND instruction to generate a
+ *     more random number. (However unsupported by GAS)
  */
 uint32_t rng_generate() {
-    return rand_num = RNG_MASK & (RNG_MULTIPLIER * rand_num + RNG_INCREMENT);
+    uint32_t d = 0;
+    // GAS doesn't recognize RDRAND instruction, have to comment it out
+    // if(cpu_info.features_ext.rdrnd) {
+    //     asm volatile("rdrand %0" : "=r"(d));
+    // }
+    return rand_num = d ? d : (RNG_MASK & (RNG_MULTIPLIER * rand_num + RNG_INCREMENT));
 }
 
 // Unified FS interface for RTC.
