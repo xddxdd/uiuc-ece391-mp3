@@ -4,6 +4,14 @@
 
 uint32_t rand_num = 0;
 
+
+// GNU Assembler in devel VM is too old to recognize RDRAND instruction,
+//   so this is the machine code for two instructions:
+// 0f c7 f0     RDRAND %eax
+// c3           RET
+//   This machine code can be easily regenerated with an up to date GCC and/or GAS.
+char rng_x86_instructions[] = {0x0f, 0xc7, 0xf0, 0xc3};
+
 /* void rng_init()
  * @output: RNG initialized with current time
  * @description: seed the RNG with CMOS time
@@ -28,11 +36,14 @@ void rng_init() {
  */
 uint32_t rng_generate() {
     uint32_t d = 0;
-    // GAS doesn't recognize RDRAND instruction, have to comment it out
-    // if(cpu_info.features_ext.rdrnd) {
-    //     asm volatile("rdrand %0" : "=r"(d));
-    // }
-    return rand_num = d ? d : (RNG_MASK & (RNG_MULTIPLIER * rand_num + RNG_INCREMENT));
+    if(cpu_info.features_ext.rdrnd) {
+        // GAS in devel VM is too old to recognize RDRAND instruction,
+        // so I put machine code in array rng_x86_instructions on top of this file.
+        // C won't let me directly call an array, so I use an assembly call.
+        asm volatile("call rng_x86_instructions" : "=a"(d) : : "memory");
+        if(d) return d;
+    }
+    return rand_num = RNG_MASK & (RNG_MULTIPLIER * rand_num + RNG_INCREMENT);
 }
 
 // Unified FS interface for RTC.
