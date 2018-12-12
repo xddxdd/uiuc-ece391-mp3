@@ -37,9 +37,7 @@ uint8_t ctrl_c_pending = 0;
  * @description: Enable the keyboard IRQ so that we can receive its interrupts
  */
 void keyboard_init() {
-    cli();
     enable_irq(KEYBOARD_IRQ);
-    sti();
 }
 
 /* void keyboard_interrupt()
@@ -47,6 +45,7 @@ void keyboard_init() {
  * @description: Handle keyboard interrupt
  */
 void keyboard_interrupt() {
+    cli();
     terminal_switch_active(displayed_terminal_id);
 
     uint8_t scancode_idx = inb(KEYBOARD_PORT);
@@ -59,6 +58,7 @@ void keyboard_interrupt() {
     if (is_special_key == 1){
         // send End Of Interrupt
         send_eoi(KEYBOARD_IRQ);
+        sti();
         return;
     }
 
@@ -77,18 +77,15 @@ void keyboard_interrupt() {
         if(key == 'c') {
             // Ctrl+C received, schedule killing current process
             if(displayed_terminal_id == active_terminal_id) {
-                sti();  // Restore interrupt, usually done in asm wrapper,
-                        // but done manually here as we don't return to it anymore
                 syscall_halt(255);  // 255 is return code, indicate that process exited abnormally
             } else {
                 ctrl_c_pending = 1;
             }
         }
-        return;
-    }
-    if(alt_pressed == 1) {
-        send_eoi(KEYBOARD_IRQ);
         sti();
+        return;
+    } else if(alt_pressed == 1) {
+        send_eoi(KEYBOARD_IRQ);
         if(scancode_idx == SCANCODE_F1) {
             terminal_switch_display(0);
         } else if(scancode_idx == SCANCODE_F2) {
@@ -96,10 +93,9 @@ void keyboard_interrupt() {
         } else if(scancode_idx == SCANCODE_F3) {
             terminal_switch_display(2);
         }
+        sti();
         return;
-    }
-    // echo the keyboard input to the screen
-    if(scancode_idx < SCANCODE_TABLE_SIZE) {
+    } else if(scancode_idx < SCANCODE_TABLE_SIZE) {
         // Caps check, modified by jinghua3.
         if(((capslock) != (shift_pressed)) && is_alphabet(scancode_idx)){
           key = scancode[scancode_idx][1];
@@ -168,6 +164,7 @@ void keyboard_interrupt() {
     }
     // send End Of Interrupt
     send_eoi(KEYBOARD_IRQ);
+    sti();
 }
 
 /* int32_t terminal_open(int32_t* inode, char* filename)

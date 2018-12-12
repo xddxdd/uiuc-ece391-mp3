@@ -31,7 +31,9 @@ static inline void assertion_failure(){
  */
 int test_fdarray_wrapper(int (*func)(fd_array_t*)) {
 	// Get a PCB along with its fd_array
+	cli();
     int32_t pid = process_allocate();
+	sti();
     if(-1 == pid) return FAIL;
     process_t* process = process_get_pcb(pid);
     if(FAIL == unified_init(process->fd_array)) return FAIL;
