@@ -63,7 +63,6 @@ void process_init() {
  */
 int32_t process_allocate() {
     int i;
-    cli();
     for(i = 0; i < PROCESS_COUNT; i++) {
         process_t* process = process_get_pcb(i);
         if(0 == process->present) {
@@ -72,7 +71,6 @@ int32_t process_allocate() {
             return i;
         }
     }
-    sti();
     return -1;
 }
 
@@ -85,23 +83,30 @@ int32_t process_allocate() {
  */
 int32_t process_create(const char* command) {
     if(NULL == command) return FAIL;
+    if(command[0] == STRING_END) return FAIL;
 
     // initialize filename buffer
     uint8_t filename[ECE391FS_MAX_FILENAME_LEN + 1];
     memset(filename, 0, ECE391FS_MAX_FILENAME_LEN + 1);
     uint8_t argument[MAX_ARG_LENGTH + 1];
     memset(argument, 0, MAX_ARG_LENGTH + 1);
+
     // get filename and argument
-    int i = 0;
-    while(command[i] != STRING_END && command[i] != SPACE) i++;
-    if(i >= ECE391FS_MAX_FILENAME_LEN) return FAIL;
-    memcpy(filename, command, i);
-    if(command[i] == SPACE) {
-        // command includes an argument
-        int j = i + 1;
-        while(command[j] != STRING_END) j++;
-        memcpy(argument, command + i + 1, j - i - 1);
+    int space_begin = 0;
+    while(command[space_begin] == SPACE) space_begin++;
+    int space_separate = space_begin;
+    while(command[space_separate] != STRING_END && command[space_separate] != SPACE) space_separate++;
+    int space_separate_end = space_separate;
+    while(command[space_separate_end] == SPACE) space_separate_end++;
+    int space_end = space_separate_end;
+    if(space_separate != space_separate_end) {
+        while(command[space_end] != STRING_END) space_end++;
+        while(command[space_end - 1] == SPACE) space_end--;
     }
+
+    memcpy(filename, (char*) (command + space_begin), space_separate - space_begin);
+    memcpy(argument, (char*) (command + space_separate_end), space_end - space_separate_end);
+    // printf("cmd: \"%s\"\narg: \"%s\"\n", filename, argument);
 
     // Try to allocate PID for new process
     int32_t pid = process_allocate();
@@ -299,13 +304,16 @@ void process_switch_context(int32_t pid) {
         pushl   %%ebx          \n\
         pushl   %%edx          \n\
         pushfl                 \n\
+        popl    %%edx          \n\
+        orl     $0x0200, %%edx \n\
+        pushl   %%edx          \n\
         pushl   %%ecx          \n\
         pushl   %%eax          \n\
         iret                   \n\
         "
         :
         : "a"(process->eip), "b"(USER_DS), "c"(USER_CS), "d"(process->esp)
-        : "cc"
+        : "memory"
     );
 }
 
@@ -318,6 +326,8 @@ void process_switch_context(int32_t pid) {
 void terminal_switch_active(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
 
+    cli();
+
     // Save the kernel stack of current process
     process_t* process = process_get_pcb(active_process_id);
     if(NULL != process) {
@@ -326,14 +336,12 @@ void terminal_switch_active(uint32_t tid) {
         // printf("saved %d, esp %x, ebp %x\n", active_process_id, process->esp, process->ebp);
     }
 
-    cli();
     terminals[active_terminal_id].active_process = active_process_id;
     // Switch to another terminal and corresponding process
     active_terminal_id = tid;
     active_process_id = terminals[tid].active_process;
     if(active_process_id == -1) {
         // If nothing is running there, create a shell
-        sti();
         process_create("shell");
     } else {
         // Switch to that process, just as done in process_halt, except the status part
@@ -351,13 +359,13 @@ void terminal_switch_active(uint32_t tid) {
             : "r" (process->esp), "r" (process->ebp)
             : "memory"
         );
-        sti();
     }
     // If a Ctrl+C is scheduled but not yet done, kill the current process
     if(ctrl_c_pending && (active_terminal_id == displayed_terminal_id)) {
         ctrl_c_pending = 0;
         syscall_halt(255);
     }
+    sti();
 }
 
 /* void terminal_switch_display(uint32_t tid)
