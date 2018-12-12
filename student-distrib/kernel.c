@@ -185,12 +185,12 @@ void entry(unsigned long magic, unsigned long addr) {
     char build_ver[] = "nullOS by Team NULL, build " __DATE__ " " __TIME__;
     status_bar_update_message(build_ver, strlen(build_ver), ATTR_YELLOW_ON_BLACK);
 
-#ifdef RUN_TESTS
-    /* Run tests */
-    sti();
-    launch_tests();
-    cli();
-#endif
+// #ifdef RUN_TESTS
+//     /* Run tests */
+//     sti();
+//     launch_tests();
+//     cli();
+// #endif
 
     pit_init();         // PIT initializes after multiprocessing, as it does process switching
                         // otherwise system will triple fault
