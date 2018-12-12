@@ -201,8 +201,6 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     sti();
 
-    // Switch to the first terminal
-    terminal_switch_active(0);
     /* Spin (nicely, so we don't chew up cycles) */
     infinite_loop();
 }

@@ -22,12 +22,14 @@ void pit_init() {
  * @description: switches between processes to achieve background multiprocessing.
  */
 void pit_interrupt() {
+    cli();
     // Increment system time counter
     pit_timer++;
     send_eoi(PIT_IRQ);
     // Do a context switch
     int32_t new_terminal = (active_terminal_id + 1) % TERMINAL_COUNT;
     terminal_switch_active(new_terminal);
+    sti();
 }
 
 /* void pit_sleep(uint32_t ms)

@@ -117,6 +117,8 @@ int32_t process_create(const char* command) {
         while(command[space_end - 1] == SPACE) space_end--;
     }
 
+    if(space_separate - space_begin > ECE391FS_MAX_FILENAME_LEN) return FAIL;
+
     memcpy(filename, (char*) (command + space_begin), space_separate - space_begin);
     memcpy(argument, (char*) (command + space_separate_end), space_end - space_separate_end);
     // printf("cmd: \"%s\"\narg: \"%s\"\n", filename, argument);
@@ -346,12 +348,11 @@ void process_switch_context(int32_t pid) {
  * @input: tid - id of terminal we're switching to
  * @output: the process running on terminal #tid is put to active running
  * @description: switch to process running on terminal #tid, to implement
- *     multiprocessing with background process scheduling
+ *     multiprocessing with background process scheduling.
+ *   Must be wrapped in CLI/STI.
  */
 void terminal_switch_active(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
-
-    cli();
 
     // Save the kernel stack of current process
     process_t* process = process_get_pcb(active_process_id);
@@ -390,7 +391,6 @@ void terminal_switch_active(uint32_t tid) {
         ctrl_c_pending = 0;
         syscall_halt(255);
     }
-    sti();
 }
 
 /* void terminal_switch_display(uint32_t tid)

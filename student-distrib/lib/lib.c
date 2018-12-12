@@ -7,6 +7,7 @@
 #include "../devices/qemu_vga.h"
 
 char* video_mem = (char *)VIDEO;
+uint8_t is_clied = 0;
 
 /* void infinite_loop()
  * @description: an environment-friendly infinite loop.

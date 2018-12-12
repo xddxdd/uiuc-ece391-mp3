@@ -144,13 +144,15 @@ void keyboard_interrupt() {
                 // disable keyboard buffer
                 t->keyboard_buffer_enable = 0;
             } else if (t->keyboard_buffer_top >= KEYBOARD_BUFFER_SIZE) {
-                ONTO_DISPLAY_WRAP(putc('\n'));
-                // put newline character
-                t->keyboard_buffer[t->keyboard_buffer_top] = '\n';
-                // increment keyboard_buffer_top
-                t->keyboard_buffer_top++;
-                // disable keyboard buffer
-                t->keyboard_buffer_enable = 0;
+                // Prevent entering more keys
+
+                // ONTO_DISPLAY_WRAP(putc('\n'));
+                // // put newline character
+                // t->keyboard_buffer[t->keyboard_buffer_top] = '\n';
+                // // increment keyboard_buffer_top
+                // t->keyboard_buffer_top++;
+                // // disable keyboard buffer
+                // t->keyboard_buffer_enable = 0;
             } else {
                 ONTO_DISPLAY_WRAP(putc(key));
                 // record current key
@@ -205,8 +207,9 @@ int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
 
     /* printf("keyboard_read starts\n"); */
     // wait for keyboard inputs
-    while (terminals[active_terminal_id].keyboard_buffer_enable == 1) {}
+    while (terminals[active_terminal_id].keyboard_buffer_enable == 1);
     /* printf("keyboard_read ends\n"); */
+    cli();
     for (index = 0; index < len; index++)
     {
         if (index < terminals[active_terminal_id].keyboard_buffer_top)
@@ -221,6 +224,7 @@ int32_t terminal_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
     min_size = terminals[active_terminal_id].keyboard_buffer_top < len
              ? terminals[active_terminal_id].keyboard_buffer_top : len;
     terminals[active_terminal_id].keyboard_buffer_top = 0;
+    sti();
     return min_size;
 }
 

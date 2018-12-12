@@ -120,6 +120,8 @@ do {                                    \
     );                                  \
 } while (0)
 
+extern uint8_t is_clied;
+
 /* Clear interrupt flag - disables interrupts on this processor */
 #define cli()                           \
 do {                                    \
@@ -128,6 +130,7 @@ do {                                    \
             :                           \
             : "memory", "cc"            \
     );                                  \
+    is_clied = 1;                       \
 } while (0)
 
 /* Save flags and then clear interrupt flag
@@ -144,17 +147,28 @@ do {                                    \
             :                           \
             : "memory", "cc"            \
     );                                  \
+    is_clied = 1;                       \
 } while (0)
 
 /* Set interrupt flag - enable interrupts on this processor */
 #define sti()                           \
 do {                                    \
+    is_clied = 0;                       \
     asm volatile ("sti"                 \
             :                           \
             :                           \
             : "memory", "cc"            \
     );                                  \
 } while (0)
+
+// Show if the system is CLIed
+#define iscli() {                       \
+    if(is_clied) {                      \
+        putc('C');                      \
+    } else {                            \
+        putc('S');                      \
+    }                                   \
+}
 
 /* Restore flags
  * Puts the value in "flags" into the EFLAGS register.  Most often used
