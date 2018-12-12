@@ -22,7 +22,7 @@
 #define USER_STACK_ADDR         0x08400000 - 0x4
 #define USER_PAGE_SIZE          0x400000               // 4 MB
 #define PD_ADDR_OFFSET          22
-#define PROCESS_PYSC_BASE_ADDR  3                      // 8-12 MB
+#define PROCESS_PYSC_BASE_ADDR  2                      // 8-12 MB
 #define MAX_NUM_FD_ENTRY        8                      // Up to 8 open files per task
 #define FILE_OP_NUM             4
 #define STDIN_ENTRY             0

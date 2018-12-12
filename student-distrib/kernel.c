@@ -21,6 +21,7 @@
 #include "devices/pit.h"
 #include "devices/qemu_vga.h"
 #include "devices/cmos.h"
+#include "devices/rng.h"
 
 #include "data/uiuc.h"
 #include "data/vga_fonts.h"
