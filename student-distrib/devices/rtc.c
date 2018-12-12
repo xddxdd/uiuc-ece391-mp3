@@ -13,8 +13,11 @@ unified_fs_interface_t rtc_if = {
     .close = rtc_close
 };
 
+/* uint8_t rtc_init()
+ * @output: RTC set to 1024Hz
+ * @description: initializes virtualizing the RTC
+ */
 uint8_t rtc_init() {
-    cli();
     // Initialization code, from https://wiki.osdev.org/RTC
     outb(RTC_REG_B, RTC_PORT_CMD);	    // select register B, and disable NMI
     char prev = inb(RTC_PORT_DATA);	    // read the current value of register B
@@ -26,7 +29,6 @@ uint8_t rtc_init() {
     outb(RTC_REG_A, RTC_PORT_CMD);
     outb(RTC_FREQ_1024, RTC_PORT_DATA);
 
-    sti();
     return 0;
 }
 

@@ -401,8 +401,6 @@ void terminal_switch_active(uint32_t tid) {
 void terminal_switch_display(uint32_t tid) {
     if(tid < 0 || tid >= TERMINAL_COUNT) return;
 
-    cli();  // Begin critical section
-
     char* addr;
 
     // Copy current terminal content to an alternate location
@@ -425,8 +423,6 @@ void terminal_switch_display(uint32_t tid) {
 
     qemu_vga_switch_terminal(displayed_terminal_id);
     ONTO_DISPLAY_WRAP(status_bar_switch_terminal(displayed_terminal_id));
-
-    sti();  // End critical section
 }
 
 /* void executable_patching(const char* process)
