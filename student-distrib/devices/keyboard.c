@@ -122,17 +122,17 @@ void keyboard_interrupt() {
                             && (t->keyboard_buffer_top - i <= 3)) i--;
                         if((t->keyboard_buffer[i] & UTF8_2BYTE_MASK) == UTF8_2BYTE_MASK) {
                             // We found the beginning of the code
-                            t->keyboard_buffer_top = i;
                             // Remove the 2 char wide character on screen
                             ONTO_DISPLAY_WRAP(putc(BACKSPACE));
                             ONTO_DISPLAY_WRAP(putc(BACKSPACE));
+                            t->keyboard_buffer_top = i;
                         } else {
-                            t->keyboard_buffer_top--;
                             ONTO_DISPLAY_WRAP(putc(BACKSPACE));
+                            t->keyboard_buffer_top--;
                         }
                     } else {
-                        t->keyboard_buffer_top--;
                         ONTO_DISPLAY_WRAP(putc(BACKSPACE));
+                        t->keyboard_buffer_top--;
                     }
                 }
             } else if (key == '\n') {
