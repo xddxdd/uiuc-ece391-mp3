@@ -22,6 +22,7 @@
 #include "devices/qemu_vga.h"
 #include "devices/cmos.h"
 #include "devices/rng.h"
+#include "devices/mouse.h"
 
 #include "data/uiuc.h"
 #include "data/vga_fonts.h"
@@ -171,6 +172,7 @@ void entry(unsigned long magic, unsigned long addr) {
     acpi_init();        // Find the ACPI tables, so we can leave space for them when paging
     cpuid_init();       // No need of querying every time
     keyboard_init();    // Required for user input
+    mouse_init();       // Mouse support
     pci_init();         // Required for QEMU VGA
     rng_init();         // Seed the RNG
     // QEMU VGA initializes before paging, video memory redirected according to whether

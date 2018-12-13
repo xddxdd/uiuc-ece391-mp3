@@ -50,6 +50,7 @@ void idt_init() {
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SERIAL2], interrupt_serial2_wrap);
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_SB16], interrupt_sb16_wrap);
     SET_IDT_ENTRY(idt[VECTOR_DEVICE_PIT], interrupt_pit_wrap);
+    SET_IDT_ENTRY(idt[VECTOR_DEVICE_MOUSE], interrupt_mouse_wrap);
 
     // system call
     SET_IDT_ENTRY(idt[VECTOR_SYSTEM_CALL], syscall_wrap);

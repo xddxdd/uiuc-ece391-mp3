@@ -8,6 +8,7 @@
     void interrupt_serial2_wrap();
     void interrupt_sb16_wrap();
     void interrupt_pit_wrap();
+    void interrupt_mouse_wrap();
 #endif
 
 #endif
