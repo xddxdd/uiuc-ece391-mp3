@@ -132,7 +132,7 @@ int32_t process_create(const char* command) {
     if(FAIL == unified_init(process->fd_array)) return FAIL;
 
     // Check if file is a program
-    char buf[FILE_HEADER_LEN];
+    char buf[PROGRAM_HEADER_LEN];
     int32_t fd;
     if((FAIL == (fd = unified_open(process->fd_array, (char*) filename)))
         || (FAIL == unified_read(process->fd_array, fd, buf, PROGRAM_HEADER_LEN))

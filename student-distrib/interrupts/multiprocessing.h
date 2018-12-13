@@ -13,23 +13,12 @@
 
 #define STRING_END              '\0'
 #define SPACE                   ' '
-#define FILE_HEADER_LEN         40                     // 40 Bytes
-#define FILE_EXE_HEADER_0       0x7F
-#define FILE_EXE_HEADER_1       0x45
-#define FILE_EXE_HEADER_2       0x4C
-#define FILE_EXE_HEADER_3       0x46
 #define USER_PROCESS_ADDR       0x08048000
-#define USER_STACK_ADDR         0x08400000 - 0x4
+#define USER_STACK_ADDR         (0x08400000 - 0x4)
 #define USER_PAGE_SIZE          0x400000               // 4 MB
 #define PD_ADDR_OFFSET          22
 #define PROCESS_PYSC_BASE_ADDR  2                      // 8-12 MB
 #define MAX_NUM_FD_ENTRY        8                      // Up to 8 open files per task
-#define FILE_OP_NUM             4
-#define STDIN_ENTRY             0
-#define STDOUT_ENTRY            1
-#define FD_ENTRY_ASSIGNED       1
-#define FD_ENTRY_NOT_ASSIGNED   0
-#define NOT_ASSIGNED            -1
  // Use the higher 19 bits to get top of 8KB kernel stack
 #define KER_STACK_BITMASK       0xFFFFE000
 #define MAX_ARG_LENGTH          128
@@ -38,7 +27,7 @@
 #define KERNEL_STACK_BASE_ADDR  0x800000               // 8 MB
 #define USER_KMODE_STACK_SIZE   0x2000                 // 8 kB
 
-#define PROGRAM_MAX_LEN 0x2000
+#define PROGRAM_MAX_LEN 0x300000                       // 3MB
 #define PROGRAM_HEADER_LEN 4
 #define PROGRAM_HEADER_OFFSET 36
 extern char program_header[PROGRAM_HEADER_LEN];
