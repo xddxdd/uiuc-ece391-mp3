@@ -4,6 +4,8 @@ Extra features implemented in this OS:
 - ACPI support (`shutdown` & `reboot`)
 - CPUID support (`cat cpuinfo` to view CPU information)
 - Tux Controller support (use `tuxtest` program)
+  - `tuxtest` commandline program
+  - `missile` Missile Command game from MP1
 - Exception handler will print out context information
 - CMOS Datetime support (`cat date`)
 - PCI bus support
