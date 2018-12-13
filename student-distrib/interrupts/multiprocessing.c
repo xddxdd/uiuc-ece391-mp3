@@ -139,6 +139,7 @@ int32_t process_create(const char* command) {
         || (process->fd_array[fd].pos != PROGRAM_HEADER_LEN)
         || (0 != strncmp((char*) buf, program_header, PROGRAM_HEADER_LEN))
         || (FAIL == unified_close(process->fd_array, fd))) {
+        unified_close(process->fd_array, fd);
         process->present = 0;
         return FAIL;
     }
@@ -156,7 +157,10 @@ int32_t process_create(const char* command) {
     // Change paging configuration, load program
     process_switch_paging(pid);
     if(FAIL == (fd = unified_open(process->fd_array, (char*) filename))) return FAIL;
-    if(FAIL == unified_read(process->fd_array, fd, (char*) USER_PROCESS_ADDR, PROGRAM_MAX_LEN)) return FAIL;
+    if(FAIL == unified_read(process->fd_array, fd, (char*) USER_PROCESS_ADDR, PROGRAM_MAX_LEN)) {
+        unified_close(process->fd_array, fd);
+        return FAIL;
+    }
     if(FAIL == unified_close(process->fd_array, fd)) return FAIL;
     process->eip = (*(uint32_t*) (USER_PROCESS_ADDR + 24));
 
