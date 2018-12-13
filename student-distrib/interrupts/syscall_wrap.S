@@ -13,7 +13,7 @@ syscall_wrap:
 
     cmp $1, %eax
     jl invalid_syscall
-    cmp $15, %eax
+    cmp $16, %eax
     jg invalid_syscall
 
     movl syscall_jumptable(, %eax, 4), %eax
@@ -51,3 +51,4 @@ syscall_jumptable:
     .long syscall_reboot
     .long syscall_ps
     .long syscall_poke
+    .long syscall_status_msg

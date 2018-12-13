@@ -16,5 +16,6 @@
 #define SYS_REBOOT 13
 #define SYS_PS 14
 #define SYS_POKE 15
+#define SYS_STATUS_MSG 16
 
 #endif /* ECE391SYSNUM_H */

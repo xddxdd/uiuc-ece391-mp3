@@ -26,6 +26,7 @@ extern int32_t ece391_shutdown (void);
 extern int32_t ece391_reboot (void);
 extern int32_t ece391_ps (void);
 extern int32_t ece391_poke (uint32_t x, uint32_t y, uint32_t data);
+extern int32_t ece391_status_msg (char* msg, uint32_t len, uint8_t attr);
 
 enum signums {
 	DIV_ZERO = 0,

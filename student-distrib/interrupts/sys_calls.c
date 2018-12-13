@@ -4,6 +4,7 @@
 #include "../devices/acpi.h"
 #include "../devices/vga_text.h"
 #include "../devices/qemu_vga.h"
+#include "../lib/status_bar.h"
 // System calls for checkpoint 3.
 
 /*
@@ -227,5 +228,16 @@ int32_t syscall_poke(uint32_t x, uint32_t y, uint32_t data) {
     qemu_vga_putc(x * FONT_ACTUAL_WIDTH, y * FONT_ACTUAL_HEIGHT,
         ch, qemu_vga_get_terminal_color(attrib), qemu_vga_get_terminal_color(attrib >> 4));
 
+    return SUCCESS;
+}
+
+/* int32_t syscall_status_msg(char* msg, uint32_t len, uint8_t attr)
+ * @input: msg, len - data and length of message for status bar
+ * @output: attr - attribute
+ * @description: display a message on status bar
+ */
+int32_t syscall_status_msg(char* msg, uint32_t len, uint8_t attr) {
+    if(NULL == msg) return FAIL;
+    status_bar_update_message(msg, len, attr);
     return SUCCESS;
 }

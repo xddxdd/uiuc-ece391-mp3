@@ -26,5 +26,6 @@ int32_t syscall_shutdown(void);
 int32_t syscall_reboot(void);
 int32_t syscall_ps(void);
 int32_t syscall_poke(uint32_t x, uint32_t y, uint32_t data);
+int32_t syscall_status_msg(char* msg, uint32_t len, uint8_t attr);
 
 #endif
