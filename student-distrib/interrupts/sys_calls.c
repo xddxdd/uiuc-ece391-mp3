@@ -2,6 +2,8 @@
 #include "../fs/unified_fs.h"
 #include "multiprocessing.h"
 #include "../devices/acpi.h"
+#include "../devices/vga_text.h"
+#include "../devices/qemu_vga.h"
 // System calls for checkpoint 3.
 
 /*
@@ -198,5 +200,32 @@ int32_t syscall_ps(void) {
     for(tid = 0; tid < TERMINAL_COUNT; tid++) {
         printf("T#%d pid=%d\n", tid, terminals[tid].active_process);
     }
+    return SUCCESS;
+}
+
+/* int32_t syscall_poke(uint32_t x, uint32_t y, uint32_t data)
+ * @input: x, y - screen coordinate
+ *         data - bit 0 - 7: character to display
+ *                bit 8 - 15: attribute of character
+ * @output: character on (x, y) changed to data
+ * @description: poke function as an alternate to vidmap.
+ *     Supports both text mode and QEMU VGA.
+ */
+int32_t syscall_poke(uint32_t x, uint32_t y, uint32_t data) {
+    if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) {
+        // printf("%d %d %x F\n", x, y, data);
+        return FAIL;
+    }
+    uint8_t ch = (uint8_t) data;
+    uint8_t attrib = (uint8_t) (data >> 8);
+
+    // printf("%d %d %x\n", x, y, data);
+
+    *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ch;
+    *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = attrib;
+
+    qemu_vga_putc(x * FONT_ACTUAL_WIDTH, y * FONT_ACTUAL_HEIGHT,
+        ch, qemu_vga_get_terminal_color(attrib), qemu_vga_get_terminal_color(attrib >> 4));
+
     return SUCCESS;
 }

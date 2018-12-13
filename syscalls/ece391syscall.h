@@ -25,6 +25,7 @@ extern int32_t ece391_ioctl (int32_t fd, int32_t op);
 extern int32_t ece391_shutdown (void);
 extern int32_t ece391_reboot (void);
 extern int32_t ece391_ps (void);
+extern int32_t ece391_poke (uint32_t x, uint32_t y, uint32_t data);
 
 enum signums {
 	DIV_ZERO = 0,

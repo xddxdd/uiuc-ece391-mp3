@@ -25,5 +25,6 @@ int32_t syscall_sigreturn (void);
 int32_t syscall_shutdown(void);
 int32_t syscall_reboot(void);
 int32_t syscall_ps(void);
+int32_t syscall_poke(uint32_t x, uint32_t y, uint32_t data);
 
 #endif

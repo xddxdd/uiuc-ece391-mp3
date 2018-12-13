@@ -31,6 +31,7 @@ DO_CALL(ece391_ioctl,SYS_IOCTL)
 DO_CALL(ece391_shutdown,SYS_SHUTDOWN)
 DO_CALL(ece391_reboot,SYS_REBOOT)
 DO_CALL(ece391_ps,SYS_PS)
+DO_CALL(ece391_poke,SYS_POKE)
 
 /* Call the main() function, then halt with its return value. */
 
