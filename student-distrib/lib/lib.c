@@ -228,6 +228,14 @@ void putc(uint8_t c)
         clear_row(terminals[active_terminal_id].screen_y);    // Clear the new line for better display
         terminals[active_terminal_id].screen_x = 0;
     } else if(c == BACKSPACE) {
+        if(terminals[active_terminal_id].keyboard_buffer_enable) {
+            // Do not let user delete more than typed
+            if(terminals[active_terminal_id].keyboard_buffer_top <= 0) return;
+        } else {
+            // Do not let user delete to previous line
+            if(terminals[active_terminal_id].screen_x <= 0) return;
+        }
+
         // Move back one character
         terminals[active_terminal_id].screen_x--;
         // If the line is filled up
