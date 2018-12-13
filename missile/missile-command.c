@@ -19,6 +19,7 @@ extern void clear_screen();
 int rtc_fd = -1;		// RTC file descriptor
 int rng_fd = -1;		// RNG file descriptor
 int tux_fd = -1;		// Tux Controller file descriptor
+int mouse_fd = -1;		// Mouse file descriptor
 
 int fired = 0;		/* Count of user-fired missiles */
 int score = 0;		/* score, as reported by ioctl(GETSTATUS) */
@@ -66,11 +67,46 @@ command_t get_command_tux() {
 	return NOKEY;
 }
 
+/* get_command_mouse()
+ * Checks if a meaningful move on mouse was done, and returns it;
+ */
+command_t get_command_mouse(int16_t* dx, int16_t* dy) {
+	int32_t buf[4];
+	static uint8_t is_fire_pressed = 0;
+	if(-1 == ece391_read(mouse_fd, buf, 4 * sizeof(int32_t))) {
+		return NOKEY;
+	}
+
+	*dx += buf[0] / 2;
+	*dy -= buf[1] / 2;
+
+	if(buf[2]) {
+		if(!is_fire_pressed) {
+			is_fire_pressed = 1;
+			return FIRE;
+		} else {
+			return NOKEY;
+		}
+	} else {
+		is_fire_pressed = 0;
+		return NOKEY;
+	}
+}
+
 /* get_command()
  * Checks if a meaningful key was pressed, and returns it;
  */
-command_t get_command(void) {
-	return get_command_tux();
+command_t get_command(int16_t* dx, int16_t* dy) {
+	command_t ret = get_command_tux();
+	switch(ret) {
+		case LEFT: *dx = -1; *dy = 0; break;
+		case RIGHT: *dx = 1; *dy = 0; break;
+		case UP: *dx = 0; *dy = -1; break;
+		case DOWN: *dx = 0; *dy = 1; break;
+		default: *dx = 0; *dy = 0; break;
+	}
+	if(FIRE == get_command_mouse(dx, dy)) ret = FIRE;
+	return ret;
 }
 
 /* make_missile()
@@ -108,38 +144,23 @@ void make_missile(int sx, int sy, int dx, int dy, char c, int vel)
 /* update_crosshairs()
  * move the crosshairs via the ioctl()
  */
-void update_crosshairs(command_t cmd){
-	int dx = 0, dy = 0;
-	static int chx = 80/2, chy = 25/2;
-
-	switch(cmd){
-	    case LEFT:  dx--; break;
-	    case RIGHT: dx++; break;
-	    case UP:    dy--; break;
-	    case DOWN:  dy++; break;
-	    case FIRE:
-			make_missile(79, 24, chx, chy, '*', 200);
-			fired++;
-	    default:
-			break;
-	}
+void update_crosshairs(command_t cmd, int16_t dx, int16_t dy){
 
 	if((dx != 0) || (dy != 0)){
 		unsigned long d;
-
-		if(80 <= (chx += dx))
-			chx = 79;
-		if(0 > chx)
-			chx = 0;
-		if(24 <= (chy += dy))
-			chy = 24;
-		if(0 > chy)
-			chy = 0;
 
 		d = (unsigned long)dx&0xFFFF;
 		d |= ((unsigned long)dy&0xFFFF)<<16;
 
 		mp1_ioctl(d, RTC_MOVEXHAIRS);
+	}
+
+	switch(cmd){
+	    case FIRE:
+			make_missile(79, 24, crosshairs_x, crosshairs_y, '*', 200);
+			fired++;
+	    default:
+			break;
 	}
 
 }
@@ -218,19 +239,21 @@ int main(){
 	rng_fd = ece391_open((uint8_t*) "rng");
 	rtc_fd = ece391_open((uint8_t*) "rtc");
 	tux_fd = ece391_open((uint8_t*) "tux");
+	mouse_fd = ece391_open((uint8_t*) "mouse");
 	int rtc_interval = 32;
 	ece391_write(rtc_fd, &rtc_interval, sizeof(int));
 
 	/* On with the game! */
 	draw_starting_screen();
-	while(FIRE != get_command());
+	int16_t dx = 0, dy = 0;
+	while(FIRE != get_command(&dx, &dy));
 	clear_screen();
 
 	bases_left = 3;
 
-	while(bases_left && QUIT != (cmd = get_command())) {
+	while(bases_left && QUIT != (cmd = get_command(&dx, &dy))) {
 		draw_status_bar();
-		update_crosshairs(cmd);
+		update_crosshairs(cmd, dx, dy);
 		mp1_rtc_tasklet();
 		ece391_read(rtc_fd, (void*) 0, 0);
 
@@ -245,6 +268,8 @@ int main(){
 
 	ece391_close(rng_fd);
 	ece391_close(rtc_fd);
+	ece391_close(tux_fd);
+	ece391_close(mouse_fd);
 
 	return 0;
 }

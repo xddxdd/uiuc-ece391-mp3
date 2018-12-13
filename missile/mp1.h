@@ -17,5 +17,7 @@ struct missile {
 
 extern void mp1_rtc_tasklet();
 extern int mp1_ioctl(unsigned long arg, unsigned int cmd);
+extern int crosshairs_x;
+extern int crosshairs_y;
 
 #endif

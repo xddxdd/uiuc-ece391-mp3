@@ -46,7 +46,7 @@
 # Data shared between this file and rtc.c helper functions
 
 # This '.globl' directive makes these symbols visible externally
-.globl mp1_missile_list, base_alive, mp1_score
+.globl mp1_missile_list, base_alive, mp1_score, crosshairs_x, crosshairs_y
 
 mp1_missile_list:	.long 0x0	# Head of list pointer
 base_alive:		.long 0x0	# Array of 3 bytes, plus a padding byte

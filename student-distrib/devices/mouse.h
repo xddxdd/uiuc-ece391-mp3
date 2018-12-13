@@ -2,6 +2,7 @@
 #define _MOUSE_H_
 
 #include "../lib/lib.h"
+#include "../fs/unified_fs.h"
 
 #define MOUSE_REG_KEYBOARD      0x60
 #define MOUSE_REG_PS2           0x64
@@ -35,5 +36,11 @@ void mouse_reg_write(uint8_t data);
 uint8_t mouse_reg_read();
 void mouse_init();
 void mouse_interrupt();
+
+int32_t mouse_open(int32_t* inode, char* filename);
+int32_t mouse_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len);
+int32_t mouse_close(int32_t* inode);
+
+extern unified_fs_interface_t mouse_if;
 
 #endif

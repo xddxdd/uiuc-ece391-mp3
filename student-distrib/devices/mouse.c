@@ -2,8 +2,9 @@
 #include "i8259.h"
 #include "keyboard.h"
 
-int32_t mouse_x_cumulative = 0, mouse_y_cumulative = 0;
-uint8_t mouse_left = 0, mouse_right = 1;
+volatile int32_t mouse_x_cumulative = 0, mouse_y_cumulative = 0;
+volatile uint8_t mouse_left = 0, mouse_right = 0;
+volatile uint8_t mouse_used = 0;
 
 void mouse_reg_wait_out() {
     int i = 100000;
@@ -51,18 +52,87 @@ void mouse_init() {
 }
 
 void mouse_interrupt() {
+    cli();
     mouse_t mouse;
     mouse.val = inb(MOUSE_REG_KEYBOARD);
     int8_t mouse_x = inb(MOUSE_REG_KEYBOARD);
     int8_t mouse_y = inb(MOUSE_REG_KEYBOARD);
     if(mouse.y_overflow || mouse.x_overflow || !mouse.reserved) {
         send_eoi(MOUSE_IRQ);
+        sti();
         return;
     }
 
     mouse_x_cumulative = mouse_x;
     mouse_y_cumulative = mouse_y;
-    printf("mouse %c%c %d %d\n", mouse.btn_left ? 'L' : ' ', mouse.btn_right ? 'R' : ' ',
-        mouse_x_cumulative, mouse_y_cumulative);
+    mouse_left = mouse.btn_left;
+    mouse_right = mouse.btn_right;
+    // printf("mouse %c%c %d %d\n", mouse.btn_left ? 'L' : ' ', mouse.btn_right ? 'R' : ' ',
+    //     mouse_x_cumulative, mouse_y_cumulative);
+    sti();
     send_eoi(MOUSE_IRQ);
+}
+
+unified_fs_interface_t mouse_if = {
+    .open = mouse_open,
+    .read = mouse_read,
+    .write = NULL,
+    .ioctl = NULL,
+    .close = mouse_close
+};
+
+/* int32_t mouse_open(int32_t* inode, char* filename)
+ * @input: all ignored
+ * @output: 0 (SUCCESS)
+ * @description: initialize RTC, set freq to 2 Hz.
+ *     using *inode to record the interval of rtc calls.
+ */
+int32_t mouse_open(int32_t* inode, char* filename) {
+    cli();
+    if(mouse_used) {
+        sti();
+        return FAIL;
+    }
+    mouse_used = 1;
+    mouse_x_cumulative = 0;
+    mouse_y_cumulative = 0;
+    mouse_left = 0;
+    mouse_right = 0;
+    sti();
+    return SUCCESS;
+}
+
+/* int32_t mouse_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
+ * @input: all ignored
+ * @output: 0 (SUCCESS)
+ * @description: wait until the next RTC tick.
+ *     using *offset to record how many ticks passed.
+ *     *offset will be updated by RTC interrupt.
+ */
+int32_t mouse_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
+    if(buf == NULL) return FAIL;
+    if(len < 4 * sizeof(int32_t)) return FAIL;
+
+    cli();
+    int32_t* ptr = (int32_t*) buf;
+    ptr[0] = mouse_x_cumulative;
+    ptr[1] = mouse_y_cumulative;
+    ptr[2] = mouse_left;
+    ptr[3] = mouse_right;
+
+    mouse_x_cumulative = 0;
+    mouse_y_cumulative = 0;
+    sti();
+
+    return SUCCESS;
+}
+
+/* int32_t mouse_close(int32_t* inode)
+ * @input: inode - ignored
+ * @output: 0 (SUCCESS)
+ * @description: close RTC, currently does nothing
+ */
+int32_t mouse_close(int32_t* inode) {
+    mouse_used = 0;
+    return SUCCESS;
 }
