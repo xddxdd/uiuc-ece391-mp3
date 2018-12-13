@@ -161,6 +161,9 @@ void keyboard_interrupt() {
                 t->keyboard_buffer_top++;
             }
         } else {
+            // Do not let user type any longer if terminal buffer isn't enabled
+            // Fixes BACKSPACE+ENTER problem if they're hit together,
+            // but may be non compliant to standard
             // ONTO_DISPLAY_WRAP(putc(key));
         }
     }
