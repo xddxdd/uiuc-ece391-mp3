@@ -161,7 +161,7 @@ void keyboard_interrupt() {
                 t->keyboard_buffer_top++;
             }
         } else {
-            ONTO_DISPLAY_WRAP(putc(key));
+            // ONTO_DISPLAY_WRAP(putc(key));
         }
     }
     // send End Of Interrupt
