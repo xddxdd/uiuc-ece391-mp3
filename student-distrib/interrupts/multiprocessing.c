@@ -67,6 +67,9 @@ void process_init() {
         terminals[i].chinese_input_buf.len = 0;
         terminals[i].chinese_input_buf.page = 0;
         memset(terminals[i].chinese_input_buf.buf, 0, CHINESE_INPUT_BUF_LEN + 1);
+
+        // Set welcome screen to not shown
+        terminals[i].welcome_shown = 0;
     }
 }
 
@@ -80,7 +83,6 @@ int32_t process_allocate() {
         process_t* process = process_get_pcb(i);
         if(0 == process->present) {
             process->present = 1;
-            sti();
             return i;
         }
     }
@@ -141,9 +143,6 @@ int32_t process_create(const char* command) {
         return FAIL;
     }
 
-    // If this is a terminal starting, display splash later
-    uint8_t display_splash_later = terminals[active_terminal_id].active_process == -1;
-
     // Create process structure
     process->parent_pid = active_process_id;
     process->esp = USER_STACK_ADDR;
@@ -171,8 +170,9 @@ int32_t process_create(const char* command) {
     if(NULL != ori_process) {
         asm volatile("movl %%esp, %0":"=r" (ori_process->esp));
         asm volatile("movl %%ebp, %0":"=r" (ori_process->ebp));
-    } else if(display_splash_later && qemu_vga_enabled) {
+    } else if((!terminals[active_terminal_id].welcome_shown) && qemu_vga_enabled) {
         // This is a terminal starting, show the splash image
+        terminals[active_terminal_id].welcome_shown = 1;
         qemu_vga_show_picture(UIUC_IMAGE_WIDTH, UIUC_IMAGE_HEIGHT, 16, (uint8_t*) UIUC_IMAGE_DATA);
         // and a line indicating Chinese capability
         puts("本系统支持中文显示和输入 Chinese display & input supported\n");
@@ -212,7 +212,7 @@ int32_t process_halt(uint8_t status) {
         active_process_id = -1;
         // Don't release the terminal, or splash image will show again
         // !!! REVERT THIS CHANGE IF SYSTEM IS BUGGY !!!
-        // terminals[active_terminal_id].active_process = -1;
+        terminals[active_terminal_id].active_process = -1;
 
         // Create a new shell process.
         // This call MUST BE directly in the halt call, not wrapped in subroutine

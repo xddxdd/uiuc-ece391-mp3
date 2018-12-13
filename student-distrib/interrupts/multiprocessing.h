@@ -67,6 +67,7 @@ typedef struct {
     volatile int keyboard_buffer_enable;
     utf8_state_t utf8_state;                        // UTF-8 character state
     chinese_input_buf_t chinese_input_buf;          // Chinese IME state
+    uint8_t welcome_shown;                          // Has shown logo on this terminal
 } terminal_t;
 
 #define TERMINAL_COUNT 3
