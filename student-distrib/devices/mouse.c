@@ -6,16 +6,26 @@ volatile int32_t mouse_x_cumulative = 0, mouse_y_cumulative = 0;
 volatile uint8_t mouse_left = 0, mouse_right = 0;
 volatile uint8_t mouse_used = 0;
 
+/* void mouse_reg_wait_out()
+ * @description: wait until mouse can accept another packet.
+ */
 void mouse_reg_wait_out() {
     int i = 100000;
     while(i-- && inb(MOUSE_REG_PS2) & 2);
 }
 
+/* void mouse_reg_wait_in()
+ * @description: wait until mouse can send another packet.
+ */
 void mouse_reg_wait_in() {
     int i = 100000;
     while(i-- && inb(MOUSE_REG_PS2) & 1);
 }
 
+/* void mouse_reg_write(uint8_t data)
+ * @input: data - data to be sent to mouse
+ * @description: send the data to mouse.
+ */
 void mouse_reg_write(uint8_t data) {
     mouse_reg_wait_out();
     outb(MOUSE_CMD_SEND, MOUSE_REG_PS2);
@@ -23,11 +33,18 @@ void mouse_reg_write(uint8_t data) {
     outb(data, MOUSE_REG_KEYBOARD);
 }
 
+/* uint8_t mouse_reg_read()
+ * @output: ret val - data from mouse
+ * @description: receive a data from mouse
+ */
 uint8_t mouse_reg_read() {
     mouse_reg_wait_in();
     return inb(MOUSE_REG_KEYBOARD);
 }
 
+/* void mouse_init()
+ * @description: initialize the mouse to send packets on move.
+ */
 void mouse_init() {
     mouse_reg_wait_out(); outb(MOUSE_CMD_AUXILARY, MOUSE_REG_PS2);
     mouse_reg_wait_out(); outb(MOUSE_GET_COMPAQ_STATUS, MOUSE_REG_PS2);
@@ -51,6 +68,9 @@ void mouse_init() {
     enable_irq(MOUSE_IRQ);
 }
 
+/* void mouse_interrupt()
+ * @description: mouse interrupt handler, updates mouse values
+ */
 void mouse_interrupt() {
     cli();
     mouse_t mouse;
@@ -84,8 +104,7 @@ unified_fs_interface_t mouse_if = {
 /* int32_t mouse_open(int32_t* inode, char* filename)
  * @input: all ignored
  * @output: 0 (SUCCESS)
- * @description: initialize RTC, set freq to 2 Hz.
- *     using *inode to record the interval of rtc calls.
+ * @description: initialize mouse, clear all recorded data.
  */
 int32_t mouse_open(int32_t* inode, char* filename) {
     cli();
@@ -105,9 +124,7 @@ int32_t mouse_open(int32_t* inode, char* filename) {
 /* int32_t mouse_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len)
  * @input: all ignored
  * @output: 0 (SUCCESS)
- * @description: wait until the next RTC tick.
- *     using *offset to record how many ticks passed.
- *     *offset will be updated by RTC interrupt.
+ * @description: read mouse status.
  */
 int32_t mouse_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
     if(buf == NULL) return FAIL;
@@ -130,7 +147,7 @@ int32_t mouse_read(int32_t* inode, uint32_t* offset, char* buf, uint32_t len) {
 /* int32_t mouse_close(int32_t* inode)
  * @input: inode - ignored
  * @output: 0 (SUCCESS)
- * @description: close RTC, currently does nothing
+ * @description: release mouse for use with other programs.
  */
 int32_t mouse_close(int32_t* inode) {
     mouse_used = 0;
