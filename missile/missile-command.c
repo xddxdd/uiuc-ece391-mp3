@@ -145,6 +145,10 @@ void make_missile(int sx, int sy, int dx, int dy, char c, int vel)
  * move the crosshairs via the ioctl()
  */
 void update_crosshairs(command_t cmd, int16_t dx, int16_t dy){
+	if(crosshairs_x + dx > 79) dx = 79 - crosshairs_x;
+	if(crosshairs_x + dx < 0) dx = 0 - crosshairs_x;
+	if(crosshairs_y + dy > 24) dy = 24 - crosshairs_y;
+	if(crosshairs_y + dy < 0) dy = 0 - crosshairs_y;
 
 	if((dx != 0) || (dy != 0)){
 		unsigned long d;

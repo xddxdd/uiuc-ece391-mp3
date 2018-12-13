@@ -3,7 +3,7 @@ Extra features implemented in this OS:
   - WAV playback support (8-bit only, up to 44100 sampling rate & 2 channels)
 - ACPI support (`shutdown` & `reboot`)
 - CPUID support (`cat cpuinfo` to view CPU information)
-- Tux Controller support (use `tuxtest` program)
+- Tux Controller support
   - `tuxtest` commandline program
   - `missile` Missile Command game from MP1
 - Exception handler will print out context information
@@ -14,3 +14,5 @@ Extra features implemented in this OS:
   - Chinese character display
   - Status bar
   - Chinese Pinyin input method
+- Mouse support
+  - `missile` Missile Command game from MP1
