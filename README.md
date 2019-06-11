@@ -8,6 +8,8 @@ You **SHOULD NOT** copy these code into your own ECE 391 project without proper 
 
 I do not own the copyright to artworks in this project. They are downloaded from websites that provide these artworks for free.
 
+This is a collaborative project by 4 students. See commit log for individual contributions.
+
 Overview
 --------
 
