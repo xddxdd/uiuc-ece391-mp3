@@ -1,3 +1,82 @@
+ECE 391 MP3 - Operating System
+==============================
+
+WARNING
+-------
+
+You **SHOULD NOT** copy these code into your own ECE 391 project without proper citation. Doing this is a violation of academic integrity. **You have been warned.**
+
+I do not own the copyright to artworks in this project. They are downloaded from websites that provide these artworks for free.
+
+Overview
+--------
+
+This is the final project for my ECE 391 course taken in UIUC. The project consists of implementing an Linux-like operating system.
+
+Features
+--------
+
+- Required by course:
+  - Memory paging
+  - i8259 PIC interrupt handling
+  - Exception handling
+  - Keyboard input buffer
+  - In memory read-only filesystem
+  - Round-robin scheduling based on Programmable Interrupt Timer
+- Extra features:
+  - Sound card support (Sound Blaster 16)
+    - WAV playback support (8-bit only, up to 44100 sampling rate & 2 channels)
+    - `play halloffame.wav`
+  - ACPI support (`shutdown` & `reboot`)
+  - CPUID support (`cat cpuinfo` to view CPU information)
+  - Tux Controller support
+    - `tuxtest` commandline program
+    - `missile` Missile Command game from MP1
+  - Exception handler will print out context information
+  - CMOS Datetime support (`cat date`)
+  - PCI bus support
+  - 16/32 bit color support using QEMU's VGA adapter
+    - Image display
+    - Status bar
+    - Chinese character display
+      - UTF-8 encoding, easily extensible to other languages
+      - `cat chinese.txt`
+    - Chinese Pinyin input method
+  - Mouse support (Unstable)
+    - `missile` Missile Command game from MP1
+
+How to run
+----------
+
+If using latest QEMU:
+
+`qemu-system-i386 -hda "student-distrib/mp3.img" -m 512 -name test -gdb tcp:127.0.0.1:1234 -soundhw pcspk -soundhw sb16 -serial /dev/ttyUSB0`
+
+If using QEMU provided by this course:
+
+- QEMU VGA needs to be enabled explicitly `-vga std`
+- ACPI doesn't work
+
+`qemu-system-i386 -hda "student-distrib/mp3.img" -m 512 -name test -gdb tcp:127.0.0.1:1234 -soundhw pcspk -soundhw sb16 -serial /dev/ttyUSB0 -vga std`
+
+Credits
+-------
+
+Open source project used (Unrelated to code, only used as data):
+
+- Noto Sans CJK, Google Fonts
+  - URL: https://www.google.com/get/noto/help/cjk/
+  - License: SIL Open Font License, free for personal/educational use
+  - Chinese font data in `student-distrib/data/chinese_font.c`
+- Chinese character to Pinyin translation table
+  - URL: https://github.com/ervinzhao/hanzipinyin
+  - License: Public domain
+  - Preprocessed with `helpers/chinese-pinyin.ipynb`, stored as pinyin->character
+    table in `student-distrib/data/chinese_pinyin.c`
+
+Original README by UIUC
+=======================
+
 LOGISTICS
 -----
 ECE 391 MP3 
